@@ -34,7 +34,7 @@ describe('deepMerge', () => {
   })
 
   it('source 中 undefined 值不应覆盖 target', () => {
-    const target = { a: 1, b: 2 }
+    const target = { a: 1, b: 2 } as Record<string, any>
     const source = { b: undefined, c: 3 }
     const result = deepMerge(target, source)
 
@@ -76,9 +76,9 @@ describe('deepMerge', () => {
   })
 
   it('应创建新对象不影响原始', () => {
-    const target = { a: 1, nested: { x: 1 } }
+    const target = { a: 1, nested: { x: 1 } as Record<string, any> }
     const source = { nested: { y: 2 } }
-    const result = deepMerge(target, source)
+    const result: any = deepMerge(target, source)
 
     result.a = 999
     result.nested.x = 999

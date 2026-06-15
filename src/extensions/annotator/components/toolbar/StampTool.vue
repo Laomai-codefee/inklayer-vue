@@ -13,10 +13,10 @@
       <!-- Tabs -->
       <div class="flex rounded-full bg-muted p-0.5 mb-3">
         <button class="flex-1 text-xs py-1 rounded-full transition-colors"
-          :class="tab === 'default' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'"
+          :class="tab === 'default' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'"
           @click="tab = 'default'">{{ $t('common.default') }}</button>
         <button class="flex-1 text-xs py-1 rounded-full transition-colors"
-          :class="tab === 'custom' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'"
+          :class="tab === 'custom' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'"
           @click="tab = 'custom'">{{ $t('common.custom') }}</button>
       </div>
 
@@ -66,17 +66,17 @@
   <!-- Stamp Editor Dialog -->
   <Teleport to="body">
     <div v-if="editorOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40" @click.self="editorOpen = false">
-      <div class="bg-background rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
+      <div class="bg-background text-foreground rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
         <h3 class="text-sm font-semibold mb-4">{{ $t('annotator.common.createStamp') }}</h3>
 
         <!-- Konva Preview -->
-        <div ref="konvaContainer" class="h-[120px] rounded-md border border-border bg-muted/30 overflow-hidden mb-4" />
+        <div ref="konvaContainer" class="h-[120px] rounded-md border border-border bg-white overflow-hidden mb-4" />
 
         <!-- Stamp Text -->
         <label class="block mb-4">
           <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.stampText') }}</span>
           <input v-model="form.stampText"
-            class="flex h-8 w-full rounded-md border border-border bg-background px-2 text-xs mt-1 outline-none focus:border-ring"
+            class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
             @input="renderPreview" />
         </label>
 
@@ -96,13 +96,13 @@
           </div>
         </div>
 
-        <!-- Font style + Border style -->
-        <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Font style + Font family + Border style -->
+        <div class="grid grid-cols-3 gap-3 mb-4">
           <div>
             <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.fontStyle') }}</span>
             <div class="flex gap-1 mt-1">
               <button v-for="s in fontStyles" :key="s.value"
-                class="size-7 flex items-center justify-center rounded text-xs border transition-colors"
+                class="size-7 flex items-center justify-center rounded text-xs border transition-colors text-foreground"
                 :class="form.fontStyle.includes(s.value) ? 'bg-accent border-ring' : 'border-border hover:bg-accent/50'"
                 @click="toggleFontStyle(s.value); renderPreview()"><span v-html="s.icon" /></button>
             </div>
@@ -110,23 +110,21 @@
           <div>
             <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.fontFamily') }}</span>
             <select v-model="form.fontFamily"
-              class="flex h-8 w-full rounded-md border border-border bg-background px-2 text-xs mt-1 outline-none"
+              class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
               @change="renderPreview">
               <option v-for="f in defaultFontList" :key="f.value" :value="f.value">{{ f.label }}</option>
             </select>
           </div>
-        </div>
-
-        <!-- Border style -->
-        <div class="mb-4">
-          <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.borderStyle') }}</span>
-          <select v-model="form.borderStyle"
-            class="flex h-8 w-full rounded-md border border-border bg-background px-2 text-xs mt-1 outline-none"
-            @change="renderPreview">
-            <option value="solid">{{ $t('annotator.editor.stamp.solid') }}</option>
-            <option value="dashed">{{ $t('annotator.editor.stamp.dashed') }}</option>
-            <option value="none">{{ $t('annotator.editor.stamp.none') }}</option>
-          </select>
+          <div>
+            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.borderStyle') }}</span>
+            <select v-model="form.borderStyle"
+              class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
+              @change="renderPreview">
+              <option value="solid">{{ $t('annotator.editor.stamp.solid') }}</option>
+              <option value="dashed">{{ $t('annotator.editor.stamp.dashed') }}</option>
+              <option value="none">{{ $t('annotator.editor.stamp.none') }}</option>
+            </select>
+          </div>
         </div>
 
         <Separator class="my-4" />
@@ -136,12 +134,12 @@
           <div>
             <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.timestampText') }}</span>
             <div class="flex gap-3 mt-1">
-              <label class="flex items-center gap-1 text-xs">
+              <label class="flex items-center gap-1 text-xs text-foreground">
                 <input type="checkbox" :checked="form.timestamp.includes('username')" class="size-3"
                   @change="toggleTimestamp('username'); renderPreview()" />
                 {{ $t('annotator.editor.stamp.username') }}
               </label>
-              <label class="flex items-center gap-1 text-xs">
+              <label class="flex items-center gap-1 text-xs text-foreground">
                 <input type="checkbox" :checked="form.timestamp.includes('date')" class="size-3"
                   @change="toggleTimestamp('date'); renderPreview()" />
                 {{ $t('annotator.editor.stamp.date') }}
@@ -151,7 +149,7 @@
           <div>
             <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.dateFormat') }}</span>
             <select v-model="form.dateFormat"
-              class="flex h-8 w-full rounded-md border border-border bg-background px-2 text-xs mt-1 outline-none"
+              class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
               :disabled="!form.timestamp.includes('date')"
               @change="renderPreview">
               <optgroup v-for="g in dateFormatOptions" :key="g.label" :label="g.label">
@@ -165,7 +163,7 @@
         <label class="block mb-4">
           <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.customTimestamp') }}</span>
           <input v-model="form.customTimestampText"
-            class="flex h-8 w-full rounded-md border border-border bg-background px-2 text-xs mt-1 outline-none focus:border-ring"
+            class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
             @input="renderPreview" />
         </label>
 

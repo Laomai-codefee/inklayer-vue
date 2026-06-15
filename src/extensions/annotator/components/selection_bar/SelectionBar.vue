@@ -1,5 +1,5 @@
 <template>
-  <Popover :open="visible" side="bottom" class="!w-max shadow-[0_4px_20px_rgba(0,0,0,0.15)]" @update:open="visible = $event" @focus-outside="close">
+  <Popover :open="visible" side="bottom" class="!w-max shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]" @update:open="visible = $event" @focus-outside="close">
     <!-- Invisible trigger positioned at selection -->
     <template #trigger>
       <span class="fixed pointer-events-none" :style="{ left: x + 'px', top: y + 'px', width: '1px', height: '1px' }" />

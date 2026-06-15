@@ -19,7 +19,7 @@ const ctx = inject(PdfViewerContextKey)!
 
 const customToolbarSlot = computed(() => {
   if (!props.toolbar) return null
-  if (typeof props.toolbar === 'function') return props.toolbar(ctx)
+  if (typeof props.toolbar === 'function') return (props.toolbar as any)(ctx)
   return props.toolbar
 })
 </script>

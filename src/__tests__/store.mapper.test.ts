@@ -14,7 +14,7 @@ import {
   annotationsToStores,
 } from '@/core/adapters/store.mapper'
 import { AnnotationType, PdfjsAnnotationType } from '@/extensions/annotator/const/definitions'
-import type { IAnnotationStore } from '@/extensions/annotator/const/definitions'
+import type { IAnnotationStore, PdfjsAnnotationSubtype } from '@/extensions/annotator/const/definitions'
 import type { Annotation, AnnotationKind } from '@/core/annotation.core'
 
 // =============================================================================
@@ -125,7 +125,7 @@ describe('storeToAnnotation', () => {
   })
 
   it('应正确转换 CLOUD 类型', () => {
-    const store = makeStore({ type: AnnotationType.CLOUD, subtype: 'Cloud' })
+    const store = makeStore({ type: AnnotationType.CLOUD, subtype: 'PolyLine' })
     const ann = storeToAnnotation(store)
 
     expect(ann.kind).toBe('shape')
@@ -435,13 +435,13 @@ describe('往返转换一致性', () => {
   const roundTripTypes: Array<{
     name: string
     type: AnnotationType
-    subtype: string
+    subtype: PdfjsAnnotationSubtype
     expectedBackType?: AnnotationType
-    expectedBackSubtype?: string
+    expectedBackSubtype?: PdfjsAnnotationSubtype
   }> = [
     { name: 'HIGHLIGHT', type: AnnotationType.HIGHLIGHT, subtype: 'Highlight' },
     { name: 'UNDERLINE', type: AnnotationType.UNDERLINE, subtype: 'Underline', expectedBackType: AnnotationType.HIGHLIGHT, expectedBackSubtype: 'Underline' },
-    { name: 'STRIKEOUT', type: AnnotationType.STRIKEOUT, subtype: 'StrikeOut', expectedBackType: AnnotationType.HIGHLIGHT, expectedBackSubtype: 'Strikeout' },
+    { name: 'STRIKEOUT', type: AnnotationType.STRIKEOUT, subtype: 'StrikeOut', expectedBackType: AnnotationType.HIGHLIGHT, expectedBackSubtype: 'StrikeOut' as PdfjsAnnotationSubtype },
     { name: 'RECTANGLE', type: AnnotationType.RECTANGLE, subtype: 'Square' },
     { name: 'CIRCLE', type: AnnotationType.CIRCLE, subtype: 'Circle', expectedBackType: AnnotationType.RECTANGLE, expectedBackSubtype: 'Square' },
     { name: 'NOTE', type: AnnotationType.NOTE, subtype: 'Text' },
@@ -484,7 +484,7 @@ describe('批量转换', () => {
   it('annotationsToStores 应转换数组', () => {
     const stores = [
       makeStore({ id: 'a1', type: AnnotationType.NOTE, subtype: 'Text' }),
-      makeStore({ id: 'a2', type: AnnotationType.CLOUD, subtype: 'Cloud' }),
+      makeStore({ id: 'a2', type: AnnotationType.CLOUD, subtype: 'PolyLine' }),
     ]
     const anns = storesToAnnotations(stores)
     const back = annotationsToStores(anns)

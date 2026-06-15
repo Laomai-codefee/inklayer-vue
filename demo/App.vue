@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-screen bg-background text-foreground">
     <header class="flex items-center gap-1 px-4 h-11 shrink-0 select-none overflow-x-auto">
-      <span class="font-semibold text-sm text-primary mr-4 shrink-0 flex items-center gap-1.5">
+      <span class="font-semibold text-sm mr-4 shrink-0 flex items-center gap-1.5">
         <img src="/logo.svg" alt="InkLayer" class="size-5" />
         InkLayer Vue
       </span>
@@ -16,6 +16,9 @@
         </TabsList>
       </Tabs>
       <div class="flex-1" />
+      <Button variant="outline" size="sm" class="h-8 shrink-0 gap-1 text-xs" @click="openCode">
+        &lt;/&gt; Show Code
+      </Button>
       <Button variant="outline" size="icon" class="size-8 shrink-0" @click="toggleDark">
         {{ isDark ? '☀️' : '🌙' }}
       </Button>
@@ -29,13 +32,17 @@
       <PdfAnnotatorCustom v-else-if="activeTab === 'PdfAnnotatorCustom'" />
       <PdfAnnotatorFull v-else-if="activeTab === 'PdfAnnotatorFull'" />
     </div>
+
+    <ShowCode ref="showCodeRef" :filename="currentDemo" :code="currentCode" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import ShowCode from './components/ShowCode.vue'
+import { snippets } from './snippets'
 import PdfViewerBasic from './PdfViewerBasic.vue'
 import PdfViewerData from './PdfViewerData.vue'
 import PdfViewerCustom from './PdfViewerCustom.vue'
@@ -44,11 +51,18 @@ import PdfAnnotatorCustom from './PdfAnnotatorCustom.vue'
 import PdfAnnotatorFull from './PdfAnnotatorFull.vue'
 
 const activeTab = ref('PdfViewerBasic')
+const showCodeRef = ref<InstanceType<typeof ShowCode> | null>(null)
 
-// Follow system preference by default
+const currentDemo = computed(() => `${activeTab.value}.vue`)
+const currentCode = computed(() => snippets[activeTab.value] || '')
+
+function openCode() {
+  showCodeRef.value?.open()
+}
+
+// Dark mode
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const isDark = ref(prefersDark)
-// Set initial state on mount
 document.documentElement.classList.toggle('dark', prefersDark)
 
 function toggleDark() {

@@ -18,7 +18,7 @@ export { default as ZoomTool } from './extensions/annotator/components/toolbar/Z
 export { default as ColorPicker } from './extensions/annotator/components/toolbar/ColorPicker.vue'
 export { default as AnnotationSidebar } from './extensions/annotator/components/sidebar/AnnotationSidebar.vue'
 export { default as SearchSidebar } from './components/SearchSidebar.vue'
-export { default as AnnotationIcon } from './components/.vue'
+export { default as AnnotationIcon } from './components/Icon.vue'
 
 // ========== shadcn-vue UI Components ==========
 export { default as Button } from './components/ui/button/Button.vue'

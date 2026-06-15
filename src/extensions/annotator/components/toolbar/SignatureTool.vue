@@ -28,16 +28,16 @@
   <!-- Editor Dialog -->
   <Teleport to="body">
     <div v-if="modalOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40" @click.self="modalOpen = false">
-      <div class="bg-background rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
+      <div class="bg-background text-foreground rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
         <h3 class="text-sm font-semibold mb-4">{{ $t('annotator.common.createSignature') }}</h3>
 
         <!-- Mode switcher -->
         <div class="flex justify-center mb-4">
           <div class="flex rounded-full bg-muted p-0.5">
-            <button v-for="m in editorModes" :key="m.value"
-              class="px-5 py-1.5 text-xs rounded-full transition-colors"
-              :class="signatureType === m.value ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'"
-              @click="setSignatureType(m.value)">{{ m.label }}</button>
+          <button v-for="m in editorModes" :key="m.value"
+            class="px-5 py-1.5 text-xs rounded-full transition-colors"
+            :class="signatureType === m.value ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'"
+            @click="setSignatureType(m.value)">{{ m.label }}</button>
           </div>
         </div>
 
@@ -51,7 +51,7 @@
                 :style="{ backgroundColor: c }"
                 @click="changeColor(c)" />
               <select v-if="signatureType === 'Enter'" v-model="fontFamily"
-                class="ml-2 text-xs rounded border border-border bg-background px-1.5 py-1 outline-none focus:border-ring"
+                class="ml-2 text-xs rounded border border-border bg-background text-foreground px-1.5 py-1 outline-none focus:border-ring"
                 @change="loadFont(fontFamily)">
                 <option v-for="f in handwritingFonts" :key="f.value" :value="f.value">{{ f.label }}</option>
               </select>
@@ -61,18 +61,18 @@
         </div>
 
         <!-- Content area -->
-        <div class="relative rounded-md bg-[#eee] border border-[#ccc] overflow-hidden" style="width:420px;height:200px;margin:0 auto;">
+        <div class="relative rounded-md bg-white border border-border overflow-hidden" style="width:420px;height:200px;margin:0 auto;">
           <!-- Enter mode -->
           <input v-if="signatureType === 'Enter'"
             ref="enterInputRef"
             v-model="typedText"
-            class="w-full h-full bg-transparent border-none text-center outline-none"
+            class="w-full h-full bg-transparent border-none text-center outline-none text-foreground placeholder:text-muted-foreground"
             :placeholder="$t('annotator.editor.signature.area')"
             :style="{ color: currentColor, fontFamily, fontSize: '80px', lineHeight: '200px' }" />
 
           <!-- Draw mode -->
           <template v-if="signatureType === 'Draw'">
-            <div class="absolute inset-0 flex items-center justify-center text-muted-foreground/40 text-[80px] pointer-events-none select-none">
+            <div class="absolute inset-0 flex items-center justify-center text-gray-300 text-[80px] pointer-events-none select-none">
               {{ $t('annotator.editor.signature.area') }}
             </div>
             <div ref="konvaContainerRef" class="w-full h-full relative z-10" style="cursor:crosshair" />

@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
   // into the consumer's project.
   return {
     plugins: [vue()],
+    publicDir: false,
     resolve: resolveConfig,
     css: {
       postcss: {
@@ -81,6 +82,8 @@ export default defineConfig(({ mode }) => {
           'pinia',
           'pdfjs-dist',
           'konva',
+          'exceljs',
+          'file-saver',
           /^pdfjs-dist\//,
           /^konva\//,
         ],

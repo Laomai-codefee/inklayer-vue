@@ -1,5 +1,5 @@
 <template>
-  <Popover :open="visible" :side="popoverSide" class="!w-max shadow-[0_4px_20px_rgba(0,0,0,0.15)]" @update:open="visible = $event" @focus-outside.prevent>
+  <Popover :open="visible" :side="popoverSide" class="!w-max shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]" @update:open="visible = $event" @focus-outside.prevent>
     <!-- Invisible trigger positioned at annotation location -->
     <template #trigger>
       <span

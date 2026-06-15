@@ -131,7 +131,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
   }
 
   function setPainter(p: Painter | null) { _painter.value = p }
-  function getPainter(): Painter | null { return _painter.value }
+  function getPainter(): Painter | null { return _painter.value ?? null }
   const painter = computed(() => _painter.value)
 
   return {

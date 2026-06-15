@@ -7,7 +7,6 @@
 
 <script lang="ts">
 import { type InjectionKey, type Ref } from 'vue'
-import { Painter } from '@/extensions/annotator/painter'
 export const PainterKey = Symbol('AnnotatorPainter') as InjectionKey<Ref<Painter | null>>
 </script>
 

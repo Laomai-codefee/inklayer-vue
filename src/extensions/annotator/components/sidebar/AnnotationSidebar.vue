@@ -91,7 +91,7 @@
           <!-- Comment text / edit -->
           <template v-if="editAnnotationId === ann.id">
             <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)" :value="ann.contentsObj?.text || ''"
-              class="w-full min-h-[50px] text-xs rounded border border-input bg-background p-1.5 resize-none mt-1.5" rows="3"
+              class="w-full min-h-[50px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none mt-1.5" rows="3"
               @input="editComment = ($event.target as HTMLTextAreaElement).value"
               @keydown.enter.exact.prevent="updateComment(ann)"
               @blur="editAnnotationId = null"
@@ -108,7 +108,7 @@
               <div class="flex-1 min-w-0">
                 <template v-if="editReplyId === reply.id">
                   <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)" :value="reply.content"
-                    class="w-full min-h-[40px] text-xs rounded border border-input bg-background p-1.5 resize-none" rows="2"
+                    class="w-full min-h-[40px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none" rows="2"
                     @input="editReplyContent = ($event.target as HTMLTextAreaElement).value"
                     @keydown.enter.exact.prevent="updateReply(ann, reply)"
                     @blur="editReplyId = null"
@@ -136,7 +136,7 @@
           <!-- Reply input -->
           <div v-if="replyAnnotationId === ann.id" class="mt-2 pl-7">
             <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)"
-              class="w-full min-h-[40px] text-xs rounded border border-input bg-background p-1.5 resize-none" rows="2"
+              class="w-full min-h-[40px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none" rows="2"
               :placeholder="$t('common.reply') + '...'"
               @input="newReplyContent = ($event.target as HTMLTextAreaElement).value"
               @keydown.enter.exact.prevent="addReply(ann)"

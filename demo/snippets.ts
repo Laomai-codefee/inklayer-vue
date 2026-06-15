@@ -1,6 +1,136 @@
-<template>
-    <div>
-        <PdfAnnotator
+/**
+ * Demo 示例代码
+ * 每个 key 对应一个 demo tab，显示的是给用户看的"如何使用"代码
+ */
+export const snippets: Record<string, string> = {
+  PdfViewerBasic: `<template>
+  <PdfViewer
+    title="PDF VIEWER"
+    url="/sample.pdf"
+  />
+</template>
+
+<script setup lang="ts">
+import { PdfViewer } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+<\/script>`,
+
+  PdfViewerData: `<template>
+  <PdfViewer
+    title="PDF VIEWER DATA"
+    :data="pdfData"
+  />
+</template>
+
+<script setup lang="ts">
+import { PdfViewer } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+
+const pdfData = '...' // base64 or byte array
+<\/script>`,
+
+  PdfViewerCustom: `<template>
+  <PdfViewer
+      :enable-range="false"
+      title="PDF VIEWER CUSTOM"
+      :url="pdfUrl"
+      :layout-style="{ width: '100vw', height: '96vh' }"
+      :show-text-layer="false"
+      :show-annotations="true"
+      default-active-sidebar-key="sidebar-1"
+      :sidebar="customSidebar"
+      @event-bus-ready="onEventBusReady"
+      @document-loaded="(v) => console.log('document loaded', v)"
+    >
+      <!-- ====== Custom Actions (replace default Print button) ====== -->
+      <template #actions="{ context }">
+        <div style="display: flex; gap: 8px">
+          <button @click="console.log(context.pdfViewer)">PDF Viewer</button>
+          <button @click="context.toggleSidebar()">Toggle Sidebar</button>
+          <button @click="context.openSidebar('sidebar-1')">Open Sidebar1</button>
+          <button @click="context.closeSidebar()">Close Sidebar</button>
+          <button @click="context.print()">Print</button>
+          <button @click="context.download('test')">Download</button>
+        </div>
+      </template>
+
+      <!-- ====== Custom Toolbar (replaces ZoomTool) ====== -->
+      <template #toolbar="{ context }">
+        <div style="display: flex; gap: 10px">
+          <button @click="console.log(context.pdfViewer)">Get PDF Viewer</button>
+          <button @click="context.toggleSidebar()">Toggle Sidebar</button>
+          <button @click="(context.pdfViewer as any)?.scrollPageIntoView?.({ pageNumber: 1 })">goto page1</button>
+          <button @click="(context.pdfViewer as any)?.scrollPageIntoView?.({ pageNumber: 10 })">goto page 10</button>
+          <button @click="context.print()">print</button>
+        </div>
+      </template>
+
+      <!-- ====== Sidebar Panel 1 ====== -->
+      <template #sidebar-sidebar-1="{ context }">
+        <div style="display: flex; gap: 10px; flex-direction: column; padding: 12px">
+          Sidebar 1
+          <button @click="context.toggleSidebar()">toggleSidebar</button>
+          <button @click="console.log(context.pdfViewer)">Get PDF Viewer</button>
+          <button @click="(context.pdfViewer as any)?.scrollPageIntoView?.({ pageNumber: 1 })">goto page1</button>
+          <button @click="(context.pdfViewer as any)?.scrollPageIntoView?.({ pageNumber: 10 })">goto page 10</button>
+          <button @click="context.print()">print</button>
+          <button @click="context.download()">Download</button>
+        </div>
+      </template>
+
+      <!-- ====== Sidebar Panel 2 ====== -->
+      <template #sidebar-sidebar-2>
+        <div style="display: flex; gap: 10px; flex-direction: column; padding: 12px">
+          Sidebar 2
+        </div>
+      </template>
+    </PdfViewer>
+</template>
+
+<script setup lang="ts">
+import { PdfViewer } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+
+const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+
+const customSidebar: SidebarPanel[] = [
+  { key: 'sidebar-1', title: 'Sidebar 1', icon: '📋' },
+  { key: 'sidebar-2', title: 'Sidebar 2', icon: '📌' },
+]
+
+function onEventBusReady(eventBus: any) {
+  console.log('eventBus', eventBus)
+  eventBus?.on('pagerendered', ({ source, pageNumber, cssTransform }: any) => {
+    console.log('Page rendered', source, pageNumber, cssTransform)
+  })
+  eventBus?.on('updateviewarea', (data: any) => {
+    console.log('updateviewarea', data)
+  })
+  eventBus?.on('scalechanging', (data: any) => {
+    console.log('scalechanging', data)
+  })
+  eventBus?.on('pagechanging', (data: any) => {
+    console.log('pagechanging', data)
+  })
+}
+<\/script>`,
+
+  PdfAnnotatorBasic: `<template>
+  <PdfAnnotator
+    title="PDF ANNOTATOR"
+    url="/sample.pdf"
+    :user="{ id: 'u1', name: 'Alice' }"
+    @save="(annotations) => console.log(annotations)"
+  />
+</template>
+
+<script setup lang="ts">
+import { PdfAnnotator } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+<\/script>`,
+
+  PdfAnnotatorCustom: `<template>
+  <PdfAnnotator
             theme="violet"
             :enable-range="false"
             title="PDF ANNOTATOR CUSTOM"
@@ -28,16 +158,14 @@
                 </div>
             </template>
         </PdfAnnotator>
-    </div>
 </template>
+
 <script setup lang="ts">
-import PdfAnnotator from '@/PdfAnnotator.vue'
-import type { Annotation } from '@/core/annotation.core'
+import { PdfAnnotator } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
-
-// Font reference (same as React demo — file may not exist, font entry is configuration)
-// import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 
 const customOptions = {
     signature: {
@@ -55,8 +183,7 @@ const customOptions = {
     }
 }
 
-// Full initialAnnotations from React demo (Core format)
-const initialAnnotations: Annotation[] = [
+const initialAnnotations = [
     {
         id: 'BzGHwy94HKi2Okm7ViT4a',
         kind: 'shape',
@@ -199,5 +326,60 @@ const initialAnnotations: Annotation[] = [
             }
         }
     }
-] as Annotation[]
-</script>
+]
+<\/script>`,
+
+  PdfAnnotatorFull: `<template>
+  <PdfAnnotator
+      theme="amber"
+      :enable-range="true"
+      title="PDF ANNOTATOR FULL"
+      :url="pdfUrl"
+      :default-show-annotations-sidebar="true"
+      :user="{ id: '9527', name: 'Lao Mai' }"
+      :enable-native-annotations="true"
+      locale="en-US"
+      :initial-annotations="[]"
+      :default-options="defaultOptions"
+      :layout-style="{ height: '96vh' }"
+      @save="(a) => console.log('Saved:', a)"
+      @load="() => console.log('🎉 PDF Loaded')"
+      @annotation-added="(a) => console.log('➕', (a as any).id, (a as any).kind)"
+      @annotation-deleted="(id) => console.log('➖', id)"
+      @annotation-updated="(a) => console.log('✏️', (a as any).id)"
+      @annotation-selected="(a, isClick) => console.log('👉', (a as any)?.id, isClick)"
+    >
+      <!-- ====== Custom Actions (align React Full demo) ====== -->
+      <template #actions="{ onSave, getAnnotations, exportToExcel, exportToPdf }">
+        <div style="display: flex; gap: 8px">
+          <button @click="onSave()">💾 Save (InkLayer)</button>
+          <button @click="console.log('Core:', getAnnotations())">📦 Get Annotations</button>
+          <button @click="exportToExcel('Export Excel')">📊 Export Excel</button>
+          <button @click="exportToPdf('Export PDF')">📄 Export PDF</button>
+        </div>
+      </template>
+    </PdfAnnotator>
+</template>
+
+<script setup lang="ts">
+import { PdfAnnotator } from 'inklayer-vue'
+import 'inklayer-vue/dist/inklayer-vue.css'
+
+const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+
+const defaultOptions = {
+  colors: ['red'],
+  signature: {
+    defaultSignature: [
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...' // truncated for brevity, will use empty
+    ],
+    defaultFont: [
+      { label: '楷体', value: 'STKaiti', external: false },
+      { label: '千图笔锋手写体', value: 'qiantubifengshouxieti', external: false },
+      { label: '平方长安体', value: 'PingFangChangAnTi-2', external: false },
+    ]
+  },
+  stamp: { defaultStamp: [] }
+}
+<\/script>`,
+}

@@ -24,7 +24,7 @@ defineEmits<{ 'update:open': [value: boolean]; 'focus-outside': [event: Event] }
         :side-offset="4"
         @focus-outside="$emit('focus-outside', $event)"
         :class="cn(
-          'z-999 rounded-md border border-[rgba(0,0,0,0.1)] bg-popover text-popover-foreground shadow-[0_2px_12px_rgba(0,0,0,0.1)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+          'z-999 rounded-md border border-border bg-popover text-popover-foreground shadow-[0_2px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           $props.class
         )"
       >

@@ -11,7 +11,7 @@
       </Tooltip>
     </template>
     <!-- Custom: function gets context, component renders as-is -->
-    <component v-else-if="typeof actions === 'function'" :is="actions(ctx)" />
+    <component v-else-if="typeof actions === 'function'" :is="(actions as any)(ctx)" />
     <component v-else :is="actions" />
   </div>
 </template>
