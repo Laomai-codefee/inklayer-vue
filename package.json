@@ -30,7 +30,7 @@
   "scripts": {
     "dev": "vite --mode demo --open",
     "build": "vue-tsc --noEmit && vite build",
-    "build:demo": "vite build --mode demo",
+    "build:demo": "vite build --mode demo --base ./ --outDir docs",
     "preview": "vite preview --mode demo",
     "test": "vitest run",
     "test:watch": "vitest",

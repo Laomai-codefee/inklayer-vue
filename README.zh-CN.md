@@ -13,6 +13,7 @@
 [English](./README.md) ｜ 简体中文
 ---
 [![NPM](https://img.shields.io/npm/v/inklayer-vue.svg)](https://www.npmjs.com/package/inklayer-vue)
+[![Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://laomai-codefee.github.io/inklayer-vue/)
 [![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
 
 ### [>>Online Demo](https://laomai-codefee.github.io/inklayer-demos/)
