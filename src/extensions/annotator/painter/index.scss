@@ -1,0 +1,73 @@
+// 确保 PDF 文本层在 Konva 画布层之上（默认状态）
+// 这样用户才能正常选中文字。绘画模式时通过 .InkLayer_Annotator_is_painting 提升 Konva 层
+// 对齐 React 版 styles.module.scss 中的 :global(.textLayer) / :global(.annotationLayer) 设置
+.textLayer {
+    z-index: 9 !important;
+}
+.annotationLayer {
+    z-index: 10 !important;
+}
+
+.InkLayer_Annotator_painter_wrapper {
+    position: absolute;
+    text-align: initial;
+    top: 0;
+    inset: 0;
+    overflow: hidden;
+    line-height: 1;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    z-index: 1;
+}
+
+.InkLayer_Annotator_selector_hover {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: pointer !important;
+    }
+}
+
+.InkLayer_Annotator_is_painting {
+    .InkLayer_Annotator_painter_wrapper {
+        z-index: 999;
+    }
+}
+
+.InkLayer_Annotator_painting_type_1,
+.InkLayer_Annotator_painting_type_2,
+.InkLayer_Annotator_painting_type_3 {
+    .textLayer {
+        &:not(.free) span {
+            cursor: var(--editorHighlight-editing-cursor);
+        }
+    }
+}
+
+.InkLayer_Annotator_painting_type_4,
+.InkLayer_Annotator_painting_type_5,
+.InkLayer_Annotator_painting_type_6,
+.InkLayer_Annotator_painting_type_11,
+.InkLayer_Annotator_painting_type_12,
+.InkLayer_Annotator_painting_type_13 {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: crosshair;
+    }
+}
+.InkLayer_Annotator_painting_type_7 {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: var(--editorInk-editing-cursor);
+    }
+}
+
+.InkLayer_Annotator_painting_type_8 {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: var(--editorFreeHighlight-editing-cursor);
+    }
+}
+
+.InkLayer_Annotator_painting_type_9,
+.InkLayer_Annotator_painting_type_10 {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: var(--InkLayer_Annotator-image-cursor);
+    }
+}
