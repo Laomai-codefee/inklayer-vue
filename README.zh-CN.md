@@ -69,12 +69,6 @@ pnpm add inklayer-vue
 yarn add inklayer-vue
 ```
 
-**必要的 peer dependencies：**
-
-```bash
-npm install vue@^3.5 pinia@^2 pdfjs-dist@~4.3 konva@^9
-```
-
 ---
 
 ## 🚀 快速开始
