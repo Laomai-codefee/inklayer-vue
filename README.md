@@ -5,14 +5,14 @@
 <h1 align="center">InkLayer Vue</h1>
 
 <p align="center">
-  Extensible Vue3 PDF annotation SDK and viewer built on PDF.js
-        <br/>supporting document review, comments, and annotation editing.
+  基于PDF.js构建的可扩展Vue3 PDF注释SDK和查看器
+        <br/>支持文档审查、评论和注释编辑。
 </p>
 
 ---
-English | [简体中文](./README.zh-CN.md)
+[English](./README-en-US.md) | 简体中文
 ---
-[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-vue)
+[![NPM](https://img.shields.io/npm/v/inklayer-vue.svg)](https://www.npmjs.com/package/inklayer-vue)
 [![Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://laomai-codefee.github.io/inklayer-vue/)
 [![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
 
@@ -21,47 +21,47 @@ English | [简体中文](./README.zh-CN.md)
 
 ---
 
-## ✨ Features
+## ✨ 特性
 
-- **Rich Annotation System** — 13 built-in annotation tools: highlight, underline, strikeout, rectangle, circle, arrow, cloud, freehand, free highlight, free text, stamp, signature, and sticky note
-- **High-Fidelity PDF Rendering** — Powered by PDF.js with text layer search, smooth zoom, and multi-page scrolling
-- **Full Theme System** — 28 built-in Radix-based color themes with automatic dark/light mode support
-- **Internationalization** — Built-in zh-CN and en-US locales via `vue-i18n`
-- **Highly Customizable UI** — Every toolbar, sidebar, and action button is overridable via Vue named slots
-- **`defaultOptions`** — DeepMerge/DeepPartial mechanism for partial configuration injection without boilerplate
-- **PDF & Excel Export** — Export annotations to annotated PDF (via pdf-lib) or structured Excel (via exceljs)
-- **Extensible Architecture** — Core annotation data model decoupled from rendering; adapter pattern supports PDF.js, Konva, and future renderers
-- **Tree-Shakable** — Library build with full ESM/CJS support and TypeScript declaration output
-
----
-
-## ✍️ Annotation Tools
-
-| Tool | Description |
-|------|-------------|
-| **Rectangle** | Draw rectangular shapes |
-| **Circle** | Draw elliptical shapes |
-| **Free Hand** | Free-form ink drawing |
-| **Free Highlight** | Transparent free-form highlighting |
-| **Arrow** | Draw arrows with directional heads |
-| **Cloud** | Draw cloud-shaped polygons |
-| **Free Text** | Place editable text boxes |
-| **Signature** | Place signatures (upload, draw, type, or defaults) |
-| **Stamp** | Place custom/standard stamps (upload images, custom text, or defaults) |
-| **Text Highlight** | Highlight selected text |
-| **Text Strikeout** | Strike through selected text |
-| **Text Underline** | Underline selected text |
-| **Sticky Note** | Attach collapsible note annotations |
-
-### ✍️ Editing Existing Annotations
-
-PDF native annotations loaded from documents are fully editable:
-
-Square, Circle, Ink, FreeText, Line, Polygon, PolyLine, Text, Highlight, Underline, StrikeOut
+- **丰富的批注系统** — 内置 13 种批注工具：矩形、圆形、自由手绘、自由高亮、箭头、云线、自由文本、签名、印章、文本高亮、文本删除线、文本下划线、便签注释
+- **高保真 PDF 渲染** — 基于 PDF.js，支持文本层搜索、平滑缩放和多页滚动
+- **完整主题系统** — 28 套基于 Radix 的预设配色，自动支持亮色/暗色模式
+- **国际化** — 通过 `vue-i18n` 内置 zh-CN（简体中文）和 en-US（英文）语言支持
+- **高度可定制的 UI** — 工具栏、侧边栏、操作按钮均可通过 Vue 具名插槽完全替换
+- **`defaultOptions`** — 采用 DeepMerge / DeepPartial 模式，可部分覆盖配置而无需冗余代码
+- **PDF 和 Excel 导出** — 支持将批注导出为带批注层的 PDF（基于 pdf-lib）或结构化的 Excel 文件（基于 exceljs）
+- **可扩展架构** — 核心批注数据模型与渲染层解耦；适配器模式支持 PDF.js、Konva 及未来渲染引擎
+- **Tree-Shaking 友好** — 库模式构建，输出完整 ESM/CJS 格式和 TypeScript 类型声明
 
 ---
 
-## 📦 Installation
+## ✍️ 批注工具
+
+| 工具 | 说明 |
+|------|------|
+| **矩形** | 绘制矩形形状 |
+| **圆形** | 绘制椭圆形状 |
+| **自由手绘** | 自由形式的墨迹绘制 |
+| **自由高亮** | 半透明自由形式高亮标记 |
+| **箭头** | 绘制带方向箭头的线条 |
+| **云线** | 绘制云形多边形 |
+| **自由文本** | 放置可编辑的文本框 |
+| **签名** | 放置签名（上传图片、手绘、输入文字或默认签名） |
+| **印章** | 放置自定义/标准印章（上传图片、自定义文字或默认印章） |
+| **文本高亮** | 高亮选中的文本 |
+| **文本删除线** | 为选中文本添加删除线 |
+| **文本下划线** | 为选中文本添加下划线 |
+| **便签注释** | 附加可折叠的注释便签 |
+
+### ✍️ 编辑已有批注
+
+支持编辑从 PDF 文档中加载的原生批注类型：
+
+矩形（Square）、圆形（Circle）、墨迹（Ink）、自由文本（FreeText）、直线（Line）、多边形（Polygon）、折线（PolyLine）、文本（Text）、高亮（Highlight）、下划线（Underline）、删除线（StrikeOut）
+
+---
+
+## 📦 安装
 
 ```bash
 npm install inklayer-vue
@@ -71,9 +71,9 @@ yarn add inklayer-vue
 
 ---
 
-## 🚀 Quick Start
+## 🚀 快速开始
 
-### PdfAnnotator — Full annotation workspace
+### PdfAnnotator — 完整批注工作区
 
 ```vue
 <script setup>
@@ -81,13 +81,13 @@ import { PdfAnnotator } from 'inklayer-vue'
 import 'inklayer-vue/dist/inklayer-vue.css'
 
 const handleSave = (annotations) => {
-  console.log('Save:', annotations)
+  console.log('保存批注：', annotations)
 }
 </script>
 
 <template>
   <PdfAnnotator
-    title="My Document"
+    title="我的文档"
     url="/sample.pdf"
     :user="{ id: 'u1', name: 'Alice' }"
     @save="handleSave"
@@ -95,7 +95,7 @@ const handleSave = (annotations) => {
 </template>
 ```
 
-### PdfViewer — Read-only viewer with search
+### PdfViewer — 只读查看器（带搜索）
 
 ```vue
 <script setup>
@@ -105,7 +105,7 @@ import 'inklayer-vue/dist/inklayer-vue.css'
 
 <template>
   <PdfViewer
-    title="My Document"
+    title="我的文档"
     url="/sample.pdf"
   />
 </template>
@@ -113,44 +113,44 @@ import 'inklayer-vue/dist/inklayer-vue.css'
 
 ---
 
-## 🧩 Components
+## 🧩 组件
 
-### Base Props (shared by both PdfViewer & PdfAnnotator)
+### 基础属性（PdfViewer 和 PdfAnnotator 共用）
 
-| Prop | Type | Default | Description |
+| 属性 | 类型 | 默认值 | 说明 |
 |:-----|:-----|:--------|:------------|
-| `title` | `string` | `'PDF VIEWER'` | Document title shown in the header |
-| `theme` | `ThemeColor` | `'violet'` | Color theme — 28 built-in Radix colors (see list below) |
-| `url` | `string \| URL` | — | PDF file URL (or Object URL) |
-| `data` | `string \| number[] \| TypedArray` | — | Raw PDF binary data as base64, byte array, or TypedArray |
-| `locale` | `'zh-CN' \| 'en-US'` | `'zh-CN'` | UI language |
-| `initialScale` | `number \| 'auto' \| 'page-fit' \| 'page-width'` | `'auto'` | Initial zoom level or auto-fit strategy |
-| `layoutStyle` | `{ width?, height? }` | `{}` | CSS dimensions for the viewer container |
-| `enableRange` | `boolean \| 'auto'` | `'auto'` | Enable HTTP range requests for large PDFs |
-| `defaultActiveSidebarKey` | `string \| null` | `null` | Which sidebar panel to open by default |
-| `user` | `User \| null` | — | Current user info (required for annotator) |
+| `title` | `string` | `'PDF VIEWER'` | 顶部标题栏显示的文档标题 |
+| `theme` | `ThemeColor` | `'violet'` | 色彩主题 — 内置 28 种 Radix 配色（见下方列表） |
+| `url` | `string \| URL` | — | PDF 文件的 URL（或 Object URL） |
+| `data` | `string \| number[] \| TypedArray` | — | PDF 原始二进制数据，支持 base64、字节数组或 TypedArray |
+| `locale` | `'zh-CN' \| 'en-US'` | `'zh-CN'` | 界面语言 |
+| `initialScale` | `number \| 'auto' \| 'page-fit' \| 'page-width'` | `'auto'` | 初始缩放级别或自适应策略 |
+| `layoutStyle` | `{ width?, height? }` | `{}` | 查看器容器的 CSS 尺寸 |
+| `enableRange` | `boolean \| 'auto'` | `'auto'` | 是否启用 HTTP Range 请求（用于大型 PDF） |
+| `defaultActiveSidebarKey` | `string \| null` | `null` | 默认打开的侧边栏面板 |
+| `user` | `User \| null` | — | 当前用户信息（批注器模式下必填） |
 
-**Available themes:** `ruby`, `indigo`, `gray`, `gold`, `bronze`, `brown`, `yellow`, `amber`, `orange`, `tomato`, `red`, `crimson`, `pink`, `plum`, `purple`, `violet`, `iris`, `blue`, `cyan`, `teal`, `jade`, `green`, `grass`, `lime`, `mint`, `sky`
+**可用主题：** `ruby`、`indigo`、`gray`、`gold`、`bronze`、`brown`、`yellow`、`amber`、`orange`、`tomato`、`red`、`crimson`、`pink`、`plum`、`purple`、`violet`、`iris`、`blue`、`cyan`、`teal`、`jade`、`green`、`grass`、`lime`、`mint`、`sky`
 
 ---
 
 ### PdfAnnotator
 
-The full-featured PDF annotation workspace. Includes toolbar, annotation sidebar, search sidebar, and all annotation tools.
+全功能 PDF 批注工作区。包含工具栏、批注侧边栏、搜索侧边栏和所有批注工具。
 
-#### Props
+#### 属性
 
-| Prop | Type | Default | Description |
+| 属性 | 类型 | 默认值 | 说明 |
 |:-----|:-----|:--------|:------------|
-| (All base props) | | | Inherits all [Base Props](#base-props-shared-by-both-pdfviewer--pdfannotator) |
-| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | Partial configuration to merge with system defaults (see example below) |
-| `defaultShowAnnotationsSidebar` | `boolean` | `false` | Open the annotation sidebar on mount |
-| `enableNativeAnnotations` | `boolean` | `false` | Enable editing of PDF-native annotations |
-| `initialAnnotations` | `IAnnotationStore[]` | `[]` | Load existing annotations on mount |
+| （所有基础属性） | | | 继承所有[基础属性](#基础属性pdfviewer-和-pdfannotator-共用) |
+| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | 部分配置，将与系统默认值深度合并（见下方示例） |
+| `defaultShowAnnotationsSidebar` | `boolean` | `false` | 挂载时默认打开批注侧边栏 |
+| `enableNativeAnnotations` | `boolean` | `false` | 是否允许编辑 PDF 原生批注 |
+| `initialAnnotations` | `IAnnotationStore[]` | `[]` | 挂载时加载已有的批注数据 |
 
-#### ⚙️ `defaultOptions` — DeepPartial + DeepMerge
+#### ⚙️ `defaultOptions` — DeepPartial + DeepMerge 机制
 
-InkLayer Vue uses a `DeepPartial` + `DeepMerge` pattern for configuration. You only need to specify what you want to override; everything else falls back to sensible defaults.
+InkLayer Vue 采用 `DeepPartial` + `DeepMerge` 的配置模式。你只需指定需要覆盖的字段，其余将自动回退到合理的默认值。
 
 ```vue
 <script setup>
@@ -180,24 +180,24 @@ const customOptions = {
 </template>
 ```
 
-**Full `PdfAnnotatorOptions` structure:**
+**`PdfAnnotatorOptions` 完整结构：**
 
 <details>
-<summary>Click to expand</summary>
+<summary>点击展开</summary>
 
 ```ts
 interface PdfAnnotatorOptions {
-  /** Predefined color palette for annotation tools */
+  /** 批注工具的预设颜色调色板 */
   colors: string[]
   
-  /** Signature tool configuration */
+  /** 签名工具配置 */
   signature: {
     fontFamily?: string
     defaultName?: string
     defaultImage?: string
   }
   
-  /** Stamp tool configuration */
+  /** 印章工具配置 */
   stamp: {
     stamps?: Array<{
       text: string
@@ -211,55 +211,55 @@ interface PdfAnnotatorOptions {
 ```
 </details>
 
-#### Emits
+#### 事件
 
-| Event | Payload | Description |
+| 事件 | 负载 | 说明 |
 |:------|:--------|:------------|
-| `save` | `(annotations: Annotation[])` | Fires when the user clicks the Save button |
-| `load` | `()` | Fires when the PDF document finishes loading |
-| `annotationAdded` | `(annotation: Annotation)` | Fires when a new annotation is created |
-| `annotationDeleted` | `(id: string)` | Fires when an annotation is deleted |
-| `annotationSelected` | `(annotation: Annotation \| null, isClick: boolean)` | Fires when an annotation is selected |
-| `annotationUpdated` | `(annotation: Annotation)` | Fires when an annotation is modified |
+| `save` | `(annotations: Annotation[])` | 用户点击保存按钮时触发 |
+| `load` | `()` | PDF 文档加载完成时触发 |
+| `annotationAdded` | `(annotation: Annotation)` | 新建批注时触发 |
+| `annotationDeleted` | `(id: string)` | 删除批注时触发 |
+| `annotationSelected` | `(annotation: Annotation \| null, isClick: boolean)` | 选中批注时触发 |
+| `annotationUpdated` | `(annotation: Annotation)` | 修改批注时触发 |
 
-#### Slots
+#### 插槽
 
-| Slot | Scope | Description |
+| 插槽 | 作用域 | 说明 |
 |:-----|:------|:------------|
-| `actions` | `{ onSave, getAnnotations, exportToExcel, exportToPdf }` | Replace default Save/Export buttons in the header |
+| `actions` | `{ onSave, getAnnotations, exportToExcel, exportToPdf }` | 替换顶部工具栏右侧的默认保存/导出按钮 |
 
-#### Exposed Methods
+#### 暴露的方法
 
-| Method | Signature | Description |
+| 方法 | 签名 | 说明 |
 |:-------|:----------|:------------|
-| `save` | `() => void` | Programmatically trigger save |
-| `getAnnotations` | `() => Annotation[]` | Get current annotations as Core Annotation objects |
+| `save` | `() => void` | 以编程方式触发保存 |
+| `getAnnotations` | `() => Annotation[]` | 获取当前批注（Core Annotation 格式） |
 
 ---
 
 ### PdfViewer
 
-A read-only PDF viewer with search, zoom, theme, and customizable toolbar/sidebar slots.
+只读 PDF 查看器，支持搜索、缩放、主题和可自定义的工具栏 / 侧边栏插槽。
 
-#### Props
+#### 属性
 
-| Prop | Type | Default | Description |
+| 属性 | 类型 | 默认值 | 说明 |
 |:-----|:-----|:--------|:------------|
-| (All base props) | | | Inherits all [Base Props](#base-props-shared-by-both-pdfviewer--pdfannotator) |
-| `showTextLayer` | `boolean` | `true` | Enable the invisible text layer for search and selection |
-| `showAnnotations` | `boolean` | `false` | Show PDF-native annotations on the rendered pages |
-| `toolbar` | `ToolbarItem[]` | — | Declarative toolbar configuration |
-| `actions` | `ActionItem[]` | — | Declarative header action buttons |
-| `sidebar` | `SidebarPanel[]` | `[]` | Additional sidebar panels beyond search |
+| （所有基础属性） | | | 继承所有[基础属性](#基础属性pdfviewer-和-pdfannotator-共用) |
+| `showTextLayer` | `boolean` | `true` | 是否启用不可见的文本层（用于搜索和文本选择） |
+| `showAnnotations` | `boolean` | `false` | 是否显示 PDF 原生批注 |
+| `toolbar` | `ToolbarItem[]` | — | 声明式工具栏配置 |
+| `actions` | `ActionItem[]` | — | 声明式顶部操作按钮配置 |
+| `sidebar` | `SidebarPanel[]` | `[]` | 额外的侧边栏面板（搜索面板默认已包含） |
 
-#### Emits
+#### 事件
 
-| Event | Payload | Description |
+| 事件 | 负载 | 说明 |
 |:------|:--------|:------------|
-| `documentLoaded` | `(viewer: PDFViewer)` | Fires when the PDF document and viewer are ready |
-| `eventBusReady` | `(bus: EventBus)` | Fires when the PDF.js event bus is available |
+| `documentLoaded` | `(viewer: PDFViewer)` | PDF 文档和查看器就绪时触发 |
+| `eventBusReady` | `(bus: EventBus)` | PDF.js 事件总线可用时触发 |
 
-#### Custom Toolbar
+#### 自定义工具栏
 
 ```vue
 <template>
@@ -275,35 +275,35 @@ A read-only PDF viewer with search, zoom, theme, and customizable toolbar/sideba
 </template>
 ```
 
-#### Custom Sidebar Panels
+#### 自定义侧边栏面板
 
 ```vue
 <script setup>
 const customPanels = [
-  { key: 'bookmarks', title: 'Bookmarks', icon: 'bookmark' },
-  { key: 'comments',  title: 'Comments',  icon: 'message-circle' },
+  { key: 'bookmarks', title: '书签', icon: 'bookmark' },
+  { key: 'comments',  title: '评论', icon: 'message-circle' },
 ]
 </script>
 
 <template>
   <PdfViewer url="/document.pdf" :sidebar="customPanels">
     <template #sidebar-bookmarks>
-      <div class="p-4">Bookmarks panel content</div>
+      <div class="p-4">书签面板内容</div>
     </template>
     <template #sidebar-comments>
-      <div class="p-4">Comments panel content</div>
+      <div class="p-4">评论面板内容</div>
     </template>
   </PdfViewer>
 </template>
 ```
 
-#### Custom Actions
+#### 自定义操作按钮
 
 ```vue
 <template>
   <PdfViewer url="/document.pdf">
     <template #actions="{ currentScale }">
-      <button @click="handleCustomAction">Custom @ {{ currentScale }}%</button>
+      <button @click="handleCustomAction">自定义操作 @ {{ currentScale }}%</button>
     </template>
   </PdfViewer>
 </template>
@@ -311,39 +311,39 @@ const customPanels = [
 
 ---
 
-## 🧩 Extension Components
+## 🧩 扩展组件
 
-InkLayer Vue also exports internal building-block components for advanced customization:
+InkLayer Vue 也导出内部构建块组件，供高级定制使用：
 
-| Component | Description |
+| 组件 | 说明 |
 |:----------|:------------|
-| `PdfViewerProvider` | Context provider wrapping all children with PDF viewer state |
-| `AnnotatorExtension` | Core annotation engine extension |
-| `AnnotationToolbar` | The built-in annotation toolbar |
-| `ZoomTool` | Standalone zoom control (used in default toolbar) |
-| `ColorPicker` | Standalone color picker component |
-| `AnnotationSidebar` | Annotation list sidebar panel |
-| `SearchSidebar` | Full-text search sidebar panel |
+| `PdfViewerProvider` | 上下文提供者，为所有子组件注入 PDF 查看器状态 |
+| `AnnotatorExtension` | 核心批注引擎扩展 |
+| `AnnotationToolbar` | 内置批注工具栏 |
+| `ZoomTool` | 独立缩放控件（默认工具栏中使用） |
+| `ColorPicker` | 独立颜色选择器组件 |
+| `AnnotationSidebar` | 批注列表面板 |
+| `SearchSidebar` | 全文搜索侧边栏面板 |
 
 ---
 
-## 🛠 Composables
+## 🛠 Composable 函数
 
-| Composable | Description |
+| Composable | 说明 |
 |:-----------|:------------|
-| `usePdfViewer(containerRef, options)` | Initialize and manage a PDF.js viewer instance |
-| `usePdfTool(pdfDocument)` | Download and print PDF utilities |
-| `usePdfSearch(pdfViewer)` | Full-text search across PDF pages |
-| `useSmoothZoom(options)` | Smooth scroll-based zoom with trackpad pinch support |
-| `useSystemAppearance()` | Reactive dark/light mode based on OS preference |
-| `exportToExcel(annotations, fileName?)` | Export annotations to an Excel workbook |
+| `usePdfViewer(containerRef, options)` | 初始化并管理 PDF.js 查看器实例 |
+| `usePdfTool(pdfDocument)` | PDF 下载和打印工具 |
+| `usePdfSearch(pdfViewer)` | PDF 全文搜索 |
+| `useSmoothZoom(options)` | 基于滚动和触摸板捏合的平滑缩放 |
+| `useSystemAppearance()` | 响应式亮色/暗色模式（跟随系统偏好） |
+| `exportToExcel(annotations, fileName?)` | 将批注导出为 Excel 工作簿 |
 
 ---
 
-## 📦 Advanced Usage
+## 📦 高级用法
 
 
-### Using with `PdfViewerProvider` (headless mode)
+### 配合 `PdfViewerProvider` 使用（无头模式）
 
 ```vue
 <script setup>
@@ -352,15 +352,15 @@ import { PdfViewerProvider } from 'inklayer-vue'
 
 <template>
   <PdfViewerProvider url="/document.pdf">
-    <!-- Access PDF context anywhere inside this tree -->
+    <!-- 在此组件树内任意位置可访问 PDF 上下文 -->
     <YourCustomViewer />
   </PdfViewerProvider>
 </template>
 ```
 
-### Importing shadcn-vue UI Components
+### 导入 shadcn-vue UI 组件
 
-InkLayer Vue re-exports its internal shadcn-vue components so you can build custom UIs with matching styles:
+InkLayer Vue 重新导出其内部的 shadcn-vue 组件，方便你构建风格统一的自定义 UI：
 
 ```vue
 <script setup>
@@ -370,14 +370,14 @@ import { Button, Input, Tabs, TabsList, TabsTrigger, TabsContent } from 'inklaye
 
 ---
 
-## 🌍 Browser Support
+## 🌍 浏览器兼容性
 
 | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/chrome/chrome_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/firefox/firefox_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/safari/safari_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/edge/edge_48x48.png" width="24" /> |
 |:---:|:---:|:---:|:---:|
-| Chrome latest | Firefox latest | Safari latest | Edge latest |
+| Chrome 最新版 | Firefox 最新版 | Safari 最新版 | Edge 最新版 |
 
 ---
 
-## 📄 License
+## 📄 许可证
 
 MIT © InkLayer
