@@ -75,8 +75,8 @@
         <!-- Stamp Text -->
         <label class="block mb-4">
           <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.stampText') }}</span>
-          <input v-model="form.stampText"
-            class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
+          <Input v-model="form.stampText"
+            class="flex h-8 w-full rounded-md  bg-background text-foreground px-2 text-xs mt-1 outline-none"
             @input="renderPreview" />
         </label>
 
@@ -162,8 +162,8 @@
         <!-- Custom timestamp text -->
         <label class="block mb-4">
           <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.customTimestamp') }}</span>
-          <input v-model="form.customTimestampText"
-            class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
+          <Input v-model="form.customTimestampText"
+            class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
             @input="renderPreview" />
         </label>
 
@@ -183,6 +183,7 @@ import Konva from 'konva'
 import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
+import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Icon from '@/components/Icon.vue'

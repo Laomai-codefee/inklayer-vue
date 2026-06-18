@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue'
+import { ref, type HTMLAttributes } from 'vue'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
@@ -11,11 +11,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'keydown': [e: KeyboardEvent]
 }>()
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+defineExpose({ textareaRef })
 </script>
 
 <template>
   <textarea
+    ref="textareaRef"
     :placeholder="placeholder"
     :disabled="disabled"
     :value="modelValue"
@@ -24,5 +29,6 @@ const emit = defineEmits<{
       props.class
     )"
     @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+    @keydown="emit('keydown', $event)"
   />
 </template>

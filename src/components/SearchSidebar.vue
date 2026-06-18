@@ -7,12 +7,10 @@
         <svg class="absolute left-2.5 size-4 text-muted-foreground pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
         </svg>
-        <input
-          :value="query"
-          type="text"
+        <Input
+          v-model="query"
           :placeholder="t('viewer.search.placeholder')"
-          class="flex h-8 w-full rounded-md border border-input bg-background pl-8 pr-8 text-xs placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          @input="setQuery(($event.target as HTMLInputElement).value)"
+          class="pl-8 pr-8 text-xs h-8 bg-background"
           @keydown="handleKeyDown" />
         <button v-if="query.trim()"
           class="absolute right-1.5 inline-flex items-center justify-center size-5 rounded text-muted-foreground hover:text-foreground"
@@ -85,6 +83,7 @@ import { ref, computed, inject, watch, onUnmounted } from 'vue'
 import { usePdfSearch } from '@/composables/usePdfSearch'
 import { PdfViewerContextKey } from '@/context/pdfViewerContext'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import Icon from '@/components/Icon.vue'
 import { useT } from '@/composables/useT'
 const { t } = useT()

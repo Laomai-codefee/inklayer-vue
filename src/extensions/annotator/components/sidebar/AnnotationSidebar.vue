@@ -90,10 +90,11 @@
 
           <!-- Comment text / edit -->
           <template v-if="editAnnotationId === ann.id">
-            <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)" :value="ann.contentsObj?.text || ''"
-              class="w-full min-h-[50px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none mt-1.5" rows="3"
-              @input="editComment = ($event.target as HTMLTextAreaElement).value"
+            <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)" :model-value="ann.contentsObj?.text || ''"
+              class="w-full min-h-[50px] text-xs resize-none mt-1.5 bg-background" rows="3"
+              @update:model-value="editComment = $event"
               @keydown.enter.exact.prevent="updateComment(ann)"
+              @keydown.escape="editAnnotationId = null"
               @blur="editAnnotationId = null"
             />
             <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateComment(ann)">{{ t('common.confirm') }}</Button>
@@ -107,10 +108,11 @@
             <div class="flex items-start">
               <div class="flex-1 min-w-0">
                 <template v-if="editReplyId === reply.id">
-                  <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)" :value="reply.content"
-                    class="w-full min-h-[40px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none" rows="2"
-                    @input="editReplyContent = ($event.target as HTMLTextAreaElement).value"
+                  <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)" :model-value="reply.content"
+                    class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
+                    @update:model-value="editReplyContent = $event"
                     @keydown.enter.exact.prevent="updateReply(ann, reply)"
+                    @keydown.escape="editReplyId = null"
                     @blur="editReplyId = null"
                   />
                   <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateReply(ann, reply)">{{ t('common.confirm') }}</Button>
@@ -135,11 +137,12 @@
 
           <!-- Reply input -->
           <div v-if="replyAnnotationId === ann.id" class="mt-2 pl-7">
-            <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)"
-              class="w-full min-h-[40px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none" rows="2"
+            <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)"
+              class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
               :placeholder="t('common.reply') + '...'"
-              @input="newReplyContent = ($event.target as HTMLTextAreaElement).value"
+              @update:model-value="newReplyContent = $event"
               @keydown.enter.exact.prevent="addReply(ann)"
+              @keydown.escape="replyAnnotationId = null"
               @blur="replyAnnotationId = null"
             />
             <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="addReply(ann)">{{ t('common.confirm') }}</Button>
@@ -164,6 +167,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, inject, nextTick, type PropType } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Popover } from '@/components/ui/popover'
@@ -311,11 +315,9 @@ function getStatusIcon(ann: IAnnotationStore): string {
 // ====== Textarea ref callback: auto-focus when permitted ======
 function setTextareaRef(el: HTMLTextAreaElement | null) {
   if (el && shouldFocusTextarea.value) {
-    // setTimeout(0): fire after Vue DOM update + Radix setup complete.
-    // Safe here because shouldFocusTextarea is only true when MenuBar
-    // is NOT simultaneously opening (sidebar open from collapsed, or
-    // explicit user Reply/Edit click).
-    setTimeout(() => el.focus(), 0)
+    // Radix DropdownMenu takes control of focus on close — delay long enough
+    // for Radix to finish its focus restoration before we claim focus.
+    setTimeout(() => el.focus(), 150)
     shouldFocusTextarea.value = false
   }
 }

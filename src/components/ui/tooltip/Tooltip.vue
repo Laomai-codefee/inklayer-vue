@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type HTMLAttributes, computed } from 'vue'
-import { TooltipContent, TooltipProvider, TooltipRoot, TooltipTrigger } from 'radix-vue'
+import { TooltipContent, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{

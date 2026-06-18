@@ -52,9 +52,13 @@
     <!-- ========== Body ========== -->
     <div class="flex flex-1 min-h-0">
       <div class="flex flex-col flex-1 min-w-0">
-        <!-- Toolbar: centered, tertiary bg + shadow (React: bg-color-tertiary + shadow-medium) -->
-        <div v-if="hasToolbar" class="flex items-center justify-center h-10 border-b border-border shrink-0 bg-secondary shadow-sm">
-          <slot name="toolbar" :context="contextValue" />
+        <!-- Toolbar: scrollable with Radix ScrollArea -->
+        <div v-if="hasToolbar" class="shrink-0 border-b border-border bg-secondary shadow-sm h-10 w-full">
+          <ScrollArea class="h-full w-full" type="auto">
+            <div class="flex items-center h-full gap-2 px-2 justify-center min-w-max mt-1">
+              <slot name="toolbar" :context="contextValue" />
+            </div>
+          </ScrollArea>
         </div>
 
         <!-- PDF area: muted gray bg to distinguish white pages (React: bg-color-secondary) -->
@@ -82,6 +86,7 @@
 import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted, onMounted } from 'vue'
 import '@/styles/pdf_viewer.css'
 import { useT } from '@/composables/useT'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const { t } = useT()
 import { usePdfViewer, type UseViewerOptions } from '@/composables/usePdfViewer'
@@ -152,7 +157,8 @@ function applyTheme(themeName: string | undefined) {
   // Inject <style> with !important — reliably overrides Tailwind v4 @theme
   themeStyleEl = document.createElement('style')
   themeStyleEl.id = 'inklayer-theme-override'
-  themeStyleEl.textContent = `#InkLayer { --color-primary: ${color} !important; }`
+  themeStyleEl.textContent = `#InkLayer { --color-primary: ${color} !important; --color-ring: ${color} !important; }
+:root { --inklayer-primary: ${color} !important; --inklayer-ring: ${color} !important; }`
   document.head.appendChild(themeStyleEl)
 }
 

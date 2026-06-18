@@ -8,52 +8,101 @@
    Light: clean whites & subtle grays
    Dark:  deep blue-gray tones
    
-   --color-primary controls accent (violet by default,
+   --inklayer-primary controls accent (violet by default,
    overridden via theme="blue" etc on PdfViewer/PdfAnnotator)
    ============================================= */
+/* @theme drives Tailwind utility generation */
 @theme {
-  --color-background: #fff;
-  --color-foreground: #18181b;
-  --color-card: #fff;
-  --color-card-foreground: #18181b;
-  --color-popover: #fff;
-  --color-popover-foreground: #18181b;
-  --color-primary: hsl(262, 83%, 58%);
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f9f9f9;
-  --color-secondary-foreground: #18181b;
-  --color-muted: #ededed;
-  --color-muted-foreground: #71717a;
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: rgba(0, 0, 0, 0.08);
-  --color-input: #e4e4e7;
-  --color-ring: hsl(262, 83%, 58%);
-  --radius: 0.5rem;
+  --color-background: var(--inklayer-background);
+  --color-foreground: var(--inklayer-foreground);
+  --color-card: var(--inklayer-card);
+  --color-card-foreground: var(--inklayer-card-foreground);
+  --color-popover: var(--inklayer-popover);
+  --color-popover-foreground: var(--inklayer-popover-foreground);
+  --color-primary: var(--inklayer-primary);
+  --color-primary-foreground: var(--inklayer-primary-foreground);
+  --color-secondary: var(--inklayer-secondary);
+  --color-secondary-foreground: var(--inklayer-secondary-foreground);
+  --color-muted: var(--inklayer-muted);
+  --color-muted-foreground: var(--inklayer-muted-foreground);
+  --color-accent: var(--inklayer-accent);
+  --color-accent-foreground: var(--inklayer-accent-foreground);
+  --color-destructive: var(--inklayer-destructive);
+  --color-destructive-foreground: var(--inklayer-destructive-foreground);
+  --color-border: var(--inklayer-border);
+  --color-input: var(--inklayer-input);
+  --color-ring: var(--inklayer-ring);
+  --radius: var(--inklayer-radius);
+}
+
+/* InkLayer theme variables — registered on :root so teleported content (body) can access them */
+:root {
+  --inklayer-background: #fff;
+  --inklayer-foreground: #18181b;
+  --inklayer-card: #fff;
+  --inklayer-card-foreground: #18181b;
+  --inklayer-popover: #fff;
+  --inklayer-popover-foreground: #18181b;
+  --inklayer-primary: hsl(262, 83%, 58%);
+  --inklayer-primary-foreground: #fafafa;
+  --inklayer-secondary: #f9f9f9;
+  --inklayer-secondary-foreground: #18181b;
+  --inklayer-muted: #ededed;
+  --inklayer-muted-foreground: #71717a;
+  --inklayer-accent: #f4f4f5;
+  --inklayer-accent-foreground: #18181b;
+  --inklayer-destructive: #ef4444;
+  --inklayer-destructive-foreground: #fafafa;
+  --inklayer-border: rgba(0, 0, 0, 0.08);
+  --inklayer-input: #e4e4e7;
+  --inklayer-ring: hsl(262, 83%, 58%);
+  --inklayer-radius: 0.5rem;
 }
 
 .dark {
-  --color-background: #1e1e26;
-  --color-foreground: #fafafa;
-  --color-card: #242430;
-  --color-card-foreground: #fafafa;
-  --color-popover: #242430;
-  --color-popover-foreground: #fafafa;
-  --color-primary: hsl(263, 70%, 50%);
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #2a2a36;
-  --color-secondary-foreground: #fafafa;
-  --color-muted: #242430;
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: #2e2e3c;
-  --color-accent-foreground: #fafafa;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: rgba(148, 163, 184, 0.12);
-  --color-input: #3f3f46;
-  --color-ring: hsl(263, 70%, 50%);
+  --inklayer-background: #1e1e26;
+  --inklayer-foreground: #fafafa;
+  --inklayer-card: #242430;
+  --inklayer-card-foreground: #fafafa;
+  --inklayer-popover: #242430;
+  --inklayer-popover-foreground: #fafafa;
+  --inklayer-primary: hsl(263, 70%, 50%);
+  --inklayer-primary-foreground: #fafafa;
+  --inklayer-secondary: #2a2a36;
+  --inklayer-secondary-foreground: #fafafa;
+  --inklayer-muted: #242430;
+  --inklayer-muted-foreground: #a1a1aa;
+  --inklayer-accent: #2e2e3c;
+  --inklayer-accent-foreground: #fafafa;
+  --inklayer-destructive: #ef4444;
+  --inklayer-destructive-foreground: #fafafa;
+  --inklayer-border: rgba(148, 163, 184, 0.12);
+  --inklayer-input: #3f3f46;
+  --inklayer-ring: hsl(263, 70%, 50%);
+}
+
+/* Map global inklayer vars to Tailwind --color-* for component compatibility */
+#InkLayer, .inklayer-app {
+  --color-background: var(--inklayer-background);
+  --color-foreground: var(--inklayer-foreground);
+  --color-card: var(--inklayer-card);
+  --color-card-foreground: var(--inklayer-card-foreground);
+  --color-popover: var(--inklayer-popover);
+  --color-popover-foreground: var(--inklayer-popover-foreground);
+  --color-primary: var(--inklayer-primary);
+  --color-primary-foreground: var(--inklayer-primary-foreground);
+  --color-secondary: var(--inklayer-secondary);
+  --color-secondary-foreground: var(--inklayer-secondary-foreground);
+  --color-muted: var(--inklayer-muted);
+  --color-muted-foreground: var(--inklayer-muted-foreground);
+  --color-accent: var(--inklayer-accent);
+  --color-accent-foreground: var(--inklayer-accent-foreground);
+  --color-destructive: var(--inklayer-destructive);
+  --color-destructive-foreground: var(--inklayer-destructive-foreground);
+  --color-border: var(--inklayer-border);
+  --color-input: var(--inklayer-input);
+  --color-ring: var(--inklayer-ring);
+  --radius: var(--inklayer-radius);
 }
 
 /* ====== Scoped inside #InkLayer only ====== */

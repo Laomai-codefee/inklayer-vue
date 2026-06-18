@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DropdownMenuItem } from 'radix-vue'
+import { DropdownMenuItem } from 'reka-ui'
 import { cn } from '@/lib/utils'
 import type { HTMLAttributes } from 'vue'
 

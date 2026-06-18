@@ -51,7 +51,7 @@
                 :style="{ backgroundColor: c }"
                 @click="changeColor(c)" />
               <select v-if="signatureType === 'Enter'" v-model="fontFamily"
-                class="ml-2 text-xs rounded border border-border bg-background text-foreground px-1.5 py-1 outline-none focus:border-ring"
+                class="ml-2 text-xs rounded border border-border bg-background text-foreground px-1.5 py-1 outline-none"
                 @change="loadFont(fontFamily)">
                 <option v-for="f in handwritingFonts" :key="f.value" :value="f.value">{{ f.label }}</option>
               </select>
@@ -63,10 +63,10 @@
         <!-- Content area -->
         <div class="relative rounded-md bg-white border border-border overflow-hidden" style="width:420px;height:200px;margin:0 auto;">
           <!-- Enter mode -->
-          <input v-if="signatureType === 'Enter'"
+          <Input v-if="signatureType === 'Enter'"
             ref="enterInputRef"
             v-model="typedText"
-            class="w-full h-full bg-transparent border-none text-center outline-none text-foreground placeholder:text-muted-foreground"
+            class="w-full h-full border-none text-center"
             :placeholder="t('annotator.editor.signature.area')"
             :style="{ color: currentColor, fontFamily, fontSize: '80px', lineHeight: '200px' }" />
 
@@ -108,6 +108,7 @@ import { ref, computed, nextTick } from 'vue'
 import Konva from 'konva'
 import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Icon from '@/components/Icon.vue'
 import { useT } from '@/composables/useT'
