@@ -4,7 +4,7 @@
     <template #trigger>
       <Button variant="ghost" size="icon" class="size-8"
         :class="active ? 'bg-primary/15 text-primary hover:bg-primary/25' : ''"
-        :title="$t('annotator.tool.signature')">
+        :title="t('annotator.tool.signature')">
         <Icon name="signature" :size="18" />
       </Button>
     </template>
@@ -20,7 +20,7 @@
         </ul>
       </ScrollArea>
       <Button variant="outline" size="sm" class="w-full mt-3 text-xs gap-1" @click="openModal">
-        + {{ $t('annotator.common.createSignature') }}
+        + {{ t('annotator.common.createSignature') }}
       </Button>
     </div>
   </Popover>
@@ -29,7 +29,7 @@
   <Teleport to="body">
     <div v-if="modalOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40" @click.self="modalOpen = false">
       <div class="bg-background text-foreground rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
-        <h3 class="text-sm font-semibold mb-4">{{ $t('annotator.common.createSignature') }}</h3>
+        <h3 class="text-sm font-semibold mb-4">{{ t('annotator.common.createSignature') }}</h3>
 
         <!-- Mode switcher -->
         <div class="flex justify-center mb-4">
@@ -57,7 +57,7 @@
               </select>
             </template>
           </div>
-          <Button variant="ghost" size="sm" class="text-xs" @click="handleClear">{{ $t('common.clear') }}</Button>
+          <Button variant="ghost" size="sm" class="text-xs" @click="handleClear">{{ t('common.clear') }}</Button>
         </div>
 
         <!-- Content area -->
@@ -67,13 +67,13 @@
             ref="enterInputRef"
             v-model="typedText"
             class="w-full h-full bg-transparent border-none text-center outline-none text-foreground placeholder:text-muted-foreground"
-            :placeholder="$t('annotator.editor.signature.area')"
+            :placeholder="t('annotator.editor.signature.area')"
             :style="{ color: currentColor, fontFamily, fontSize: '80px', lineHeight: '200px' }" />
 
           <!-- Draw mode -->
           <template v-if="signatureType === 'Draw'">
             <div class="absolute inset-0 flex items-center justify-center text-gray-300 text-[80px] pointer-events-none select-none">
-              {{ $t('annotator.editor.signature.area') }}
+              {{ t('annotator.editor.signature.area') }}
             </div>
             <div ref="konvaContainerRef" class="w-full h-full relative z-10" style="cursor:crosshair" />
           </template>
@@ -85,9 +85,9 @@
             </div>
             <div v-else class="w-full h-full flex flex-col items-center justify-center gap-3">
               <input ref="fileInputRef" type="file" :accept="signatureAccept" class="hidden" @change="onFileChange" />
-              <Button size="sm" @click="fileInputRef?.click()">{{ $t('annotator.editor.signature.choose') }}</Button>
+              <Button size="sm" @click="fileInputRef?.click()">{{ t('annotator.editor.signature.choose') }}</Button>
               <p class="text-xs text-muted-foreground text-center px-4">
-                {{ $t('annotator.editor.signature.uploadHint', { format: signatureAccept, maxSize: formatFileSize(signatureMaxSize) }) }}
+                {{ t('annotator.editor.signature.uploadHint', { format: signatureAccept, maxSize: formatFileSize(signatureMaxSize) }) }}
               </p>
             </div>
           </template>
@@ -95,8 +95,8 @@
 
         <!-- Footer -->
         <div class="flex justify-end gap-3 mt-4">
-          <Button variant="outline" class="w-[100px]" @click="modalOpen = false">{{ $t('common.cancel') }}</Button>
-          <Button class="w-[100px]" :disabled="okDisabled" @click="handleOk">{{ $t('common.ok') }}</Button>
+          <Button variant="outline" class="w-[100px]" @click="modalOpen = false">{{ t('common.cancel') }}</Button>
+          <Button class="w-[100px]" :disabled="okDisabled" @click="handleOk">{{ t('common.ok') }}</Button>
         </div>
       </div>
     </div>
@@ -110,12 +110,12 @@ import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Icon from '@/components/Icon.vue'
-import { useI18n } from 'vue-i18n'
+import { useT } from '@/composables/useT'
 import { defaultOptions } from '../../const/default_options'
 import { loadFontWithFontFace } from '../../utils/fontLoader'
 import { formatFileSize } from '../../utils/utils'
 
-const { t: $t } = useI18n({ useScope: 'global' })
+const { t } = useT()
 
 const props = defineProps<{ active?: boolean; defaultSignatures?: string[]; signatureOptions?: typeof defaultOptions.signature }>()
 const emit = defineEmits<{ select: [dataUrl: string] }>()
@@ -148,9 +148,9 @@ const modalOpen = ref(false)
 type SigType = 'Enter' | 'Draw' | 'Upload'
 const signatureType = ref<SigType>('Enter')
 const editorModes = computed<{ value: SigType; label: string }[]>(() => [
-  { value: 'Enter', label: $t('common.enter') },
-  { value: 'Draw', label: $t('common.draw') },
-  { value: 'Upload', label: $t('common.upload') },
+  { value: 'Enter', label: t('common.enter') },
+  { value: 'Draw', label: t('common.draw') },
+  { value: 'Upload', label: t('common.upload') },
 ])
 const currentColor = ref(signatureColors.value[0])
 const typedText = ref('')

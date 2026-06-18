@@ -11,22 +11,22 @@
         <template #default>
           <div class="space-y-3 text-left p-3 min-w-[180px]">
             <div>
-              <p class="text-xs font-medium mb-1.5 text-muted-foreground">{{ $t('common.author') }}</p>
+              <p class="text-xs font-medium mb-1.5 text-muted-foreground">{{ t('common.author') }}</p>
               <div v-for="[user, count] in allUsers" :key="user" class="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-1 cursor-pointer">
                 <input type="checkbox" :id="`fu-${user}`" :checked="selectedUsers.includes(user)" class="size-3.5 rounded border-input" @change="toggleUser(user)" />
                 <label :for="`fu-${user}`" class="text-xs cursor-pointer flex-1">{{ user }} ({{ count }})</label>
               </div>
             </div>
             <div>
-              <p class="text-xs font-medium mb-1.5 text-muted-foreground">{{ $t('common.type') }}</p>
+              <p class="text-xs font-medium mb-1.5 text-muted-foreground">{{ t('common.type') }}</p>
               <div v-for="[type, count] in allTypes" :key="type" class="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-1 cursor-pointer">
                 <input type="checkbox" :id="`ft-${type}`" :checked="selectedTypes.includes(type)" class="size-3.5 rounded border-input" @change="toggleType(type)" />
                 <label :for="`ft-${type}`" class="text-xs cursor-pointer flex-1">{{ type }} ({{ count }})</label>
               </div>
             </div>
             <div class="flex gap-2 pt-1">
-              <Button variant="ghost" size="sm" class="flex-1 text-xs" @click="selectAll">{{ $t('common.selectAll') }}</Button>
-              <Button variant="ghost" size="sm" class="flex-1 text-xs" @click="clearAll">{{ $t('common.clear') }}</Button>
+              <Button variant="ghost" size="sm" class="flex-1 text-xs" @click="selectAll">{{ t('common.selectAll') }}</Button>
+              <Button variant="ghost" size="sm" class="flex-1 text-xs" @click="clearAll">{{ t('common.clear') }}</Button>
             </div>
           </div>
         </template>
@@ -37,8 +37,8 @@
     <ScrollArea v-if="groupedEntries.length > 0" class="flex-1 px-1.5 pb-6 text-left">
       <div v-for="[pageNumber, pAnns] in groupedEntries" :key="pageNumber" class="mb-2.5">
         <div class="flex items-center justify-between px-1 py-1">
-          <span class="text-xs">{{ $t('annotator.comment.page', { value: pageNumber }) }}</span>
-          <span class="text-xs">{{ $t('annotator.comment.total', { value: pAnns.length }) }}</span>
+          <span class="text-xs">{{ t('annotator.comment.page', { value: pageNumber }) }}</span>
+          <span class="text-xs">{{ t('annotator.comment.total', { value: pAnns.length }) }}</span>
         </div>
 
         <div
@@ -55,7 +55,7 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1">
                 <span class="text-xs truncate max-w-[130px]">{{ ann.title }}</span>
-                <Tooltip v-if="ann.native" :content="$t('annotator.comment.nativeAnnotation')">
+                <Tooltip v-if="ann.native" :content="t('annotator.comment.nativeAnnotation')">
                   <template #trigger>
                     <span class="text-orange-400 shrink-0 cursor-pointer"><Icon name="exclamation" :size="14" /></span>
                   </template>
@@ -67,13 +67,13 @@
               <!-- Status dropdown -->
               <DropdownMenu>
                 <template #trigger>
-                  <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="$t('common.status')">
+                  <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="t('common.status')">
                     <Icon :name="getStatusIcon(ann)" :size="14" />
                   </Button>
                 </template>
                 <DropdownMenuItem v-for="opt in statusOptions" :key="opt.key" class="flex items-center gap-2 text-xs" @select="addReplyWithStatusDirect(ann, opt.key)">
                   <Icon :name="opt.icon" :size="14" />
-                  <span>{{ $t(opt.labelKey) }}</span>
+                  <span>{{ t(opt.labelKey) }}</span>
                 </DropdownMenuItem>
               </DropdownMenu>
               <!-- Action dropdown -->
@@ -81,9 +81,9 @@
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" title="More"><Icon name="more" :size="14" /></Button>
                 </template>
-                <DropdownMenuItem class="text-xs" @select="handleReplyFromMenu(ann)">{{ $t('common.reply') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="handleEditFromMenu(ann)">{{ $t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="deleteAnnotation(ann.id)">{{ $t('common.delete') }}</DropdownMenuItem>
+                <DropdownMenuItem class="text-xs" @select="handleReplyFromMenu(ann)">{{ t('common.reply') }}</DropdownMenuItem>
+                <DropdownMenuItem class="text-xs" @select="handleEditFromMenu(ann)">{{ t('common.edit') }}</DropdownMenuItem>
+                <DropdownMenuItem class="text-xs" @select="deleteAnnotation(ann.id)">{{ t('common.delete') }}</DropdownMenuItem>
               </DropdownMenu>
             </div>
           </div>
@@ -96,7 +96,7 @@
               @keydown.enter.exact.prevent="updateComment(ann)"
               @blur="editAnnotationId = null"
             />
-            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateComment(ann)">{{ $t('common.confirm') }}</Button>
+            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateComment(ann)">{{ t('common.confirm') }}</Button>
           </template>
           <template v-else>
             <p class="text-xs whitespace-pre-wrap mt-1.5 pl-7" v-if="ann.contentsObj?.text">{{ ann.contentsObj.text }}</p>
@@ -113,7 +113,7 @@
                     @keydown.enter.exact.prevent="updateReply(ann, reply)"
                     @blur="editReplyId = null"
                   />
-                  <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateReply(ann, reply)">{{ $t('common.confirm') }}</Button>
+                  <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateReply(ann, reply)">{{ t('common.confirm') }}</Button>
                 </template>
                 <template v-else>
                   <div class="flex items-center gap-1">
@@ -127,8 +127,8 @@
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-5 text-muted-foreground shrink-0 ml-1"><Icon name="more" :size="12" /></Button>
                 </template>
-                <DropdownMenuItem class="text-xs" @select="handleEditReplyFromMenu(ann, reply)"> {{ $t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ $t('common.delete') }}</DropdownMenuItem>
+                <DropdownMenuItem class="text-xs" @select="handleEditReplyFromMenu(ann, reply)"> {{ t('common.edit') }}</DropdownMenuItem>
+                <DropdownMenuItem class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ t('common.delete') }}</DropdownMenuItem>
               </DropdownMenu>
             </div>
           </div>
@@ -137,24 +137,24 @@
           <div v-if="replyAnnotationId === ann.id" class="mt-2 pl-7">
             <textarea :ref="(el) => setTextareaRef(el as HTMLTextAreaElement | null)"
               class="w-full min-h-[40px] text-xs rounded border border-input bg-background text-foreground p-1.5 resize-none" rows="2"
-              :placeholder="$t('common.reply') + '...'"
+              :placeholder="t('common.reply') + '...'"
               @input="newReplyContent = ($event.target as HTMLTextAreaElement).value"
               @keydown.enter.exact.prevent="addReply(ann)"
               @blur="replyAnnotationId = null"
             />
-            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="addReply(ann)">{{ $t('common.confirm') }}</Button>
+            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="addReply(ann)">{{ t('common.confirm') }}</Button>
           </div>
 
           <!-- Reply button -->
           <div v-if="selectedAnnotationId === ann.id && !replyAnnotationId && !editAnnotationId && !editReplyId" class="mt-2">
-            <Button size="sm" class="w-full text-xs" @mousedown.prevent="startReply(ann)">{{ $t('common.reply') }}</Button>
+            <Button size="sm" class="w-full text-xs" @mousedown.prevent="startReply(ann)">{{ t('common.reply') }}</Button>
           </div>
         </div>
       </div>
     </ScrollArea>
 
     <div v-else class="flex-1 flex items-center justify-center text-xs text-muted-foreground">
-      {{ $t('annotator.comment.total', { value: 0 }) }}
+      {{ t('annotator.comment.total', { value: 0 }) }}
     </div>
 
 
@@ -173,7 +173,6 @@ import { CommentStatus, type IAnnotationStore, type IAnnotationComment, type Pdf
 import { useAnnotationStore, SelectionSource } from '@/stores/annotationStore'
 import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
 import { generateUUID, formatTimestamp, formatPDFDate } from '@/extensions/annotator/utils/utils'
-import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },
@@ -182,7 +181,7 @@ const props = defineProps({
 
 const emit = defineEmits<{ select: [ann: IAnnotationStore]; delete: [id: string] }>()
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useT()
 const store = useAnnotationStore()
 const painter = computed(() => store.painter)
 const pdfContext = inject(PdfViewerContextKey)

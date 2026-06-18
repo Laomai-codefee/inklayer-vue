@@ -16,7 +16,7 @@
         <Button variant="ghost" size="icon" class="size-6" @click="showStyle = false">
           <span class="flex items-center -rotate-90"><Icon name="downArrow" :size="10" /></span>
         </Button>
-        <span class="text-sm font-medium">{{ $t('common.color') }}</span>
+        <span class="text-sm font-medium">{{ t('common.color') }}</span>
       </div>
 
       <!-- Color swatches -->
@@ -39,7 +39,7 @@
         <div class="space-y-3.5">
           <div v-if="isStyleSupported.strokeWidth">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs text-muted-foreground">{{ $t('common.strokeWidth') }}</span>
+              <span class="text-xs text-muted-foreground">{{ t('common.strokeWidth') }}</span>
               <span class="text-xs font-medium tabular-nums">{{ currentStrokeWidth }}px</span>
             </div>
             <input type="range" :min="1" :max="20" :value="currentStrokeWidth"
@@ -48,7 +48,7 @@
           </div>
           <div v-if="isStyleSupported.opacity">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs text-muted-foreground">{{ $t('common.opacity') }}</span>
+              <span class="text-xs text-muted-foreground">{{ t('common.opacity') }}</span>
               <span class="text-xs font-medium tabular-nums">{{ Math.round(currentOpacity * 100) }}%</span>
             </div>
             <input type="range" :min="1" :max="100" :value="Math.round(currentOpacity * 100)"
@@ -64,17 +64,17 @@
       <!-- Comment button -->
       <Button v-if="!isCommentSidebarOpen" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleOpenComment">
         <Icon name="anno" :size="14" />
-        <span>{{ $t('common.comment') }}</span>
+        <span>{{ t('common.comment') }}</span>
       </Button>
       <!-- Style button -->
       <Button v-if="isStyleSupported" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="showStyle = true">
         <Icon name="paletteSingle" :size="14" />
-        <span>{{ $t('common.color') }}</span>
+        <span>{{ t('common.color') }}</span>
       </Button>
       <!-- Delete button -->
       <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive" @click="handleDelete">
         <Icon name="delete" :size="14" />
-        <span>{{ $t('common.delete') }}</span>
+        <span>{{ t('common.delete') }}</span>
       </Button>
     </div>
   </Popover>
@@ -94,6 +94,8 @@ import {
 } from '../../const/definitions'
 import { defaultOptions } from '../../const/default_options'
 import { PAINTER_WRAPPER_PREFIX } from '../../painter/const'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 const ctx = inject(PdfViewerContextKey)
 

@@ -84,7 +84,7 @@ export default defineConfig(({ mode }) => {
           'konva',
           'exceljs',
           'file-saver',
-          /^pdfjs-dist\//,
+          /^pdfjs-dist\/(?!.*\?url)/,
           /^konva\//,
         ],
         output: {

@@ -8,15 +8,15 @@
     <div class="flex items-center gap-0.5 p-1">
       <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleAction('highlight')">
         <Icon name="highlight" :size="14" />
-        <span>{{ $t('annotator.tool.highlight') }}</span>
+        <span>{{ t('annotator.tool.highlight') }}</span>
       </Button>
       <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleAction('underline')">
         <Icon name="underline" :size="14" />
-        <span>{{ $t('annotator.tool.underline') }}</span>
+        <span>{{ t('annotator.tool.underline') }}</span>
       </Button>
       <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleAction('strikeout')">
         <Icon name="strikeout" :size="14" />
-        <span>{{ $t('annotator.tool.strikeout') }}</span>
+        <span>{{ t('annotator.tool.strikeout') }}</span>
       </Button>
     </div>
   </Popover>
@@ -29,6 +29,8 @@ import { Button } from '@/components/ui/button'
 import Icon from '@/components/Icon.vue'
 import { annotationDefinitions } from '../../const/definitions'
 import type { IAnnotationType } from '../../const/definitions'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 const visible = ref(false)
 const x = ref(0)

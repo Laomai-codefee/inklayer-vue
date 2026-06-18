@@ -33,21 +33,21 @@
         <DropdownMenu>
           <template #trigger>
             <Button variant="outline" size="sm" class="h-8 gap-2">
-              {{ $t('common.export') }}
+              {{ t('common.export') }}
               <Icon name="downArrow" :size="8" />
             </Button>
           </template>
           <DropdownMenuItem @select="handleExportPdf()">
-            {{ $t('common.export') }} PDF
+            {{ t('common.export') }} PDF
           </DropdownMenuItem>
           <DropdownMenuItem @select="handleExportExcelFromPainter()">
-            {{ $t('common.export') }} Excel
+            {{ t('common.export') }} Excel
           </DropdownMenuItem>
         </DropdownMenu>
         <!-- Save Button -->
         <Button size="sm" class="h-8 gap-2" @click="handleSaveFromPainter">
           <Icon name="save" :size="16" />
-          {{ $t('common.save') }}
+          {{ t('common.save') }}
         </Button>
       </div>
     </template>
@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, useSlots, onUnmounted } from 'vue'
+import { ref, computed, watch, useSlots, onUnmounted, getCurrentInstance } from 'vue'
 import { storeToRefs } from 'pinia'
 import PdfViewerProvider from '@/context/PdfViewerProvider.vue'
 import ViewerExtension from '@/extensions/viewer/ViewerExtension.vue'
@@ -110,6 +110,8 @@ import i18n from '@/i18n'
 import type { IAnnotationStore } from '@/extensions/annotator/const/definitions'
 import type { PdfAnnotatorProps } from '@/extensions/annotator/types/annotator'
 import type { Annotation } from '@/core/annotation.core'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 const props = withDefaults(defineProps<PdfAnnotatorProps>(), {
   title: 'PDF ANNOTATOR', locale: 'zh-CN', theme: 'violet',

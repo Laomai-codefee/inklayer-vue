@@ -26,7 +26,7 @@
         />
 
         <!-- Regular drawing tools + SELECT -->
-        <Tooltip v-else :content="$t(`annotator.tool.${tool.name}`)">
+        <Tooltip v-else :content="t(`annotator.tool.${tool.name}`)">
           <template #trigger>
             <Button
               variant="ghost"
@@ -67,6 +67,8 @@ import SignatureTool from './SignatureTool.vue'
 import { useAnnotationStore } from '@/stores/annotationStore'
 import { annotationDefinitions, AnnotationType, type IAnnotationType } from '@/extensions/annotator/const/definitions'
 import { defaultOptions } from '@/extensions/annotator/const/default_options'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 const props = defineProps<{ colors?: string[]; signatureOptions?: any; stampOptions?: any }>()
 const store = useAnnotationStore()

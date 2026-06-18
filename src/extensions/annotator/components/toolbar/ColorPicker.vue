@@ -13,7 +13,7 @@
   <Popover v-else :open="open && !disabled" class="!z-[2100]" @update:open="onOpenChange">
     <template #trigger>
       <button type="button"
-        :title="$t('common.color')"
+        :title="t('common.color')"
         class="relative inline-flex items-center justify-center rounded-md size-8 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit"
         :disabled="disabled">
         <svg viewBox="0 0 1024 1024" class="size-4" xmlns="http://www.w3.org/2000/svg">
@@ -43,6 +43,8 @@ import { ref } from 'vue'
 import { Popover } from '@/components/ui/popover'
 import type { PropType } from 'vue'
 import { defaultOptions } from '@/extensions/annotator/const/default_options'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 defineProps({
   modelValue: { type: String, required: true },

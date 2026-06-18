@@ -10,7 +10,7 @@
         <input
           :value="query"
           type="text"
-          :placeholder="$t('viewer.search.placeholder')"
+          :placeholder="t('viewer.search.placeholder')"
           class="flex h-8 w-full rounded-md border border-input bg-background pl-8 pr-8 text-xs placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           @input="setQuery(($event.target as HTMLInputElement).value)"
           @keydown="handleKeyDown" />
@@ -25,11 +25,11 @@
       <div class="flex items-center gap-3 mt-2">
         <label class="flex items-center gap-2 text-xs cursor-pointer">
           <input type="checkbox" :checked="searchOptions.caseSensitive" class="size-3 rounded" @change="setCaseSensitive(($event.target as HTMLInputElement).checked)" />
-          {{ $t('viewer.search.caseSensitive') }}
+          {{ t('viewer.search.caseSensitive') }}
         </label>
         <label class="flex items-center gap-2 text-xs cursor-pointer">
           <input type="checkbox" :checked="searchOptions.entireWord" class="size-3 rounded" @change="setEntireWord(($event.target as HTMLInputElement).checked)" />
-          {{ $t('viewer.search.entireWord') }}
+          {{ t('viewer.search.entireWord') }}
         </label>
       </div>
 
@@ -37,7 +37,7 @@
 
       <!-- Result count + nav (below options, above results, sticky) -->
       <div v-if="!searching && results.length > 0" class="flex items-center justify-between pb-2">
-        <span class="text-xs text-muted-foreground">{{ $t('viewer.search.resultTotal', { total: results[0].countTotal }) }}</span>
+        <span class="text-xs text-muted-foreground">{{ t('viewer.search.resultTotal', { total: results[0].countTotal }) }}</span>
         <div v-if="results[0].countTotal > 0" class="flex gap-1">
           <Button variant="ghost" size="icon" class="size-8" @click="goToPreviousMatch">
             <Icon name="left" :size="14" />
@@ -52,14 +52,14 @@
     <!-- Loading -->
     <div v-if="searching" class="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
       <span class="size-3 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
-      {{ $t('viewer.search.searching') }}
+      {{ t('viewer.search.searching') }}
     </div>
 
     <!-- Results (scrollable) -->
     <div v-if="!searching && results.length > 0" class="flex-1 overflow-y-auto">
       <template v-for="res in results" :key="res.query">
         <div v-for="page in res.pageMatches" :key="page.pageNumber" class="mt-1 mb-3 pl-2">
-          <span class="text-xs text-muted-foreground">{{ $t('viewer.search.page', { value: page.pageNumber }) }} ({{ page.countTotal }})</span>
+          <span class="text-xs text-muted-foreground">{{ t('viewer.search.page', { value: page.pageNumber }) }} ({{ page.countTotal }})</span>
           <div v-for="match in page.matches" :key="`${page.pageNumber}-${match.matchIndex}`" class="mt-2">
             <button
               :ref="(el) => setMatchRef(page.pageNumber, match.matchIndex, el as HTMLElement)"
@@ -75,7 +75,7 @@
 
     <!-- No results -->
     <div v-if="!searching && query && results.length === 0" class="flex-1 flex items-center justify-center text-xs text-muted-foreground">
-      {{ $t('viewer.search.resultTotal', { total: 0 }) }}
+      {{ t('viewer.search.resultTotal', { total: 0 }) }}
     </div>
   </div>
 </template>
@@ -86,6 +86,8 @@ import { usePdfSearch } from '@/composables/usePdfSearch'
 import { PdfViewerContextKey } from '@/context/pdfViewerContext'
 import { Button } from '@/components/ui/button'
 import Icon from '@/components/Icon.vue'
+import { useT } from '@/composables/useT'
+const { t } = useT()
 
 const ctx = inject(PdfViewerContextKey)!
 const { query, results, searching, searchOptions, search, clearSearch, jumpToMatch } = usePdfSearch(ctx.pdfViewer)

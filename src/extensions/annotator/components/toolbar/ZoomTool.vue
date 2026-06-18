@@ -27,13 +27,13 @@
 
 <script setup lang="ts">
 import { ref, inject, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useT } from '@/composables/useT'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import Icon from '@/components/Icon.vue'
 import { PdfViewerContextKey } from '@/context/pdfViewerContext'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useT()
 
 const ZOOM_CONFIG = { MIN_SCALE: 0.1, MAX_SCALE: 5, ZOOM_STEP: 0.1 } as const
 const ZOOM_OPTIONS = computed(() => [

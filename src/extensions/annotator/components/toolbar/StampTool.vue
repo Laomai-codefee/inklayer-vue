@@ -4,7 +4,7 @@
     <template #trigger>
       <Button variant="ghost" size="icon" class="size-8"
         :class="active ? 'bg-primary/15 text-primary hover:bg-primary/25' : ''"
-        :title="$t('annotator.tool.stamp')">
+        :title="t('annotator.tool.stamp')">
         <Icon name="stamp" :size="18" />
       </Button>
     </template>
@@ -14,16 +14,16 @@
       <div class="flex rounded-full bg-muted p-0.5 mb-3">
         <button class="flex-1 text-xs py-1 rounded-full transition-colors"
           :class="tab === 'default' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'"
-          @click="tab = 'default'">{{ $t('common.default') }}</button>
+          @click="tab = 'default'">{{ t('common.default') }}</button>
         <button class="flex-1 text-xs py-1 rounded-full transition-colors"
           :class="tab === 'custom' ? 'bg-background shadow-sm font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'"
-          @click="tab = 'custom'">{{ $t('common.custom') }}</button>
+          @click="tab = 'custom'">{{ t('common.custom') }}</button>
       </div>
 
       <!-- Default stamps -->
       <template v-if="tab === 'default'">
         <div v-if="!allStamps.default.length" class="text-xs text-muted-foreground text-center py-4">
-          {{ $t('annotator.editor.stamp.defaultStampNotSet') }}
+          {{ t('annotator.editor.stamp.defaultStampNotSet') }}
         </div>
         <ScrollArea v-else class="max-h-[200px]">
           <ul class="space-y-2">
@@ -48,14 +48,14 @@
           </ul>
         </ScrollArea>
         <Button variant="outline" size="sm" class="w-full mt-3 text-xs gap-1" @click="openEditor">
-          + {{ $t('annotator.common.createStamp') }}
+          + {{ t('annotator.common.createStamp') }}
         </Button>
         <Separator class="my-3" />
         <input ref="fileInputRef" type="file" :accept="stampAccept" class="hidden" @change="onFileUpload" />
         <Tooltip :content="uploadHint">
           <template #trigger>
             <Button variant="ghost" size="sm" class="w-full text-xs" @click="fileInputRef?.click()">
-              {{ $t('annotator.editor.stamp.upload') }}
+              {{ t('annotator.editor.stamp.upload') }}
             </Button>
           </template>
         </Tooltip>
@@ -67,14 +67,14 @@
   <Teleport to="body">
     <div v-if="editorOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40" @click.self="editorOpen = false">
       <div class="bg-background text-foreground rounded-lg border border-border shadow-lg w-[550px] max-h-[90vh] overflow-y-auto p-5" @click.stop>
-        <h3 class="text-sm font-semibold mb-4">{{ $t('annotator.common.createStamp') }}</h3>
+        <h3 class="text-sm font-semibold mb-4">{{ t('annotator.common.createStamp') }}</h3>
 
         <!-- Konva Preview -->
         <div ref="konvaContainer" class="h-[120px] rounded-md border border-border bg-white overflow-hidden mb-4" />
 
         <!-- Stamp Text -->
         <label class="block mb-4">
-          <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.stampText') }}</span>
+          <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.stampText') }}</span>
           <input v-model="form.stampText"
             class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
             @input="renderPreview" />
@@ -83,15 +83,15 @@
         <!-- Colors row -->
         <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.textColor') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.textColor') }}</span>
             <ColorPicker v-model="form.textColor" :presets="colors" @update:model-value="renderPreview" />
           </div>
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.backgroundColor') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.backgroundColor') }}</span>
             <ColorPicker v-model="form.backgroundColor" :presets="colors" @update:model-value="renderPreview" />
           </div>
           <div class="flex flex-col gap-1">
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.borderColor') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.borderColor') }}</span>
             <ColorPicker v-model="form.borderColor" :presets="colors" @update:model-value="renderPreview" />
           </div>
         </div>
@@ -99,7 +99,7 @@
         <!-- Font style + Font family + Border style -->
         <div class="grid grid-cols-3 gap-3 mb-4">
           <div>
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.fontStyle') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.fontStyle') }}</span>
             <div class="flex gap-1 mt-1">
               <button v-for="s in fontStyles" :key="s.value"
                 class="size-7 flex items-center justify-center rounded text-xs border transition-colors text-foreground"
@@ -108,7 +108,7 @@
             </div>
           </div>
           <div>
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.fontFamily') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.fontFamily') }}</span>
             <select v-model="form.fontFamily"
               class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
               @change="renderPreview">
@@ -116,13 +116,13 @@
             </select>
           </div>
           <div>
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.borderStyle') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.borderStyle') }}</span>
             <select v-model="form.borderStyle"
               class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
               @change="renderPreview">
-              <option value="solid">{{ $t('annotator.editor.stamp.solid') }}</option>
-              <option value="dashed">{{ $t('annotator.editor.stamp.dashed') }}</option>
-              <option value="none">{{ $t('annotator.editor.stamp.none') }}</option>
+              <option value="solid">{{ t('annotator.editor.stamp.solid') }}</option>
+              <option value="dashed">{{ t('annotator.editor.stamp.dashed') }}</option>
+              <option value="none">{{ t('annotator.editor.stamp.none') }}</option>
             </select>
           </div>
         </div>
@@ -132,22 +132,22 @@
         <!-- Timestamp section -->
         <div class="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.timestampText') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.timestampText') }}</span>
             <div class="flex gap-3 mt-1">
               <label class="flex items-center gap-1 text-xs text-foreground">
                 <input type="checkbox" :checked="form.timestamp.includes('username')" class="size-3"
                   @change="toggleTimestamp('username'); renderPreview()" />
-                {{ $t('annotator.editor.stamp.username') }}
+                {{ t('annotator.editor.stamp.username') }}
               </label>
               <label class="flex items-center gap-1 text-xs text-foreground">
                 <input type="checkbox" :checked="form.timestamp.includes('date')" class="size-3"
                   @change="toggleTimestamp('date'); renderPreview()" />
-                {{ $t('annotator.editor.stamp.date') }}
+                {{ t('annotator.editor.stamp.date') }}
               </label>
             </div>
           </div>
           <div>
-            <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.dateFormat') }}</span>
+            <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.dateFormat') }}</span>
             <select v-model="form.dateFormat"
               class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none"
               :disabled="!form.timestamp.includes('date')"
@@ -161,7 +161,7 @@
 
         <!-- Custom timestamp text -->
         <label class="block mb-4">
-          <span class="text-xs text-muted-foreground">{{ $t('annotator.editor.stamp.customTimestamp') }}</span>
+          <span class="text-xs text-muted-foreground">{{ t('annotator.editor.stamp.customTimestamp') }}</span>
           <input v-model="form.customTimestampText"
             class="flex h-8 w-full rounded-md border border-border bg-background text-foreground px-2 text-xs mt-1 outline-none focus:border-ring"
             @input="renderPreview" />
@@ -169,8 +169,8 @@
 
         <!-- Footer -->
         <div class="flex justify-end gap-3 pt-2">
-          <Button variant="outline" class="w-[100px]" @click="editorOpen = false">{{ $t('common.cancel') }}</Button>
-          <Button class="w-[100px]" @click="handleOk">{{ $t('common.ok') }}</Button>
+          <Button variant="outline" class="w-[100px]" @click="editorOpen = false">{{ t('common.cancel') }}</Button>
+          <Button class="w-[100px]" @click="handleOk">{{ t('common.ok') }}</Button>
         </div>
       </div>
     </div>
@@ -187,11 +187,11 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Icon from '@/components/Icon.vue'
 import ColorPicker from './ColorPicker.vue'
-import { useI18n } from 'vue-i18n'
+import { useT } from '@/composables/useT'
 import { defaultOptions } from '../../const/default_options'
 import { formatFileSize } from '../../utils/utils'
 
-const { t: $t } = useI18n({ useScope: 'global' })
+const { t } = useT()
 
 const props = defineProps<{ active?: boolean; defaultStamps?: string[]; stampOptions?: typeof defaultOptions.stamp; colors?: string[] }>()
 const emit = defineEmits<{ select: [dataUrl: string] }>()
@@ -204,7 +204,7 @@ const stampMaxSize = computed(() => stamp.value.maxSize!)
 const defaultFontList = computed(() => stamp.value.editor!.defaultFont!)
 const colors = computed(() => props.colors?.length ? props.colors : defaultOptions.colors!)
 
-const uploadHint = computed(() => $t('annotator.editor.signature.uploadHint', { format: stampAccept.value, maxSize: formatFileSize(stampMaxSize.value) }))
+const uploadHint = computed(() => t('annotator.editor.signature.uploadHint', { format: stampAccept.value, maxSize: formatFileSize(stampMaxSize.value) }))
 
 const popoverOpen = ref(false)
 const tab = ref<'default' | 'custom'>(props.defaultStamps?.length ? 'default' : 'custom')
@@ -250,7 +250,7 @@ interface FormData {
 }
 const stampEditor = computed(() => stamp.value.editor!)
 const form = reactive<FormData>({
-  stampText: $t('annotator.editor.stamp.defaultText'),
+  stampText: t('annotator.editor.stamp.defaultText'),
   textColor: stampEditor.value.defaultTextColor!,
   backgroundColor: stampEditor.value.defaultBackgroundColor!,
   borderColor: stampEditor.value.defaultBorderColor!,

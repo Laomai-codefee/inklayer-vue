@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted } from 'vue'
-import 'pdfjs-dist/legacy/web/pdf_viewer.css'
+import '@/styles/pdf_viewer.css'
 import { usePdfViewer, type UseViewerOptions } from '@/composables/usePdfViewer'
 import { usePdfTool } from '@/composables/usePdfTool'
 import { PdfViewerContextKey, UserContextKey, type PdfViewerContextValue, type SidebarPanelKey } from '@/context/pdfViewerContext'
