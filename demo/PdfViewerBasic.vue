@@ -3,5 +3,5 @@
 </template>
 <script setup lang="ts">
 import PdfViewer from '@/PdfViewer.vue'
-const pdfUrl = "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"
+const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
 </script>

@@ -22,6 +22,16 @@
       <Button variant="outline" size="icon" class="size-8 shrink-0" @click="toggleDark">
         {{ isDark ? '☀️' : '🌙' }}
       </Button>
+
+    <a href="https://github.com/Laomai-codefee/inklayer-vue" target="_blank" rel="noopener noreferrer"
+        :style="{display: 'inline-flex', alignItems: 'center'}">
+        <img
+            src="https://img.shields.io/github/stars/Laomai-codefee/inklayer-vue?style=social"
+            alt="GitHub stars"
+            :style="{ height: 20, marginRight: 10 }"
+        />
+    </a>
+
     </header>
 
     <div class="flex-1 min-h-0">
