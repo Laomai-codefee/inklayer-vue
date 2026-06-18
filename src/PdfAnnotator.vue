@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, useSlots, onUnmounted, getCurrentInstance } from 'vue'
+import { ref, computed, watch, useSlots, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import PdfViewerProvider from '@/context/PdfViewerProvider.vue'
 import ViewerExtension from '@/extensions/viewer/ViewerExtension.vue'

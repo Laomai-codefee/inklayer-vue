@@ -445,7 +445,8 @@ export class Selector {
      * @param add - 是否添加悬停样式。
      */
     private toggleCursorStyle(add: boolean): void {
-        document.body.classList.toggle(SELECTOR_HOVER_STYLE, add)
+        const inkLayer = document.getElementById('InkLayer')
+        if (inkLayer) inkLayer.classList.toggle(SELECTOR_HOVER_STYLE, add)
     }
 
     /**

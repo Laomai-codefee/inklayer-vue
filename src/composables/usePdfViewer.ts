@@ -1,7 +1,7 @@
 // usePdfViewer composable — Vue 3 version
 // Migrated from React usePdfViewer hook
 
-import { ref, shallowRef, onUnmounted, onMounted, type ShallowRef } from 'vue'
+import { ref, shallowRef, onUnmounted, onMounted, nextTick, type ShallowRef } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {
   DownloadManager,
@@ -81,6 +81,11 @@ export function usePdfViewer(
 
     const container = containerRef.value
     if (!container) throw new Error('PDF container not ready')
+
+    // Ensure container is absolutely positioned for pdfjs
+    if (!container.style.position) {
+      container.style.position = 'absolute'
+    }
 
     const bus = externalEventBus || new EventBus()
     eventBus.value = bus
@@ -231,7 +236,8 @@ export function usePdfViewer(
   }
 
   // Start loading after mount (containerRef must be attached to DOM)
-  onMounted(() => {
+  onMounted(async () => {
+    await nextTick()
     loadPdf()
   })
 

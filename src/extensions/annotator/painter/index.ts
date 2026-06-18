@@ -282,17 +282,18 @@ export class Painter {
      */
     private setMode(mode: 'painting' | 'default'): void {
         const isPainting = mode === 'painting' // 是否绘画模式
-        document.body.classList.toggle(`${PAINTER_IS_PAINTING_STYLE}`, isPainting) // 添加或移除绘画模式样式
+        const inkLayer = document.getElementById('InkLayer')
+        if (inkLayer) inkLayer.classList.toggle(`${PAINTER_IS_PAINTING_STYLE}`, isPainting)
         const allAnnotationClasses = Object.values(AnnotationType)
             .filter((type) => typeof type === 'number')
             .map((type) => `${PAINTER_PAINTING_TYPE}_${type}`)
         // 移除所有可能存在的批注类型样式
-        allAnnotationClasses.forEach((cls) => document.body.classList.remove(cls))
+        allAnnotationClasses.forEach((cls) => inkLayer?.classList.remove(cls))
         // 移出签名鼠标指针变量
         removeCssCustomProperty(CURSOR_CSS_PROPERTY)
 
         if (this.currentAnnotation) {
-            document.body.classList.add(`${PAINTER_PAINTING_TYPE}_${this.currentAnnotation?.type}`)
+            inkLayer?.classList.add(`${PAINTER_PAINTING_TYPE}_${this.currentAnnotation?.type}`)
         }
     }
 
@@ -883,11 +884,12 @@ export class Painter {
         this.currentAnnotation = null
 
         // 清理 CSS 样式
-        document.body.classList.remove(`${PAINTER_IS_PAINTING_STYLE}`)
+        const inkLayer = document.getElementById('InkLayer')
+        if (inkLayer) inkLayer.classList.remove(`${PAINTER_IS_PAINTING_STYLE}`)
         const allAnnotationClasses = Object.values(AnnotationType)
             .filter((type) => typeof type === 'number')
             .map((type) => `${PAINTER_PAINTING_TYPE}_${type}`)
-        allAnnotationClasses.forEach((cls) => document.body.classList.remove(cls))
+        allAnnotationClasses.forEach((cls) => inkLayer?.classList.remove(cls))
         removeCssCustomProperty(CURSOR_CSS_PROPERTY)
     }
 }

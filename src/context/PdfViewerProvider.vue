@@ -13,7 +13,7 @@
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
       </svg>
-      <span class="mt-4 text-sm font-medium text-muted-foreground">Loading {{ progress }}%</span>
+      <span class="mt-4 text-sm font-medium text-muted-foreground">{{ t('common.loading') }} {{ progress }}%</span>
     </div>
 
     <!-- ========== Top progress bar (transient) ========== -->
@@ -62,8 +62,8 @@
           <PageIndicator />
 
           <!-- PDF viewer container -->
-          <div ref="viewerContainerRef" class="absolute inset-0 overflow-auto flex justify-center px-6 pb-6">
-            <div class="pdfViewer min-w-full pt-6" />
+          <div ref="viewerContainerRef" style="position: absolute" class="inset-0 overflow-auto flex justify-center p-6">
+            <div class="pdfViewer min-w-full" />
           </div>
         </div>
       </div>
@@ -79,8 +79,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted } from 'vue'
+import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted, onMounted } from 'vue'
 import '@/styles/pdf_viewer.css'
+import { useT } from '@/composables/useT'
+
+const { t } = useT()
 import { usePdfViewer, type UseViewerOptions } from '@/composables/usePdfViewer'
 import { usePdfTool } from '@/composables/usePdfTool'
 import { PdfViewerContextKey, UserContextKey, type PdfViewerContextValue, type SidebarPanelKey } from '@/context/pdfViewerContext'
@@ -274,4 +277,8 @@ provide(PdfViewerContextKey, contextValue)
 provide(UserContextKey, { user: computed(() => props.user || null) })
 
 const hasToolbar = computed(() => slots.toolbar)
+
+// ========== Mount/unmount: toggle body class for CSS scoping ==========
+onMounted(() => document.body.classList.add('inklayer-app'))
+onUnmounted(() => document.body.classList.remove('inklayer-app'))
 </script>

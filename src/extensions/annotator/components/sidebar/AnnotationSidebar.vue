@@ -173,6 +173,7 @@ import { CommentStatus, type IAnnotationStore, type IAnnotationComment, type Pdf
 import { useAnnotationStore, SelectionSource } from '@/stores/annotationStore'
 import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
 import { generateUUID, formatTimestamp, formatPDFDate } from '@/extensions/annotator/utils/utils'
+import { useT } from '@/composables/useT'
 
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },

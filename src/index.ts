@@ -4,6 +4,8 @@
  * Top-level exports: PdfViewer, PdfAnnotator, and supporting types
  */
 
+import './assets/tailwind.css'
+
 // ========== Top-level Components ==========
 export { default as PdfViewer } from './PdfViewer.vue'
 export { default as PdfAnnotator } from './PdfAnnotator.vue'

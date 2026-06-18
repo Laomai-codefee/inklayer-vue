@@ -12,7 +12,7 @@ export const snippets: Record<string, string> = {
 
 <script setup lang="ts">
 import { PdfViewer } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 <\/script>`,
 
   PdfViewerData: `<template>
@@ -24,7 +24,7 @@ import 'inklayer-vue/dist/inklayer-vue.css'
 
 <script setup lang="ts">
 import { PdfViewer } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 
 const pdfData = '...' // base64 or byte array
 <\/script>`,
@@ -89,7 +89,7 @@ const pdfData = '...' // base64 or byte array
 
 <script setup lang="ts">
 import { PdfViewer } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 
 const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
 
@@ -126,7 +126,7 @@ function onEventBusReady(eventBus: any) {
 
 <script setup lang="ts">
 import { PdfAnnotator } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 <\/script>`,
 
   PdfAnnotatorCustom: `<template>
@@ -162,7 +162,7 @@ import 'inklayer-vue/dist/inklayer-vue.css'
 
 <script setup lang="ts">
 import { PdfAnnotator } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
@@ -363,7 +363,7 @@ const initialAnnotations = [
 
 <script setup lang="ts">
 import { PdfAnnotator } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 
 const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
 

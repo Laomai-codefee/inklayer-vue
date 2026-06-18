@@ -78,7 +78,7 @@ yarn add inklayer-vue
 ```vue
 <script setup>
 import { PdfAnnotator } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 
 const handleSave = (annotations) => {
   console.log('Save:', annotations)
@@ -100,7 +100,7 @@ const handleSave = (annotations) => {
 ```vue
 <script setup>
 import { PdfViewer } from 'inklayer-vue'
-import 'inklayer-vue/dist/inklayer-vue.css'
+import 'inklayer-vue/style'
 </script>
 
 <template>
