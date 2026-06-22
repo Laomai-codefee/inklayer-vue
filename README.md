@@ -5,75 +5,55 @@
 <h1 align="center">InkLayer Vue</h1>
 
 <p align="center">
-  基于PDF.js构建的可扩展Vue3 PDF注释SDK和查看器
-        <br/>支持文档审查、评论和注释编辑。
+  基于 PDF.js 构建的 Vue 3 PDF 批注 SDK
+  <br/>用于快速构建文档审阅、批注与评论系统
 </p>
 
 ---
-[English](./README-en-US.md) | 简体中文
+简体中文 | [English](./README-en-US.md) 
 ---
-[![NPM](https://img.shields.io/npm/v/inklayer-vue.svg)](https://www.npmjs.com/package/inklayer-vue)
-[![Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://laomai-codefee.github.io/inklayer-vue/)
-[![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
+[![NPM](https://img.shields.io/npm/v/inklayer-vue.svg)](https://www.npmjs.com/package/inklayer-vue)  [![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
 
-### [>>Online Demo](https://laomai-codefee.github.io/inklayer-vue/)
+[>> 在线演示](https://laomai-codefee.github.io/inklayer-vue/)
 
 
 ---
 
-## ✨ 特性
+## 为什么选择 InkLayer
 
-- **丰富的批注系统** — 内置 13 种批注工具：矩形、圆形、自由手绘、自由高亮、箭头、云线、自由文本、签名、印章、文本高亮、文本删除线、文本下划线、便签注释
-- **高保真 PDF 渲染** — 基于 PDF.js，支持文本层搜索、平滑缩放和多页滚动
-- **完整主题系统** — 28 套基于 Radix 的预设配色，自动支持亮色/暗色模式
-- **国际化** — 通过 `vue-i18n` 内置 zh-CN（简体中文）和 en-US（英文）语言支持
-- **高度可定制的 UI** — 工具栏、侧边栏、操作按钮均可通过 Vue 具名插槽完全替换
-- **`defaultOptions`** — 采用 DeepMerge / DeepPartial 模式，可部分覆盖配置而无需冗余代码
-- **PDF 和 Excel 导出** — 支持将批注导出为带批注层的 PDF（基于 pdf-lib）或结构化的 Excel 文件（基于 exceljs）
-- **可扩展架构** — 核心批注数据模型与渲染层解耦；适配器模式支持 PDF.js、Konva 及未来渲染引擎
-- **Tree-Shaking 友好** — 库模式构建，输出完整 ESM/CJS 格式和 TypeScript 类型声明
+直接用 PDF.js 构建 PDF 批注功能需要处理以下问题：
 
----
+- 坐标系统映射
+- 批注渲染一致性
+- 跨页面的状态同步
+- 导出和持久化逻辑
 
-## ✍️ 批注工具
-
-| 工具 | 说明 |
-|------|------|
-| **矩形** | 绘制矩形形状 |
-| **圆形** | 绘制椭圆形状 |
-| **自由手绘** | 自由形式的墨迹绘制 |
-| **自由高亮** | 半透明自由形式高亮标记 |
-| **箭头** | 绘制带方向箭头的线条 |
-| **云线** | 绘制云形多边形 |
-| **自由文本** | 放置可编辑的文本框 |
-| **签名** | 放置签名（上传图片、手绘、输入文字或默认签名） |
-| **印章** | 放置自定义/标准印章（上传图片、自定义文字或默认印章） |
-| **文本高亮** | 高亮选中的文本 |
-| **文本删除线** | 为选中文本添加删除线 |
-| **文本下划线** | 为选中文本添加下划线 |
-| **便签注释** | 附加可折叠的注释便签 |
-
-### ✍️ 编辑已有批注
-
-支持编辑从 PDF 文档中加载的原生批注类型：
-
-矩形（Square）、圆形（Circle）、墨迹（Ink）、自由文本（FreeText）、直线（Line）、多边形（Polygon）、折线（PolyLine）、文本（Text）、高亮（Highlight）、下划线（Underline）、删除线（StrikeOut）
+InkLayer 提供了一个结构化的抽象层来降低这些复杂度。
 
 ---
 
-## 📦 安装
+## 特性
+
+- 批注系统（文本、墨迹、图形、印章等）
+- 基于 PDF.js 的渲染抽象
+- 评论与审阅工作流
+- 可编辑的批注数据模型
+- 导出支持（PDF / Excel）
+- Vue 3 集成，提供 composable API
+- 可自定义的 UI 和主题系统
+
+---
+
+## 安装
 
 ```bash
 npm install inklayer-vue
-pnpm add inklayer-vue
 yarn add inklayer-vue
 ```
 
 ---
 
-## 🚀 快速开始
-
-### PdfAnnotator — 完整批注工作区
+## 快速开始
 
 ```vue
 <script setup>
@@ -95,8 +75,6 @@ const handleSave = (annotations) => {
 </template>
 ```
 
-### PdfViewer — 只读查看器（带搜索）
-
 ```vue
 <script setup>
 import { PdfViewer } from 'inklayer-vue'
@@ -113,7 +91,7 @@ import 'inklayer-vue/style'
 
 ---
 
-## 🧩 组件
+## 组件
 
 ### 基础属性（PdfViewer 和 PdfAnnotator 共用）
 
@@ -136,80 +114,15 @@ import 'inklayer-vue/style'
 
 ### PdfAnnotator
 
-全功能 PDF 批注工作区。包含工具栏、批注侧边栏、搜索侧边栏和所有批注工具。
-
-#### 属性
+#### Props
 
 | 属性 | 类型 | 默认值 | 说明 |
 |:-----|:-----|:--------|:------------|
 | （所有基础属性） | | | 继承所有[基础属性](#基础属性pdfviewer-和-pdfannotator-共用) |
-| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | 部分配置，将与系统默认值深度合并（见下方示例） |
+| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | 部分配置，将与系统默认值深度合并 |
 | `defaultShowAnnotationsSidebar` | `boolean` | `false` | 挂载时默认打开批注侧边栏 |
 | `enableNativeAnnotations` | `boolean` | `false` | 是否允许编辑 PDF 原生批注 |
 | `initialAnnotations` | `IAnnotationStore[]` | `[]` | 挂载时加载已有的批注数据 |
-
-#### ⚙️ `defaultOptions` — DeepPartial + DeepMerge 机制
-
-InkLayer Vue 采用 `DeepPartial` + `DeepMerge` 的配置模式。你只需指定需要覆盖的字段，其余将自动回退到合理的默认值。
-
-```vue
-<script setup>
-const customOptions = {
-  signature: {
-        defaultSignature: [
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...'],
-        type: 'Draw',
-        defaultFont: [
-            { label: '楷体', value: 'STKaiti', external: false },
-            { label: '千图笔锋手写体', value: 'qiantubifengshouxieti', external: true, url: qiantubifengshouxietiFont }
-        ]
-    },
-    stamp: {
-        defaultStamp: [
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA...']
-    }
-}
-</script>
-
-<template>
-  <PdfAnnotator
-    url="/document.pdf"
-    :user="{ id: 'u1', name: 'Alice' }"
-    :default-options="customOptions"
-  />
-</template>
-```
-
-**`PdfAnnotatorOptions` 完整结构：**
-
-<details>
-<summary>点击展开</summary>
-
-```ts
-interface PdfAnnotatorOptions {
-  /** 批注工具的预设颜色调色板 */
-  colors: string[]
-  
-  /** 签名工具配置 */
-  signature: {
-    fontFamily?: string
-    defaultName?: string
-    defaultImage?: string
-  }
-  
-  /** 印章工具配置 */
-  stamp: {
-    stamps?: Array<{
-      text: string
-      color: string
-      borderColor?: string
-      backgroundColor?: string
-    }>
-    defaultStamp?: string
-  }
-}
-```
-</details>
 
 #### 事件
 
@@ -241,7 +154,7 @@ interface PdfAnnotatorOptions {
 
 只读 PDF 查看器，支持搜索、缩放、主题和可自定义的工具栏 / 侧边栏插槽。
 
-#### 属性
+#### Props
 
 | 属性 | 类型 | 默认值 | 说明 |
 |:-----|:-----|:--------|:------------|
@@ -311,7 +224,7 @@ const customPanels = [
 
 ---
 
-## 🧩 扩展组件
+## 扩展组件
 
 InkLayer Vue 也导出内部构建块组件，供高级定制使用：
 
@@ -327,7 +240,7 @@ InkLayer Vue 也导出内部构建块组件，供高级定制使用：
 
 ---
 
-## 🛠 Composable 函数
+## Composable 函数
 
 | Composable | 说明 |
 |:-----------|:------------|
@@ -340,44 +253,16 @@ InkLayer Vue 也导出内部构建块组件，供高级定制使用：
 
 ---
 
-## 📦 高级用法
+## 浏览器兼支持
 
-
-### 配合 `PdfViewerProvider` 使用（无头模式）
-
-```vue
-<script setup>
-import { PdfViewerProvider } from 'inklayer-vue'
-</script>
-
-<template>
-  <PdfViewerProvider url="/document.pdf">
-    <!-- 在此组件树内任意位置可访问 PDF 上下文 -->
-    <YourCustomViewer />
-  </PdfViewerProvider>
-</template>
-```
-
-### 导入 shadcn-vue UI 组件
-
-InkLayer Vue 重新导出其内部的 shadcn-vue 组件，方便你构建风格统一的自定义 UI：
-
-```vue
-<script setup>
-import { Button, Input, Tabs, TabsList, TabsTrigger, TabsContent } from 'inklayer-vue'
-</script>
-```
+Chrome、Firefox、Safari、Edge 最新版本。
 
 ---
+## 相关项目
 
-## 🌍 浏览器兼容性
-
-| <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/chrome/chrome_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/firefox/firefox_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/safari/safari_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/edge/edge_48x48.png" width="24" /> |
-|:---:|:---:|:---:|:---:|
-| Chrome 最新版 | Firefox 最新版 | Safari 最新版 | Edge 最新版 |
-
+- [InkLayer React](https://github.com/Laomai-codefee/inklayer-react) — React 版本
+- [PDF.js](https://github.com/mozilla/pdf.js) — 底层 PDF 渲染引擎
 ---
-
-## 📄 许可证
+## 许可证
 
 MIT © InkLayer

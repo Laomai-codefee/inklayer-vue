@@ -5,75 +5,55 @@
 <h1 align="center">InkLayer Vue</h1>
 
 <p align="center">
-  Extensible Vue3 PDF annotation SDK and viewer built on PDF.js
-        <br/>supporting document review, comments, and annotation editing.
+  A Vue 3 PDF annotation SDK built on top of PDF.js.
+  <br/>Simplifies building document review, annotation, and commenting systems.
 </p>
 
 ---
-English | [简体中文](./README.md)
+[简体中文](./README.md) | English 
 ---
-[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-vue)
-[![Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://laomai-codefee.github.io/inklayer-vue/)
-[![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
+[![NPM](https://img.shields.io/npm/v/inklayer-vue.svg)](https://www.npmjs.com/package/inklayer-vue)  [![License](https://img.shields.io/npm/l/inklayer-vue)](./LICENSE)
 
-### [>>Online Demo](https://laomai-codefee.github.io/inklayer-vue/)
+[>> Online Demo](https://laomai-codefee.github.io/inklayer-vue/)
 
 
 ---
 
-## ✨ Features
+## Why InkLayer
 
-- **Rich Annotation System** — 13 built-in annotation tools: highlight, underline, strikeout, rectangle, circle, arrow, cloud, freehand, free highlight, free text, stamp, signature, and sticky note
-- **High-Fidelity PDF Rendering** — Powered by PDF.js with text layer search, smooth zoom, and multi-page scrolling
-- **Full Theme System** — 28 built-in Radix-based color themes with automatic dark/light mode support
-- **Internationalization** — Built-in zh-CN and en-US locales via `vue-i18n`
-- **Highly Customizable UI** — Every toolbar, sidebar, and action button is overridable via Vue named slots
-- **`defaultOptions`** — DeepMerge/DeepPartial mechanism for partial configuration injection without boilerplate
-- **PDF & Excel Export** — Export annotations to annotated PDF (via pdf-lib) or structured Excel (via exceljs)
-- **Extensible Architecture** — Core annotation data model decoupled from rendering; adapter pattern supports PDF.js, Konva, and future renderers
-- **Tree-Shakable** — Library build with full ESM/CJS support and TypeScript declaration output
+Building PDF annotation features with PDF.js requires handling:
 
----
+- coordinate system mapping
+- annotation rendering consistency
+- state synchronization across pages
+- export and persistence logic
 
-## ✍️ Annotation Tools
-
-| Tool | Description |
-|------|-------------|
-| **Rectangle** | Draw rectangular shapes |
-| **Circle** | Draw elliptical shapes |
-| **Free Hand** | Free-form ink drawing |
-| **Free Highlight** | Transparent free-form highlighting |
-| **Arrow** | Draw arrows with directional heads |
-| **Cloud** | Draw cloud-shaped polygons |
-| **Free Text** | Place editable text boxes |
-| **Signature** | Place signatures (upload, draw, type, or defaults) |
-| **Stamp** | Place custom/standard stamps (upload images, custom text, or defaults) |
-| **Text Highlight** | Highlight selected text |
-| **Text Strikeout** | Strike through selected text |
-| **Text Underline** | Underline selected text |
-| **Sticky Note** | Attach collapsible note annotations |
-
-### ✍️ Editing Existing Annotations
-
-PDF native annotations loaded from documents are fully editable:
-
-Square, Circle, Ink, FreeText, Line, Polygon, PolyLine, Text, Highlight, Underline, StrikeOut
+InkLayer provides a structured layer to reduce this complexity.
 
 ---
 
-## 📦 Installation
+## Features
+
+- Annotation system (text, ink, shapes, stamps)
+- PDF.js rendering abstraction
+- Comment and review workflows
+- Editable annotation model
+- Export support (PDF / Excel)
+- Vue 3 integration with composable API
+- Customizable UI and theme system
+
+---
+
+## Installation
 
 ```bash
 npm install inklayer-vue
-pnpm add inklayer-vue
 yarn add inklayer-vue
 ```
 
 ---
 
-## 🚀 Quick Start
-
-### PdfAnnotator — Full annotation workspace
+## Quick Start
 
 ```vue
 <script setup>
@@ -95,8 +75,6 @@ const handleSave = (annotations) => {
 </template>
 ```
 
-### PdfViewer — Read-only viewer with search
-
 ```vue
 <script setup>
 import { PdfViewer } from 'inklayer-vue'
@@ -113,7 +91,7 @@ import 'inklayer-vue/style'
 
 ---
 
-## 🧩 Components
+## Components
 
 ### Base Props (shared by both PdfViewer & PdfAnnotator)
 
@@ -136,82 +114,17 @@ import 'inklayer-vue/style'
 
 ### PdfAnnotator
 
-The full-featured PDF annotation workspace. Includes toolbar, annotation sidebar, search sidebar, and all annotation tools.
-
 #### Props
 
 | Prop | Type | Default | Description |
 |:-----|:-----|:--------|:------------|
 | (All base props) | | | Inherits all [Base Props](#base-props-shared-by-both-pdfviewer--pdfannotator) |
-| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | Partial configuration to merge with system defaults (see example below) |
+| `defaultOptions` | `DeepPartial<PdfAnnotatorOptions>` | `{}` | Partial configuration to merge with system defaults |
 | `defaultShowAnnotationsSidebar` | `boolean` | `false` | Open the annotation sidebar on mount |
 | `enableNativeAnnotations` | `boolean` | `false` | Enable editing of PDF-native annotations |
 | `initialAnnotations` | `IAnnotationStore[]` | `[]` | Load existing annotations on mount |
 
-#### ⚙️ `defaultOptions` — DeepPartial + DeepMerge
-
-InkLayer Vue uses a `DeepPartial` + `DeepMerge` pattern for configuration. You only need to specify what you want to override; everything else falls back to sensible defaults.
-
-```vue
-<script setup>
-const customOptions = {
-  signature: {
-        defaultSignature: [
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...'],
-        type: 'Draw',
-        defaultFont: [
-            { label: '楷体', value: 'STKaiti', external: false },
-            { label: '千图笔锋手写体', value: 'qiantubifengshouxieti', external: true, url: qiantubifengshouxietiFont }
-        ]
-    },
-    stamp: {
-        defaultStamp: [
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA...']
-    }
-}
-</script>
-
-<template>
-  <PdfAnnotator
-    url="/document.pdf"
-    :user="{ id: 'u1', name: 'Alice' }"
-    :default-options="customOptions"
-  />
-</template>
-```
-
-**Full `PdfAnnotatorOptions` structure:**
-
-<details>
-<summary>Click to expand</summary>
-
-```ts
-interface PdfAnnotatorOptions {
-  /** Predefined color palette for annotation tools */
-  colors: string[]
-  
-  /** Signature tool configuration */
-  signature: {
-    fontFamily?: string
-    defaultName?: string
-    defaultImage?: string
-  }
-  
-  /** Stamp tool configuration */
-  stamp: {
-    stamps?: Array<{
-      text: string
-      color: string
-      borderColor?: string
-      backgroundColor?: string
-    }>
-    defaultStamp?: string
-  }
-}
-```
-</details>
-
-#### Emits
+#### Events
 
 | Event | Payload | Description |
 |:------|:--------|:------------|
@@ -252,7 +165,7 @@ A read-only PDF viewer with search, zoom, theme, and customizable toolbar/sideba
 | `actions` | `ActionItem[]` | — | Declarative header action buttons |
 | `sidebar` | `SidebarPanel[]` | `[]` | Additional sidebar panels beyond search |
 
-#### Emits
+#### Events
 
 | Event | Payload | Description |
 |:------|:--------|:------------|
@@ -311,7 +224,7 @@ const customPanels = [
 
 ---
 
-## 🧩 Extension Components
+## Extension Components
 
 InkLayer Vue also exports internal building-block components for advanced customization:
 
@@ -327,7 +240,7 @@ InkLayer Vue also exports internal building-block components for advanced custom
 
 ---
 
-## 🛠 Composables
+## Composables
 
 | Composable | Description |
 |:-----------|:------------|
@@ -338,46 +251,22 @@ InkLayer Vue also exports internal building-block components for advanced custom
 | `useSystemAppearance()` | Reactive dark/light mode based on OS preference |
 | `exportToExcel(annotations, fileName?)` | Export annotations to an Excel workbook |
 
----
-
-## 📦 Advanced Usage
-
-
-### Using with `PdfViewerProvider` (headless mode)
-
-```vue
-<script setup>
-import { PdfViewerProvider } from 'inklayer-vue'
-</script>
-
-<template>
-  <PdfViewerProvider url="/document.pdf">
-    <!-- Access PDF context anywhere inside this tree -->
-    <YourCustomViewer />
-  </PdfViewerProvider>
-</template>
-```
-
-### Importing shadcn-vue UI Components
-
-InkLayer Vue re-exports its internal shadcn-vue components so you can build custom UIs with matching styles:
-
-```vue
-<script setup>
-import { Button, Input, Tabs, TabsList, TabsTrigger, TabsContent } from 'inklayer-vue'
-</script>
-```
 
 ---
 
-## 🌍 Browser Support
+## Browser Support
 
-| <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/chrome/chrome_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/firefox/firefox_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/safari/safari_48x48.png" width="24" /> | <img src="https://raw.githubusercontent.com/alrra/browser-logos/main/src/edge/edge_48x48.png" width="24" /> |
-|:---:|:---:|:---:|:---:|
-| Chrome latest | Firefox latest | Safari latest | Edge latest |
+Modern browsers (Chrome, Firefox, Safari, Edge latest).
 
 ---
 
-## 📄 License
+## Related Projects
+
+- [InkLayer React](https://github.com/Laomai-codefee/inklayer-react) — React binding
+- [PDF.js](https://github.com/mozilla/pdf.js) — Underlying PDF rendering engine
+
+---
+
+## License
 
 MIT © InkLayer
