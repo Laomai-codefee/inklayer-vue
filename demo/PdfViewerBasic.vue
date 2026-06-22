@@ -1,5 +1,5 @@
 <template>
-  <PdfViewer title="PDF VIEWER" :url="pdfUrl" :layout-style="{ width: '100vw', height: '96vh' }" />
+  <PdfViewer title="PDF VIEWER" :url="pdfUrl"  :layout-style="{ width: '100vw', height: '96vh' }" />
 </template>
 <script setup lang="ts">
 import PdfViewer from '@/PdfViewer.vue'
