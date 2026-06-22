@@ -328,7 +328,7 @@ function handleEditFromMenu(ann: IAnnotationStore) { shouldFocusTextarea.value =
 function handleEditReplyFromMenu(_ann: IAnnotationStore, reply: IAnnotationComment) { shouldFocusTextarea.value = true; editReplyId.value = reply.id; editReplyContent.value = reply.content }
 function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) {
   const opt = statusOptions.find((o) => o.key === status)
-  newReplyContent.value = t(opt?.labelKey ?? 'annotator.comment.status.none')
+  newReplyContent.value = t('annotator.comment.statusText', { value: t(opt?.labelKey ?? 'annotator.comment.status.none') })
   addReply(ann, status)
 }
 function deleteReplyDirect(annId: string, replyId: string) {
