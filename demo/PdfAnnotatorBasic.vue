@@ -17,6 +17,7 @@
 
 <script setup lang="ts">
 import PdfAnnotator from '@/PdfAnnotator.vue'
+import type { Annotation } from '@/core/annotation.core'
 const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
 const initialAnnotations: Annotation[] = [
     {
