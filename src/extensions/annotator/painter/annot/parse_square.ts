@@ -10,13 +10,11 @@ export class SquareParser extends AnnotationParser {
 
         const konvaGroup = JSON.parse(annotation.konvaString)
 
-        const konvaRect = konvaGroup.children.find((child: any) => child.className === 'Rect')
-
-        const strokeWidth = konvaRect.attrs.strokeWidth ?? 2
-
-        const dashArray = konvaRect.attrs.dash ?? []
-
-        const opacity = konvaRect.attrs.opacity ?? 1
+        const konvaShape = konvaGroup.children?.[0] ?? konvaGroup
+        const shapeAttrs = konvaShape.attrs ?? konvaGroup.attrs ?? {}
+        const strokeWidth = shapeAttrs.strokeWidth ?? 2
+        const dashArray = shapeAttrs.dash ?? []
+        const opacity = shapeAttrs.opacity ?? 1
         let bsDict: any = {
             W: PDFNumber.of(strokeWidth),
             S: PDFName.of('S') // Solid
@@ -27,16 +25,16 @@ export class SquareParser extends AnnotationParser {
             bsDict.S = PDFName.of('D')
         }
 
-        // 1️⃣ 主批注（方框）
+        // 1️⃣ Main annotation (shape)
         const mainAnn = context.obj({
             Type: PDFName.of('Annot'),
             Subtype: PDFName.of('Square'),
             Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
-            C: rgbToPdfColor(annotation.color || '#000000'), // 边框颜色
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')), // 作者
-            Contents: stringToPDFHexString(annotation.contentsObj?.text || ''), // 说明文字
+            C: rgbToPdfColor(annotation.color || '#000000'),
+            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
-            NM: PDFString.of(annotation.id), // 唯一标识
+            NM: PDFString.of(annotation.id),
             F: PDFNumber.of(4),
             P: page.ref,
             BS: context.obj(bsDict),
@@ -45,7 +43,7 @@ export class SquareParser extends AnnotationParser {
         const mainAnnRef = context.register(mainAnn)
         this.addAnnotationToPage(page, mainAnnRef)
 
-        // 2️⃣ 回复评论（如果有）
+        // 2️⃣ Reply comments (if any)
         for (const comment of annotation.comments || []) {
             const replyAnn = context.obj({
                 Type: PDFName.of('Annot'),

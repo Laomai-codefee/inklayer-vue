@@ -19,7 +19,7 @@
     "bugs": {
         "url": "https://github.com/Laomai-codefee/inklayer-vue/issues"
     },
-    "homepage": "https://github.com/Laomai-codefee/inklayer-vue#readme",
+    "homepage": "https://inklayer.dev",
     "main": "./dist/inklayer-vue.cjs",
     "module": "./dist/inklayer-vue.mjs",
     "exports": {
