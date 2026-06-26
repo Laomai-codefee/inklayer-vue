@@ -91,6 +91,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 const { t } = useT()
 import { usePdfViewer, type UseViewerOptions } from '@/composables/usePdfViewer'
 import { usePdfTool } from '@/composables/usePdfTool'
+import { usePinchZoom } from '@/composables/usePinchZoom'
 import { PdfViewerContextKey, UserContextKey, type PdfViewerContextValue, type SidebarPanelKey } from '@/context/pdfViewerContext'
 import type { PdfScale, User } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -183,6 +184,9 @@ const { loading, progress, pdfDocument, pdfViewer, eventBus, loadError } = usePd
 })
 
 const { printClean, downloadClean } = usePdfTool(pdfDocument)
+
+// Pinch zoom — 内部实现，不对外暴露
+usePinchZoom(pdfViewer, viewerContainerRef)
 
 // ========== Loading state (React-aligned: delayed overlay + transient progress) ==========
 const LOADING_DELAY = 500

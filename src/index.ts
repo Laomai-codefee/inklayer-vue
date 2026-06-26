@@ -48,7 +48,6 @@ export { usePdfViewer } from './composables/usePdfViewer'
 export type { UseViewerOptions } from './composables/usePdfViewer'
 export { usePdfTool } from './composables/usePdfTool'
 export { usePdfSearch } from './composables/usePdfSearch'
-export { useSmoothZoom } from './composables/useSmoothZoom'
 export { useSystemAppearance } from './composables/useSystemAppearance'
 export { exportToExcel } from './composables/useExport'
 

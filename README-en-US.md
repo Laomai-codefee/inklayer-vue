@@ -247,7 +247,6 @@ InkLayer Vue also exports internal building-block components for advanced custom
 | `usePdfViewer(containerRef, options)` | Initialize and manage a PDF.js viewer instance |
 | `usePdfTool(pdfDocument)` | Download and print PDF utilities |
 | `usePdfSearch(pdfViewer)` | Full-text search across PDF pages |
-| `useSmoothZoom(options)` | Smooth scroll-based zoom with trackpad pinch support |
 | `useSystemAppearance()` | Reactive dark/light mode based on OS preference |
 | `exportToExcel(annotations, fileName?)` | Export annotations to an Excel workbook |
 

@@ -247,7 +247,6 @@ InkLayer Vue 也导出内部构建块组件，供高级定制使用：
 | `usePdfViewer(containerRef, options)` | 初始化并管理 PDF.js 查看器实例 |
 | `usePdfTool(pdfDocument)` | PDF 下载和打印工具 |
 | `usePdfSearch(pdfViewer)` | PDF 全文搜索 |
-| `useSmoothZoom(options)` | 基于滚动和触摸板捏合的平滑缩放 |
 | `useSystemAppearance()` | 响应式亮色/暗色模式（跟随系统偏好） |
 | `exportToExcel(annotations, fileName?)` | 将批注导出为 Excel 工作簿 |
 
