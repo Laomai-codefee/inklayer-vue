@@ -6,7 +6,7 @@ export const snippets: Record<string, string> = {
   PdfViewerBasic: `<template>
   <PdfViewer
     title="PDF VIEWER"
-    url="/sample.pdf"
+    url="'https://inklayer.dev/inklayer-demo.pdf'"
   />
 </template>
 
@@ -91,7 +91,7 @@ const pdfData = '...' // base64 or byte array
 import { PdfViewer } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
-const pdfUrl = './inklayer-demo.pdf'
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
 const customSidebar: SidebarPanel[] = [
   { key: 'sidebar-1', title: 'Sidebar 1', icon: '📋' },
@@ -118,7 +118,7 @@ function onEventBusReady(eventBus: any) {
   PdfAnnotatorBasic: `<template>
   <PdfAnnotator
     title="PDF ANNOTATOR"
-    url="/sample.pdf"
+    url="'https://inklayer.dev/inklayer-demo.pdf'"
     :user="{ id: 'u1', name: 'Alice' }"
     @save="(annotations) => console.log(annotations)"
   />
@@ -165,7 +165,7 @@ import { PdfAnnotator } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
-const pdfUrl = './inklayer-demo.pdf'
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
 const customOptions = {
     signature: {
@@ -365,7 +365,7 @@ const initialAnnotations = [
 import { PdfAnnotator } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
-const pdfUrl = './inklayer-demo.pdf'
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
 const defaultOptions = {
   colors: ['red'],
