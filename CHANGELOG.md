@@ -1,10 +1,8 @@
 # Changelog
 
-## [Unreleased]
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### Refactor
-
-- 迁移 usePinchZoom 到 Vue，删除 useSmoothZoom；从公开导出中移除内部实现
+### [1.0.3](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.2...v1.0.3) (2026-06-28)
 
 ## [1.0.2] - 2026-06-26
 
