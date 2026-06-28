@@ -3,5 +3,5 @@
 </template>
 <script setup lang="ts">
 import PdfViewer from '@/PdfViewer.vue'
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 </script>

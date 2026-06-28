@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import PdfViewer from '@/PdfViewer.vue'
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 const pdfData = ref<ArrayBuffer | null>(null)
 onMounted(async () => { const r = await fetch(pdfUrl); pdfData.value = await r.arrayBuffer(); console.log('PDF data:', pdfData.value) })
 </script>

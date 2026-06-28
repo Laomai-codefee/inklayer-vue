@@ -34,7 +34,7 @@
 import PdfAnnotator from '@/PdfAnnotator.vue'
 import type { Annotation } from '@/core/annotation.core'
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
 // Font reference (same as React demo — file may not exist, font entry is configuration)
 // import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'

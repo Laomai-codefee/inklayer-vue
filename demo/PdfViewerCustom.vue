@@ -62,7 +62,7 @@
 import PdfViewer from '@/PdfViewer.vue'
 import type { SidebarPanel } from '@/context/pdfViewerContext'
 
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
 const customSidebar: SidebarPanel[] = [
   { key: 'sidebar-1', title: 'Sidebar 1', icon: '📋' },

@@ -91,7 +91,7 @@ const pdfData = '...' // base64 or byte array
 import { PdfViewer } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = './inklayer-demo.pdf'
 
 const customSidebar: SidebarPanel[] = [
   { key: 'sidebar-1', title: 'Sidebar 1', icon: '📋' },
@@ -165,7 +165,7 @@ import { PdfAnnotator } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = './inklayer-demo.pdf'
 
 const customOptions = {
     signature: {
@@ -365,7 +365,7 @@ const initialAnnotations = [
 import { PdfAnnotator } from 'inklayer-vue'
 import 'inklayer-vue/style'
 
-const pdfUrl = new URL('./compressed.tracemonkey-pldi-09.pdf', import.meta.url).href
+const pdfUrl = './inklayer-demo.pdf'
 
 const defaultOptions = {
   colors: ['red'],
