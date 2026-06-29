@@ -2,7 +2,7 @@
   <div>
     <PdfAnnotator
       theme="amber"
-      :enable-range="true"
+      :enable-range="false"
       title="PDF ANNOTATOR FULL"
       :url="pdfUrl"
       :default-show-annotations-sidebar="true"

@@ -66,8 +66,8 @@
           <PageIndicator />
 
           <!-- PDF viewer container -->
-          <div ref="viewerContainerRef" style="position: absolute" class="inset-0 overflow-auto flex justify-center p-6">
-            <div class="pdfViewer min-w-full" />
+          <div ref="viewerContainerRef" style="position: absolute" class="inset-0 overflow-auto p-6">
+            <div class="pdfViewer" />
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted, onMounted } from 'vue'
+import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, nextTick, onUnmounted, onMounted } from 'vue'
 import '@/styles/pdf_viewer.css'
 import { useT } from '@/composables/useT'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -270,8 +270,15 @@ watch([pdfViewer, eventBus], ([viewer, bus]) => {
   return () => window.removeEventListener('resize', handleResize)
 })
 
-watch(isSidebarCollapsed, () => {
-  if (eventBus.value && pdfViewer.value) eventBus.value.dispatch('updateviewarea', {})
+watch(isSidebarCollapsed, async () => {
+  await nextTick()
+  if (pdfViewer.value) {
+    const sv = pdfViewer.value.currentScaleValue
+    if (sv === 'auto' || sv === 'page-fit' || sv === 'page-width') {
+      pdfViewer.value.currentScaleValue = sv
+    }
+    pdfViewer.value.update()
+  }
 })
 
 // ========== Context ==========

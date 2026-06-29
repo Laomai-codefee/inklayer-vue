@@ -1,9 +1,9 @@
 <template>
     <PdfAnnotator
         title="PDF ANNOTATOR"
-        :layout-style="{ height: '96vh' }"
         locale="en-US"
-        :default-show-annotations-sidebar="true"
+        :default-show-annotations-sidebar="false"
+        :enable-range="false"
         :url="pdfUrl"
         :user="{ id: 'u1', name: 'Alice' }"
         :initial-annotations="initialAnnotations"

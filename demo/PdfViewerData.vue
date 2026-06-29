@@ -1,5 +1,5 @@
 <template>
-  <PdfViewer v-if="pdfData" title="PDF VIEWER WITH DATA" :data="pdfData" locale="en-US" :layout-style="{ width: '100vw', height: '96vh' }" />
+  <PdfViewer v-if="pdfData"  :enable-range="false" title="PDF VIEWER WITH DATA" :data="pdfData" locale="en-US" :layout-style="{ width: '100vw', height: '96vh' }" />
   <div v-else class="flex items-center justify-center h-96 text-sm text-muted-foreground">Loading PDF...</div>
 </template>
 <script setup lang="ts">
