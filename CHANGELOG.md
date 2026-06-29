@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.4](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.3...v1.0.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* align PDF viewer container layout with pdfjs original, fix sidebar auto-scale and overflow clipping ([20bb104](https://github.com/Laomai-codefee/inklayer-vue/commit/20bb1044c8531c342ec26ee6399b67657bfefc2c))
+
 ### [1.0.3](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.2...v1.0.3) (2026-06-28)
 
 ## [1.0.2] - 2026-06-26
