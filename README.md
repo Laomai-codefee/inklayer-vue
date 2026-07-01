@@ -63,7 +63,7 @@ yarn add inklayer-vue
 
 ## 🚀 快速开始
 
-### 1. Plugin Setup (Required)
+### 1. 插件安装（必须）
 
 ```typescript
 import { createApp } from 'vue'
