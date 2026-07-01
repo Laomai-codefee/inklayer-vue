@@ -5,14 +5,14 @@ import prefixSelector from 'postcss-prefix-selector'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-  const isDemo = mode === 'demo'
+  const isPlayground = mode === 'playground'
   const resolveConfig = { alias: { '@': resolve(__dirname, 'src') } }
 
-  if (isDemo) {
+  if (isPlayground) {
     return {
       plugins: [vue(), tailwindcssVite()],
       resolve: resolveConfig,
-      server: { port: 5173, open: '/demo/' },
+      server: { port: 5173, open: '/playground/' },
     }
   }
 

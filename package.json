@@ -36,10 +36,10 @@
         "LICENSE"
     ],
     "scripts": {
-        "dev": "vite --mode demo --open",
+        "dev": "vite --mode playground --open",
         "build": "vue-tsc --noEmit && vite build",
-        "build:demo": "vite build --mode demo --base ./ --outDir docs",
-        "preview": "vite preview --mode demo",
+        "build:playground": "vite build --mode playground --base ./ --outDir docs",
+        "preview": "vite preview --mode playground",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage"

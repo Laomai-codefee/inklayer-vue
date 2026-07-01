@@ -21,6 +21,6 @@
     },
     "types": ["vite/client", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "demo/**/*.ts", "demo/**/*.vue", "src/**/*.test.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "playground/**/*.ts", "playground/**/*.vue", "src/**/*.test.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
