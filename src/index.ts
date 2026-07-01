@@ -5,6 +5,21 @@
  */
 
 import './assets/tailwind.css'
+import { createPinia, getActivePinia } from 'pinia'
+import type { App } from 'vue'
+
+/**
+ * Vue Plugin that automatically installs Pinia if the consumer
+ * hasn't already done so. Use `app.use(inklayerVuePlugin)` in
+ * your main.ts to get started with zero config.
+ */
+export const inklayerVuePlugin = {
+  install(app: App) {
+    if (!getActivePinia()) {
+      app.use(createPinia())
+    }
+  },
+}
 
 // ========== Top-level Components ==========
 export { default as PdfViewer } from './PdfViewer.vue'

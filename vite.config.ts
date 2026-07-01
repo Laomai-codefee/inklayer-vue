@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcssVite from '@tailwindcss/vite'
 import prefixSelector from 'postcss-prefix-selector'
+import dts from 'vite-plugin-dts'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
@@ -17,7 +18,16 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [vue(), tailwindcssVite()],
+    plugins: [
+      vue(),
+      tailwindcssVite(),
+      dts({
+        include: ['src/**/*'],
+        exclude: ['playground/**', '**/*.test.ts'],
+        insertTypesEntry: true,
+        rollupTypes: true,
+      }),
+    ],
     publicDir: false,
     resolve: resolveConfig,
     css: {
@@ -41,7 +51,7 @@ export default defineConfig(({ mode }) => {
         entry: resolve(__dirname, 'src/index.ts'),
         name: 'InkLayerVue',
         formats: ['es', 'cjs'],
-        fileName: (format) => `inklayer-vue.${format === 'es' ? 'mjs' : 'cjs'}`,
+        fileName: (format) => `index.${format === 'es' ? 'es' : 'cjs'}.js`,
       },
       rollupOptions: {
         external: ['vue', 'pinia', 'pdfjs-dist', 'konva', 'exceljs', 'file-saver', /^pdfjs-dist\/(?!.*\?url)/, /^konva\//],
