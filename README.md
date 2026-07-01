@@ -63,7 +63,21 @@ yarn add inklayer-vue
 
 ## 🚀 快速开始
 
-### PdfAnnotator 批注
+### 1. Plugin Setup (Required)
+
+```typescript
+import { createApp } from 'vue'
+import { inklayerVuePlugin } from 'inklayer-vue'
+import App from './App.vue'
+
+const app = createApp(App)
+
+app.use(inklayerVuePlugin)
+
+app.mount('#app')
+```
+
+### 2. PdfAnnotator 批注
 
 ```vue
 <script setup>
