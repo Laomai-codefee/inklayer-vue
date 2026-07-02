@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  🖊️ A Vue 3 PDF annotation SDK built on PDF.js<br/>
+  🖊️ A Vue 3 PDF viewer & annotation SDK built on PDF.js<br/>
   For building document review, annotation, and commenting systems
 </p>
 
