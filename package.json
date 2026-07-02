@@ -43,7 +43,10 @@
             "import": "./dist/index.es.js",
             "require": "./dist/index.cjs.js"
         },
-        "./style": "./dist/inklayer-vue.css"
+        "./style": {
+            "types": "./dist/style.d.ts",
+            "default": "./dist/inklayer-vue.css"
+        }
     },
     "files": [
         "dist",
@@ -52,12 +55,13 @@
     ],
     "scripts": {
         "dev": "vite --mode playground --open",
-        "build": "vue-tsc --noEmit && vite build",
+        "build": "vue-tsc --noEmit && vite build && echo 'export {}' > dist/style.d.ts",
         "build:playground": "vite build --mode playground --base ./ --outDir docs",
         "preview": "vite preview --mode playground",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "prepublishOnly": "npm run build"
     },
     "dependencies": {
         "@floating-ui/dom": "^1.7.4",

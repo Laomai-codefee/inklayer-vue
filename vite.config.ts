@@ -35,11 +35,30 @@ export default defineConfig(({ mode }) => {
         plugins: [
           prefixSelector({
             prefix: 'body.inklayer-app',
-            exclude: [/^:root$/, /^html$/, /^body$/, /^\*$/, /^::before$/, /^::after$/, /^\.dark$/, /^\[data-theme/],
+            exclude: [/^:root$/, /^html$/, /^body$/, /^\*$/, /^::before$/, /^::after$/, /^\.dark(?:\s|$)/, /^\[data-theme/, /^\.inklayer-app$/, /^:host$/],
             transform(prefix: string, selector: string) {
+              // postcss-prefix-selector splits comma-separated selectors and calls
+              // transform for EACH sub-selector individually — not the full string
+              const trimmed = selector.trim()
               if (selector.startsWith('@')) return selector
-              if (selector.includes('#InkLayer') || selector.includes('body.inklayer-app')) return selector
-              const parts = selector.split(',').map(s => `${prefix} ${s.trim()}`).join(', ')
+              if (trimmed.startsWith(':where(')) return selector
+              if (trimmed.includes('#InkLayer') || trimmed.includes('body.inklayer-app')) return trimmed
+              if (/^\.dark/.test(trimmed)) return trimmed
+              if (/^\.inklayer-app$/.test(trimmed)) return trimmed
+              if (/^:host$/.test(trimmed)) return trimmed
+
+              // Split on unescaped commas only (\, inside class names like
+              // .shadow-[rgba(0\,0\,0\,0.1)] must not be treated as selector separators)
+              const COMMA_PLACEHOLDER = '\x00INK_CS\x00'
+              const escaped = selector.replace(/\\,/g, COMMA_PLACEHOLDER)
+              const parts = escaped.split(',').map(s => {
+                const st = s.replace(new RegExp(COMMA_PLACEHOLDER, 'g'), '\\,').trim()
+                if (st.includes('#InkLayer') || st.includes('body.inklayer-app')) return st
+                if (/^\.dark/.test(st)) return st
+                if (/^\.inklayer-app$/.test(st)) return st
+                if (/^:host$/.test(st)) return st
+                return `${prefix} ${st}`
+              }).join(', ')
               return parts
             },
           } as any),
