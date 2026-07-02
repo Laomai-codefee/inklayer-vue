@@ -1,7 +1,7 @@
 <template>
   <div
     id="InkLayer"
-    class="flex flex-col h-full w-full relative"
+    class="flex flex-col h-full w-full relative bg-background text-foreground"
     :style="fullContainerStyle"
   >
     <!-- ========== Loading overlay (delayed) ========== -->
