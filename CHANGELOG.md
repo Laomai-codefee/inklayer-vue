@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.9](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.8...v1.0.9) (2026-07-02)
+
+
+### Bug Fixes
+
+* add background and foreground color classes to root container ([66be240](https://github.com/Laomai-codefee/inklayer-vue/commit/66be24027094a82a77cba827019444e5ebc77a63))
+* **annotator:** reset reply state and fix textarea focus in sidebar ([598adbe](https://github.com/Laomai-codefee/inklayer-vue/commit/598adbe2503fe6f168b5962f6da2bc2c24abc13d))
+
 ### [1.0.8](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.7...v1.0.8) (2026-07-02)
 
 
