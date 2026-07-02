@@ -90,7 +90,7 @@
 
           <!-- Comment text / edit -->
           <template v-if="editAnnotationId === ann.id">
-            <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)" :model-value="ann.contentsObj?.text || ''"
+            <Textarea :id="`edit-comment-${ann.id}`" :ref="(el) => setTextareaRef(el, 'edit-comment-' + ann.id)" :model-value="ann.contentsObj?.text || ''"
               class="w-full min-h-[50px] text-xs resize-none mt-1.5 bg-background" rows="3"
               @update:model-value="editComment = $event"
               @keydown.enter.exact.prevent="updateComment(ann)"
@@ -108,7 +108,7 @@
             <div class="flex items-start">
               <div class="flex-1 min-w-0">
                 <template v-if="editReplyId === reply.id">
-                  <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)" :model-value="reply.content"
+                  <Textarea :id="`edit-reply-${reply.id}`" :ref="(el) => setTextareaRef(el, 'edit-reply-' + reply.id)" :model-value="reply.content"
                     class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
                     @update:model-value="editReplyContent = $event"
                     @keydown.enter.exact.prevent="updateReply(ann, reply)"
@@ -137,7 +137,7 @@
 
           <!-- Reply input -->
           <div v-if="replyAnnotationId === ann.id" class="mt-2 pl-7">
-            <Textarea :ref="(el) => setTextareaRef((el as any)?.textareaRef ?? null)"
+            <Textarea :id="`reply-input-${ann.id}`" :ref="(el) => setTextareaRef(el, 'reply-input-' + ann.id)"
               class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
               :placeholder="t('common.reply') + '...'"
               @update:model-value="newReplyContent = $event"
@@ -313,12 +313,19 @@ function getStatusIcon(ann: IAnnotationStore): string {
 
 
 // ====== Textarea ref callback: auto-focus when permitted ======
-function setTextareaRef(el: HTMLTextAreaElement | null) {
-  if (el && shouldFocusTextarea.value) {
+function setTextareaRef(el: any, id: string) {
+  if (shouldFocusTextarea.value) {
     // Radix DropdownMenu takes control of focus on close — delay long enough
     // for Radix to finish its focus restoration before we claim focus.
-    setTimeout(() => el.focus(), 150)
-    shouldFocusTextarea.value = false
+    // Use document.getElementById as the most reliable way to get the textarea element
+    // after the component re-renders with the reply/edit box visible.
+    nextTick(() => {
+      const textarea = document.getElementById(id) as HTMLTextAreaElement | null
+      if (textarea) {
+        setTimeout(() => textarea.focus(), 150)
+        shouldFocusTextarea.value = false
+      }
+    })
   }
 }
 
@@ -346,6 +353,16 @@ function startReply(ann: IAnnotationStore) {
 
 // ====== Annotation click → highlight on canvas ======
 function handleAnnotationClick(ann: IAnnotationStore) {
+  // Reset any open reply/edit states when switching to a different annotation
+  if (replyAnnotationId.value !== ann.id) {
+    replyAnnotationId.value = null
+    newReplyContent.value = ''
+    editAnnotationId.value = null
+    editComment.value = ''
+    editReplyId.value = null
+    editReplyContent.value = ''
+    shouldFocusTextarea.value = false
+  }
   store.setSelectedAnnotation(ann, SelectionSource.SIDEBAR)
   painter.value?.highlight(ann)
   emit('select', ann)
