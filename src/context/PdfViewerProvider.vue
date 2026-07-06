@@ -50,7 +50,7 @@
     </header>
 
     <!-- ========== Body ========== -->
-    <div class="flex flex-1 min-h-0">
+    <div class="flex flex-1 min-h-0 overflow-hidden relative">
       <div class="flex flex-col flex-1 min-w-0">
         <!-- Toolbar: scrollable with Radix ScrollArea -->
         <div v-if="hasToolbar" class="shrink-0 border-b border-border bg-secondary shadow-sm h-10 w-full">
@@ -73,9 +73,10 @@
       </div>
 
       <!-- Sidebar -->
-      <aside v-if="activePanel" class="w-80 shrink-0 border-l bg-muted/30 overflow-y-auto p-1">
-        <slot :name="`sidebar-${activePanel.key}`" :context="contextValue" />
+      <aside class="w-80 shrink-0 border-l bg-muted/30 overflow-y-auto p-1 sidebar-panel" :class="{ 'sidebar-panel--hidden': !activePanel }">
+        <slot v-if="activePanel" :name="`sidebar-${activePanel.key}`" :context="contextValue" />
       </aside>
+      <div v-if="activePanel" class="sidebar-overlay" @click="closeSidebar" />
     </div>
 
     <slot />

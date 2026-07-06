@@ -222,3 +222,62 @@
 #InkLayer.InkLayer_Annotator_selector_hover .InkLayer_Annotator_painter_wrapper {
   cursor: pointer !important;
 }
+
+/* =============================================
+   Sidebar — overlay on narrow screens (≤840px)
+   ============================================= */
+
+/* Large screen: width transition */
+#InkLayer .sidebar-panel {
+  transition: width 200ms ease;
+}
+
+#InkLayer .sidebar-panel--hidden {
+  overflow: hidden;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Backdrop overlay (hidden on large screens) */
+#InkLayer .sidebar-overlay {
+  display: none;
+}
+
+/* Narrow screen overlay mode */
+@media (max-width: 840px) {
+  #InkLayer .sidebar-overlay {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 999;
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  #InkLayer .sidebar-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 320px;
+    background-color: var(--color-muted);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    transition: transform 200ms ease, visibility 0ms ease 0ms;
+    border-left: 1px solid var(--color-border);
+  }
+
+  #InkLayer .sidebar-panel--hidden {
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 200ms ease, visibility 0ms ease 200ms;
+    width: 320px !important;
+    padding: 4px !important;
+  }
+
+  /* Stronger shadow in dark mode */
+  .dark #InkLayer .sidebar-panel {
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+  }
+}
