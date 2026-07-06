@@ -148,6 +148,14 @@ import 'inklayer-vue/style'
 
 ---
 
+## 💬 Feedback
+
+Questions? Feature requests? Drop by [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-vue/discussions) or email us: [codefee@foxmail.com](mailto:codefee@foxmail.com)
+
+Bug reports → [GitHub Issues](https://github.com/Laomai-codefee/inklayer-vue/issues)
+
+---
+
 ## 📄 License
 
 MIT © InkLayer

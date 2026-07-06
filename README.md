@@ -148,6 +148,14 @@ import 'inklayer-vue/style'
 
 ---
 
+## 💬 反馈
+
+有问题？想提建议？欢迎来 [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-vue/discussions) 聊聊，或者直接发邮件：[codefee@foxmail.com](mailto:codefee@foxmail.com)
+
+Bug 报告请走 [GitHub Issues](https://github.com/Laomai-codefee/inklayer-vue/issues)
+
+---
+
 ## 📄 License
 
 MIT © InkLayer
