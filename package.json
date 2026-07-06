@@ -28,7 +28,11 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Laomai-codefee/inklayer-vue.git"
+        "url": "git+https://github.com/Laomai-codefee/inklayer-vue.git"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
     },
     "bugs": {
         "url": "https://github.com/Laomai-codefee/inklayer-vue/issues"
