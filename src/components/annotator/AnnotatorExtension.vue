@@ -24,7 +24,8 @@ import { storesToAnnotations } from '@/core/adapters/store.mapper'
 import { FREE_TEXT_EDITOR } from '@/extensions/annotator/painter/const'
 
 const props = defineProps<{
-  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean
+  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean; enableCollaborationCheck?: boolean;
+  checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean
 }>()
 const emit = defineEmits<{
   'save': [annotations: any[]]; 'annotation-added': [annotation: any]; 'annotation-deleted': [id: string]
@@ -64,16 +65,30 @@ function initPainter() {
 
   painter = new Painter({
     primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, PDFViewerApplication: viewer, store,
+    enableCollaborationCheck: props.enableCollaborationCheck,
+    checkIsAnnotationOwner: props.checkIsAnnotationOwner,
     onTextSelected: (range) => { selectionBarRef.value?.open(range) },
     onAnnotationAdd: (annStore) => { emit('annotation-added', annStore) },
     onAnnotationDelete: (id) => { emit('annotation-deleted', id) },
     onAnnotationSelected: (annStore, isClick, selectorRect) => {
       emit('annotation-selected', annStore ?? null, isClick)
       if (annStore && isClick) {
-        // Defer to nextTick to prevent the same native click event
-        // from being caught by Radix Popover's DismissableLayer as an
-        // "outside click" (PopoverContent hasn't rendered yet synchronously)
-        nextTick(() => menuBarRef.value?.open(annStore, selectorRect))
+        // 动态读取最新的响应式用户数据，防止闭包脏读
+        const currentUser = userContext?.user?.value;
+        const enableCheck = props.enableCollaborationCheck;
+
+        // 强所有权校验：优先使用 checkIsAnnotationOwner，未配置则使用默认比对
+        const isOwn = !enableCheck || 
+                      (typeof props.checkIsAnnotationOwner === 'function' ? 
+                       props.checkIsAnnotationOwner(annStore, currentUser) :
+                       (annStore.user?.id && currentUser?.id && annStore.user.id === currentUser.id));
+
+        if (isOwn) {
+          // Defer to nextTick to prevent the same native click event
+          // from being caught by Radix Popover's DismissableLayer as an
+          // "outside click" (PopoverContent hasn't rendered yet synchronously)
+          nextTick(() => menuBarRef.value?.open(annStore, selectorRect))
+        }
       }
     },
     onAnnotationChanging: () => { menuBarRef.value?.close() },
@@ -150,5 +165,6 @@ defineExpose({
   save: () => emit('save', storesToAnnotations(store.annotationList)),
   selectTool: (tool: IAnnotationType | null, dataTransfer?: string | null) => { if (tool) currentTool = tool; painter?.activate(tool, dataTransfer ?? null) },
   getPainter: () => painter,
+  store,
 })
 </script>

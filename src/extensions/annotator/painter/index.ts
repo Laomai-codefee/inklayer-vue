@@ -41,6 +41,8 @@ export class Painter {
     private primaryColor: string
     private defaultOptions: PdfAnnotatorOptions
     private currentUser: User
+    public enableCollaborationCheck: boolean = false
+    public checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean
     private konvaCanvasStore: Map<number, KonvaCanvas> = new Map() // 存储 KonvaCanvas 实例
     private editorStore: Map<string, Editor> = new Map() // 存储编辑器实例
     private pdfViewerApplication: PDFViewer // PDFViewerApplication 实例
@@ -65,6 +67,8 @@ export class Painter {
         primaryColor,
         defaultOptions,
         currentUser,
+        enableCollaborationCheck = false,
+        checkIsAnnotationOwner,
         PDFViewerApplication,
         store,
         onTextSelected,
@@ -77,6 +81,8 @@ export class Painter {
         primaryColor: string
         defaultOptions: PdfAnnotatorOptions
         currentUser: User
+        enableCollaborationCheck?: boolean
+        checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean
         PDFViewerApplication: PDFViewer
         store: ReturnType<typeof UseAnnotationStoreType>
         onTextSelected: (range: Range | null) => void
@@ -90,6 +96,8 @@ export class Painter {
         this.store = store
         this.defaultOptions = defaultOptions
         this.currentUser = currentUser
+        this.enableCollaborationCheck = enableCollaborationCheck
+        this.checkIsAnnotationOwner = checkIsAnnotationOwner
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
         this.onAnnotationAdd = onAnnotationAdd
@@ -101,6 +109,9 @@ export class Painter {
             primaryColor: this.primaryColor,
             // 初始化选择器实例
             konvaCanvasStore: this.konvaCanvasStore,
+            currentUser: this.currentUser,
+            enableCollaborationCheck: this.enableCollaborationCheck,
+            checkIsAnnotationOwner: this.checkIsAnnotationOwner,
             getAnnotationStore: (id: string) => {
                 return this.store.getAnnotation(id)
             },
@@ -624,6 +635,15 @@ export class Painter {
         const annotationStore = this.store.getAnnotation(id)
         if (!annotationStore) {
             return
+        }
+        // 协同删除防御校验
+        if (this.enableCollaborationCheck) {
+            const isOwn = this.checkIsAnnotationOwner ? 
+                          this.checkIsAnnotationOwner(annotationStore, this.currentUser) :
+                          (this.currentUser?.id && annotationStore.user?.id && this.currentUser.id === annotationStore.user.id);
+            if (!isOwn) {
+                return
+            }
         }
         this.store.removeAnnotation(id)
         const storeEditor = this.findEditor(annotationStore.pageNumber, annotationStore.type)

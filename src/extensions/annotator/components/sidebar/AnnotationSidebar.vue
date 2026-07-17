@@ -65,7 +65,7 @@
             </div>
             <div class="flex items-center shrink-0 gap-0.5 ml-auto" @click.stop>
               <!-- Status dropdown -->
-              <DropdownMenu>
+              <DropdownMenu v-if="isOwnAnnotation(ann)">
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="t('common.status')">
                     <Icon :name="getStatusIcon(ann)" :size="14" />
@@ -82,8 +82,8 @@
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" title="More"><Icon name="more" :size="14" /></Button>
                 </template>
                 <DropdownMenuItem class="text-xs" @select="handleReplyFromMenu(ann)">{{ t('common.reply') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="handleEditFromMenu(ann)">{{ t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="deleteAnnotation(ann.id)">{{ t('common.delete') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="isOwnAnnotation(ann)" class="text-xs" @select="handleEditFromMenu(ann)">{{ t('common.edit') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="isOwnAnnotation(ann)" class="text-xs" @select="deleteAnnotation(ann.id)">{{ t('common.delete') }}</DropdownMenuItem>
               </DropdownMenu>
             </div>
           </div>
@@ -125,7 +125,7 @@
                   <p class="text-xs whitespace-pre-wrap mt-0.5">{{ reply.content }}</p>
                 </template>
               </div>
-              <DropdownMenu v-if="editReplyId !== reply.id">
+              <DropdownMenu v-if="editReplyId !== reply.id && isOwnReply(reply)">
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-5 text-muted-foreground shrink-0 ml-1"><Icon name="more" :size="12" /></Button>
                 </template>
@@ -182,6 +182,8 @@ import { useT } from '@/composables/useT'
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },
   selectedId: { type: String, default: null },
+  enableCollaborationCheck: { type: Boolean, default: false },
+  checkIsAnnotationOwner: { type: Function as PropType<(annotation: any, currentUser: any) => boolean>, default: null },
 })
 
 const emit = defineEmits<{ select: [ann: IAnnotationStore]; delete: [id: string] }>()
@@ -191,6 +193,33 @@ const store = useAnnotationStore()
 const painter = computed(() => store.painter)
 const pdfContext = inject(PdfViewerContextKey)
 const userContext = inject(UserContextKey)
+
+function isOwnAnnotation(ann: IAnnotationStore) {
+  if (!props.enableCollaborationCheck) return true
+  const currentUser = userContext?.user?.value
+  if (typeof props.checkIsAnnotationOwner === 'function') {
+    return props.checkIsAnnotationOwner(ann, currentUser)
+  }
+  const currentUserId = currentUser?.id
+  const annotationUserId = ann.user?.id
+  if (currentUserId && annotationUserId) {
+    return currentUserId === annotationUserId
+  }
+  return false
+}
+
+function isOwnReply(reply: any) {
+  if (!props.enableCollaborationCheck) return true
+  const currentUser = userContext?.user?.value
+  
+  const isOwn = typeof props.checkIsAnnotationOwner === 'function' ? 
+                props.checkIsAnnotationOwner(reply, currentUser) :
+                (currentUser?.id && reply.user?.id ? 
+                 currentUser.id === reply.user.id : 
+                 false);
+                 
+  return isOwn
+}
 
 // Filter
 const filterOpen = ref(false)

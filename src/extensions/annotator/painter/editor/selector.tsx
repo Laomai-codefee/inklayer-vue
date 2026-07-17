@@ -1,4 +1,5 @@
 import Konva from 'konva'
+import type { User } from '@/types'
 
 import { annotationDefinitions, IAnnotationStore } from '../../const/definitions'
 import { SELECTOR_HOVER_STYLE, SHAPE_GROUP_NAME } from '../const'
@@ -10,6 +11,9 @@ import { IRect } from 'konva/lib/types'
 export interface ISelectorOptions {
     primaryColor: string
     konvaCanvasStore: Map<number, KonvaCanvas> // 存储各个页面的 Konva 画布实例
+    currentUser?: User // 当前用户对象
+    enableCollaborationCheck?: boolean // 是否开启协同控制
+    checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean // 自定义所有者校验函数
     getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
     onSelected: (id: string, isClick: boolean, transformerRect: IRect) => void // 选中回调
     onCancel: () => void
@@ -29,6 +33,9 @@ export class Selector {
     private transformerStore: Map<string, Konva.Transformer> = new Map() // 存储变换器实例
     private getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
     private konvaCanvasStore: Map<number, KonvaCanvas> // 存储各个页面的 Konva 画布实例
+    private currentUser?: User // 当前用户对象
+    private enableCollaborationCheck: boolean = false // 是否开启协同控制
+    private checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean // 自定义所有者校验函数
 
     private _currentTransformerId: string | null = null // 当前激活的变换器ID
 
@@ -42,9 +49,12 @@ export class Selector {
 
 
     // 构造函数，初始化选择器类
-    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
+    constructor({ primaryColor, konvaCanvasStore, currentUser, enableCollaborationCheck = false, checkIsAnnotationOwner, getAnnotationStore, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
         this.primaryColor = primaryColor
         this.konvaCanvasStore = konvaCanvasStore
+        this.currentUser = currentUser
+        this.enableCollaborationCheck = enableCollaborationCheck
+        this.checkIsAnnotationOwner = checkIsAnnotationOwner
         this.getAnnotationStore = getAnnotationStore
         this.onDelete = onDelete
         this.onSelected = onSelected
@@ -178,7 +188,7 @@ export class Selector {
 
     /**
      * 处理形状的点击事件。
-     * @param shape - 被点击的形状。
+     * @param shape - 被点击的形状.
      * @param konvaStage - 形状所在的 Konva Stage。
      */
     private handleShapeClick(shape: Konva.Shape, konvaStage: Konva.Stage, isClick: boolean = false): void {
@@ -217,17 +227,23 @@ export class Selector {
 
         const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === rawAnnotationStore.pdfjsType)
 
+        // 判断是否为自己创建的批注
+        const isOwnAnnotation = !this.enableCollaborationCheck || 
+                                (typeof this.checkIsAnnotationOwner === 'function' ? 
+                                 this.checkIsAnnotationOwner(rawAnnotationStore, this.currentUser) :
+                                 (rawAnnotationStore.user?.id && this.currentUser?.id && rawAnnotationStore.user.id === this.currentUser.id));
+
         const transformer = new Konva.Transformer({
-            resizeEnabled: currentAnnotation?.resizable,
+            resizeEnabled: isOwnAnnotation ? currentAnnotation?.resizable : false,
             rotateEnabled: false,
-            borderStrokeWidth: 2,
+            borderStrokeWidth: isOwnAnnotation ? 2 : 0,
             borderStroke: this.primaryColor,
             anchorFill: '#fff',
             anchorStroke: this.primaryColor,
-            opacity: 1,
+            opacity: isOwnAnnotation ? 1 : 0,
             anchorCornerRadius: 5,
-            anchorStrokeWidth: 2,
-            anchorSize: 10,
+            anchorStrokeWidth: isOwnAnnotation ? 2 : 0,
+            anchorSize: isOwnAnnotation ? 10 : 0,
             padding: 2,
             boundBoxFunc: (_oldBox, newBox) => {
                 newBox.width = Math.max(30, newBox.width)
@@ -239,7 +255,7 @@ export class Selector {
             transformer.resizeEnabled(false)
         }
 
-        group.draggable(currentAnnotation?.draggable)
+        group.draggable(isOwnAnnotation ? currentAnnotation?.draggable : false)
 
         transformer.off('transformend')
         transformer.off('transformstart')

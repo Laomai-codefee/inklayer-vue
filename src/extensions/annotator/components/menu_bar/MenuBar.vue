@@ -67,12 +67,12 @@
         <span>{{ t('common.comment') }}</span>
       </Button>
       <!-- Style button -->
-      <Button v-if="isStyleSupported" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="showStyle = true">
+      <Button v-if="isStyleSupported && isOwnAnnotation" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="showStyle = true">
         <Icon name="paletteSingle" :size="14" />
         <span>{{ t('common.color') }}</span>
       </Button>
       <!-- Delete button -->
-      <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive" @click="handleDelete">
+      <Button v-if="isOwnAnnotation" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive" @click="handleDelete">
         <Icon name="delete" :size="14" />
         <span>{{ t('common.delete') }}</span>
       </Button>
@@ -88,7 +88,7 @@ import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import Icon from '@/components/Icon.vue'
-import { PdfViewerContextKey } from '@/context/pdfViewerContext'
+import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
 import {
   annotationDefinitions, type IAnnotationStore,
 } from '../../const/definitions'
@@ -98,6 +98,7 @@ import { useT } from '@/composables/useT'
 const { t } = useT()
 
 const ctx = inject(PdfViewerContextKey)
+const userContext = inject(UserContextKey)
 
 const visible = ref(false)
 const triggerX = ref(0)
@@ -120,6 +121,24 @@ const presetColors = computed(() => props.colors?.length ? props.colors : defaul
 const isCommentSidebarOpen = computed(() =>
   ctx?.activeSidebarPanel?.value === 'annotator-sidebar-toggle'
 )
+
+const isOwnAnnotation = computed(() => {
+  if (!currentAnnotation.value) return true
+  const enableCheck = painterRef?.enableCollaborationCheck ?? false
+  if (!enableCheck) return true
+
+  const currentUser = userContext?.user?.value
+  if (typeof painterRef?.checkIsAnnotationOwner === 'function') {
+    return painterRef.checkIsAnnotationOwner(currentAnnotation.value, currentUser)
+  }
+
+  const currentUserId = currentUser?.id
+  const annotationUserId = currentAnnotation.value.user?.id
+  if (currentUserId && annotationUserId) {
+    return currentUserId === annotationUserId
+  }
+  return false
+})
 
 const isStyleSupported = computed(() => {
   if (!currentAnnotation.value) return null

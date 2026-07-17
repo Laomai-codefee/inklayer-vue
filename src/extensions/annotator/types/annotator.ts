@@ -268,4 +268,14 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
     onAnnotationDeleted?: (id: string) => void
     onAnnotationSelected?: (annotation: Annotation | null, isClick: boolean) => void
     onAnnotationUpdated?: (annotation: Annotation) => void
+
+    /**
+     * 是否开启协同权限检查。若开启，用户不能拖拽/变形/删除他人的批注，只能在他人批注下评论回复，且只能编辑/删除自己撰写的回复。
+     */
+    enableCollaborationCheck?: boolean
+
+    /**
+     * 自定义是否为批注所有者的校验函数。若不传，则默认比对 annotation.user.id 是否等于当前用户的 id。
+     */
+    checkIsAnnotationOwner?: (annotation: any, currentUser: any) => boolean
 }

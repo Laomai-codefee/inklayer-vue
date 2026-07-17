@@ -62,11 +62,13 @@
       <AnnotationSidebar
         :annotations="annotationList"
         :selected-id="selectedAnnotationId || undefined"
+        :enable-collaboration-check="enableCollaborationCheck"
+        :check-is-annotation-owner="checkIsAnnotationOwner"
         @select="handleSelectAnnotation"
         @delete="(id) => emit('annotationDeleted', id)"
       />
     </template>
-
+ 
     <!-- ====== AnnotatorExtension + ViewerExtension ====== -->
     <AnnotatorExtension
       ref="annotatorRef"
@@ -74,6 +76,8 @@
       :colors="mergedOptions.colors"
       :initial-annotations="effectiveAnnotations"
       :enable-native-annotations="enableNativeAnnotations"
+      :enable-collaboration-check="enableCollaborationCheck"
+      :check-is-annotation-owner="checkIsAnnotationOwner"
       @save="(a) => emit('save', storesToAnnotations(a))"
       @annotation-added="(a) => emit('annotationAdded', a as Annotation)"
       @annotation-deleted="(id) => emit('annotationDeleted', id)"
@@ -118,6 +122,8 @@ const props = withDefaults(defineProps<PdfAnnotatorProps>(), {
   initialScale: 'auto', enableRange: 'auto',
   user: () => ({ id: 'null', name: 'unknown' }),
   enableNativeAnnotations: false, defaultShowAnnotationsSidebar: false,
+  enableCollaborationCheck: false,
+  checkIsAnnotationOwner: undefined,
 })
 
 const emit = defineEmits<{
@@ -188,5 +194,5 @@ function handleSelectAnnotation(ann: IAnnotationStore) { selectedAnnotationId.va
 function onDocumentLoaded(_viewer: any) { emit('load') }
 function onEventBusReady(_bus: any) { /* exposed for advanced use */ }
 
-defineExpose({ save: handleSaveFromPainter, getAnnotations })
+defineExpose({ save: handleSaveFromPainter, getAnnotations, annotatorRef })
 </script>
