@@ -63,6 +63,7 @@ export function usePdfViewer(
 
   let cleanupFn: (() => void) | null = null
   let loadingTaskRef: PDFDocumentLoadingTask | null = null
+  let loadGeneration = 0
 
   function isRangeFailure(error: unknown): boolean {
     if (!(error instanceof Error)) return false
@@ -153,9 +154,22 @@ export function usePdfViewer(
   }
 
   async function loadPdf() {
+    const generation = ++loadGeneration
+    const isCurrentLoad = () => generation === loadGeneration
+
+    if (loadingTaskRef) {
+      void loadingTaskRef.destroy()
+      loadingTaskRef = null
+    }
+
     if (!url && !data) {
-      loadError.value = new Error('Either url or data must be provided')
-      loading.value = false
+      const error = new Error('Either url or data must be provided')
+      if (isCurrentLoad()) {
+        loadError.value = error
+        loading.value = false
+        onLoadError?.(error)
+        onLoadEnd?.()
+      }
       return
     }
 
@@ -163,64 +177,97 @@ export function usePdfViewer(
     progress.value = 0
     loadError.value = null
     pdfDocument.value = null
-
-    const { linkService, viewer } = createPdfViewer()
+    metadata.value = null
 
     let triedRange = false
+    let activeTask: PDFDocumentLoadingTask | null = null
+    let viewerContext: ReturnType<typeof createPdfViewer> | null = null
 
     try {
+      viewerContext = createPdfViewer()
+      const { linkService, viewer } = viewerContext
       const shouldTryRange = enableRange === true || enableRange === 'auto'
-      let _loadingTask: PDFDocumentLoadingTask
 
       if (shouldTryRange) {
         triedRange = true
-        _loadingTask = await createLoadingTask(true)
+        activeTask = await createLoadingTask(true)
       } else {
-        _loadingTask = await createLoadingTask(false)
+        activeTask = await createLoadingTask(false)
       }
 
-      loadingTaskRef = _loadingTask
+      if (!isCurrentLoad()) {
+        await activeTask.destroy()
+        return
+      }
 
-      _loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
-        if (total > 0) {
-          progress.value = Math.round((loaded / total) * 100)
+      loadingTaskRef = activeTask
+
+      activeTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+        if (isCurrentLoad() && total > 0) {
+          progress.value = Math.min(100, Math.round((loaded / total) * 100))
         }
       }
 
-      const pdf = await _loadingTask.promise
+      const pdf = await activeTask.promise
+      if (!isCurrentLoad()) {
+        await pdf.destroy()
+        return
+      }
+
       pdfDocument.value = pdf
       linkService.setDocument(pdf)
       viewer.setDocument(pdf)
 
       const docMetadata = await pdf.getMetadata()
+      if (!isCurrentLoad()) return
+
       metadata.value = docMetadata
       onLoadSuccess?.(pdf)
     } catch (err) {
+      if (!isCurrentLoad()) return
+
       if (enableRange === 'auto' && triedRange && isRangeFailure(err)) {
         console.warn('[PDF] Range failed, fallback to full loading')
-        loadingTaskRef?.destroy()
-        loadingTaskRef = null
+        await activeTask?.destroy()
+        if (loadingTaskRef === activeTask) loadingTaskRef = null
 
         try {
+          if (!viewerContext) throw new Error('PDF viewer was not initialized')
           const fallbackTask = await createLoadingTask(false)
+          activeTask = fallbackTask
+
+          if (!isCurrentLoad()) {
+            await fallbackTask.destroy()
+            return
+          }
+
           loadingTaskRef = fallbackTask
 
           fallbackTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
-            if (total > 0) {
-              progress.value = Math.round((loaded / total) * 100)
+            if (isCurrentLoad() && total > 0) {
+              progress.value = Math.min(100, Math.round((loaded / total) * 100))
             }
           }
 
           const pdf = await fallbackTask.promise
+          if (!isCurrentLoad()) {
+            await pdf.destroy()
+            return
+          }
+
+          const { linkService, viewer } = viewerContext
           pdfDocument.value = pdf
           linkService.setDocument(pdf)
           viewer.setDocument(pdf)
 
           const docMetadata = await pdf.getMetadata()
+          if (!isCurrentLoad()) return
+
           metadata.value = docMetadata
           onLoadSuccess?.(pdf)
           return
         } catch (fallbackErr) {
+          if (!isCurrentLoad()) return
           loadError.value = fallbackErr as Error
           onLoadError?.(fallbackErr as Error)
           return
@@ -230,8 +277,10 @@ export function usePdfViewer(
       loadError.value = err as Error
       onLoadError?.(err as Error)
     } finally {
-      loading.value = false
-      onLoadEnd?.()
+      if (isCurrentLoad()) {
+        loading.value = false
+        onLoadEnd?.()
+      }
     }
   }
 
@@ -242,6 +291,7 @@ export function usePdfViewer(
   })
 
   onUnmounted(() => {
+    loadGeneration += 1
     cleanupFn?.()
     cleanupFn = null
     loadingTaskRef?.destroy()
