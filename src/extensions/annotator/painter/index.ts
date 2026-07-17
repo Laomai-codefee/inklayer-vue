@@ -50,6 +50,7 @@ export class Painter {
     private selector: Selector // 选择器实例
     private transform: Transform // 转换器
     private tempDataTransfer: string | null = null // 临时数据传输
+    private highlightTimers = new Set<ReturnType<typeof setTimeout>>()
     public readonly onTextSelected: (range: Range | null) => void
     public readonly onAnnotationAdd: (annotationStore: IAnnotationStore, isOriginal: boolean, currentAnnotation: IAnnotationType | undefined) => void
     public readonly onAnnotationDelete: (id: string) => void
@@ -820,9 +821,11 @@ export class Painter {
                 }
             } else if (retries > 0) {
                 // 如果没有找到且还有重试次数，继续重试
-                setTimeout(() => {
+                const timer = setTimeout(() => {
+                    this.highlightTimers.delete(timer)
                     attemptHighlight(retries - 1)
                 }, retryInterval)
+                this.highlightTimers.add(timer)
             } else {
                 console.error('Failed to find editor after maximum retries.')
             }
@@ -859,20 +862,22 @@ export class Painter {
      * 销毁 Painter 实例，清理所有资源
      */
     public destroy(): void {
-
         this.disablePainting()
+        this.webSelection.destroy()
+        this.highlightTimers.forEach((timer) => clearTimeout(timer))
+        this.highlightTimers.clear()
 
         // 移除全局事件监听器
         window.removeEventListener('keyup', this.globalKeyUpHandler)
+
+        this.editorStore.forEach((editor) => editor.destroy())
+        this.editorStore.clear()
 
         // 销毁所有 Konva Stage 和清理画布
         this.konvaCanvasStore.forEach((konvaCanvas) => {
             konvaCanvas.konvaStage.destroy()
         })
         this.konvaCanvasStore.clear()
-
-        
-        this.editorStore.clear()
 
         // 销毁选择器
         this.selector.delete()

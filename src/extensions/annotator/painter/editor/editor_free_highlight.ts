@@ -120,6 +120,11 @@ export class EditorFreeHighlight extends Editor {
         window.removeEventListener('mouseup', this.globalPointerUpHandler) // 移除全局鼠标释放事件监听器
     }
 
+    public destroy() {
+        window.removeEventListener('mouseup', this.globalPointerUpHandler)
+        super.destroy()
+    }
+
     /**
      * 修正接近水平或垂直的线条，使其成为完全水平或垂直的直线。
      * @param points 曲线的点集

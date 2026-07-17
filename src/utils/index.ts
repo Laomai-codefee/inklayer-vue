@@ -113,9 +113,11 @@ export function isSameColor(color1: string, color2: string): boolean {
     }
 }
 
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number, immediate: boolean = false): (...args: Parameters<T>) => void {
+export type DebouncedFunction<T extends (...args: any[]) => any> = ((...args: Parameters<T>) => void) & { cancel: () => void }
+
+export function debounce<T extends (...args: any[]) => any>(func: T, wait: number, immediate: boolean = false): DebouncedFunction<T> {
     let timeoutId: ReturnType<typeof setTimeout> | null = null
-    return function (this: any, ...args: Parameters<T>) {
+    const debounced = function (this: any, ...args: Parameters<T>) {
         const callNow = immediate && !timeoutId
         
         if (timeoutId) {
@@ -128,7 +130,12 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
         }, wait)
         
         if (callNow) func.apply(this, args)
+    } as DebouncedFunction<T>
+    debounced.cancel = () => {
+        if (timeoutId) clearTimeout(timeoutId)
+        timeoutId = null
     }
+    return debounced
 }
 export function once<T extends (...args: any[]) => any>(fn: T): (...args: Parameters<T>) => ReturnType<T> {
     let called = false

@@ -22,6 +22,13 @@ export class EditorCloud extends Editor {
         }
     }
 
+    public destroy() {
+        this.konvaStage.off('dblclick', this.handleDoubleClick)
+        window.removeEventListener('keyup', this.handleKeyUp)
+        this.cancelDrawing()
+        super.destroy()
+    }
+
     private cancelDrawing() {
         this.isPainting = false
         this.points = []

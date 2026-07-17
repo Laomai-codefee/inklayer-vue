@@ -37,6 +37,7 @@ const store = useAnnotationStore()
 
 let painter: Painter | null = null
 let currentTool: IAnnotationType = annotationDefinitions[0]
+let disposed = false
 
 const selectionBarRef = ref<InstanceType<typeof SelectionBar> | null>(null)
 const menuBarRef = ref<InstanceType<typeof MenuBar> | null>(null)
@@ -62,7 +63,7 @@ function initPainter() {
   if (!bus || !viewer) return
   const user = userContext?.user.value || { id: 'anonymous', name: 'Anonymous' }
 
-  painter = new Painter({
+  const currentPainter = new Painter({
     primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, PDFViewerApplication: viewer, store,
     onTextSelected: (range) => { selectionBarRef.value?.open(range) },
     onAnnotationAdd: (annStore) => { emit('annotation-added', annStore) },
@@ -85,6 +86,7 @@ function initPainter() {
       }
     },
   })
+  painter = currentPainter
 
   store.setPainter(painter)
   selectionBarRef.value?.setPainterRef(painter)
@@ -102,15 +104,25 @@ function initPainter() {
   const handleViewAreaChanged = () => { debouncedViewAreaChanged() }
   try { (bus as any)._on?.('updateviewarea', handleViewAreaChanged) } catch { bus.on('updateviewarea', handleViewAreaChanged) }
 
+  let documentLoadStarted = false
+  let rerenderTimer: ReturnType<typeof setTimeout> | null = null
   const handleDocumentLoaded = async () => {
-    if (!painter) return
+    if (disposed || painter !== currentPainter || documentLoadStarted) return
+    documentLoadStarted = true
     const resolvedAnnotations = (props.initialAnnotations || []) as IAnnotationStore[]
-    await painter.initAnnotationsOnce(resolvedAnnotations, !!props.enableNativeAnnotations)
-    setTimeout(() => {
-      if (!painter) return
+    try {
+      await currentPainter.initAnnotationsOnce(resolvedAnnotations, !!props.enableNativeAnnotations)
+    } catch (error) {
+      if (!disposed && painter === currentPainter) console.error('Failed to initialize annotations.', error)
+      return
+    }
+    if (disposed || painter !== currentPainter) return
+    rerenderTimer = setTimeout(() => {
+      rerenderTimer = null
+      if (disposed || painter !== currentPainter) return
       for (let i = 0; i < viewer.pagesCount; i++) {
         const pageView = viewer.getPageView(i)
-        if (pageView?.div && pageView.canvas && painter.getKonvaCanvasStore()?.has(i + 1)) painter.reRenderAnnotations(i + 1)
+        if (pageView?.div && pageView.canvas && currentPainter.getKonvaCanvasStore()?.has(i + 1)) currentPainter.reRenderAnnotations(i + 1)
       }
     }, 0)
   }
@@ -119,6 +131,8 @@ function initPainter() {
   else bus.on('documentloaded', handleDocumentLoaded)
 
   cleanupEventHandlers = () => {
+    if (rerenderTimer) clearTimeout(rerenderTimer)
+    rerenderTimer = null
     bus.off('pagerendered', handlePageRendered)
     bus.off('updateviewarea', handleViewAreaChanged)
     try { (bus as any)._off?.('updateviewarea', handleViewAreaChanged) } catch { /* ignore */ }
@@ -127,7 +141,7 @@ function initPainter() {
 }
 
 watch(() => pdfContext.isReady.value, (ready) => { if (ready && !painter) { store.clearAnnotations(); initPainter() } })
-onMounted(() => { if (pdfContext.isReady.value) { store.clearAnnotations(); initPainter() } })
+onMounted(() => { disposed = false; if (pdfContext.isReady.value) { store.clearAnnotations(); initPainter() } })
 
 // Tool activation watcher
 let lastActivatedType: number | null = null; let lastActivatedColor: string | null = null
@@ -143,7 +157,7 @@ watch(() => store.currentAnnotationType, (newType) => {
 
 watch(() => pdfContext.isSidebarCollapsed.value, () => { debouncedViewAreaChanged() })
 
-onUnmounted(() => { cleanupEventHandlers?.(); painter?.destroy(); painter = null; store.setPainter(null); lastActivatedType = null; lastActivatedColor = null })
+onUnmounted(() => { disposed = true; debouncedViewAreaChanged.cancel(); cleanupEventHandlers?.(); painter?.destroy(); painter = null; store.setPainter(null); lastActivatedType = null; lastActivatedColor = null })
 
 defineExpose({
   getAnnotations: () => store.annotationList,

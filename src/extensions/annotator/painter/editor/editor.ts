@@ -431,4 +431,10 @@ export abstract class Editor {
             }
         }, 1000)
     }
+
+    public destroy() {
+        this.disableEditMode()
+        Editor.TimerClear(this.pageNumber)
+        delete Editor.Timer[this.pageNumber]
+    }
 }

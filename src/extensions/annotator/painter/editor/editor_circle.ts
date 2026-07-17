@@ -146,6 +146,11 @@ export class EditorCircle extends Editor {
         window.removeEventListener('mouseup', this.globalPointerUpHandler) // 移除全局鼠标释放事件监听器
     }
 
+    public destroy() {
+        window.removeEventListener('mouseup', this.globalPointerUpHandler)
+        super.destroy()
+    }
+
     /**
      * 判断椭圆是否太小。
      * @returns 如果椭圆的宽度或高度小于最小尺寸，返回 true，否则返回 false。

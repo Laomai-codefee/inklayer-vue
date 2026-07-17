@@ -208,6 +208,17 @@ describe('debounce', () => {
 
     expect(fn).toHaveBeenCalledWith('hello', 42, { key: 'value' })
   })
+
+  it('cancel 应清除待执行的调用', () => {
+    const fn = vi.fn()
+    const debounced = debounce(fn, 100)
+
+    debounced()
+    debounced.cancel()
+    vi.advanceTimersByTime(100)
+
+    expect(fn).not.toHaveBeenCalled()
+  })
 })
 
 // =============================================================================

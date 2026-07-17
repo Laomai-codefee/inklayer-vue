@@ -105,6 +105,11 @@ export class EditorArrow extends Editor {
         window.removeEventListener('mouseup', this.globalPointerUpHandler)
     }
 
+    public destroy() {
+        window.removeEventListener('mouseup', this.globalPointerUpHandler)
+        super.destroy()
+    }
+
     private isTooShort(): boolean {
         if (!this.arrow) return true
         const points = this.arrow.points()

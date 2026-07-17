@@ -125,6 +125,11 @@ export class EditorRectangle extends Editor {
         window.removeEventListener('mouseup', this.globalPointerUpHandler) // 移除全局鼠标抬起事件监听器
     }
 
+    public destroy() {
+        window.removeEventListener('mouseup', this.globalPointerUpHandler)
+        super.destroy()
+    }
+
     /**
      * 判断矩形是否太小（小于最小允许大小）。
      * @returns 如果矩形太小返回 true，否则返回 false
