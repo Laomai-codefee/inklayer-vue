@@ -156,6 +156,19 @@ Bug 报告请走 [GitHub Issues](https://github.com/Laomai-codefee/inklayer-vue/
 
 ---
 
+## 🌐 运行环境
+
+InkLayer Vue 仅支持浏览器环境，不支持 SSR（服务端渲染）。请在客户端入口或仅客户端组件中加载它。
+
+- Vue 3.5+
+- Vite 5+ 或 Webpack 5
+- ESM 与 CommonJS 包入口
+- npm、pnpm 等标准包管理器；项目依赖均由包自身声明
+
+在 Nuxt 等 SSR 框架中使用时，请关闭该组件的服务端渲染，并确保样式与组件只在客户端导入。
+
+---
+
 ## 📄 License
 
 MIT © InkLayer

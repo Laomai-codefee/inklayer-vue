@@ -156,6 +156,19 @@ Bug reports → [GitHub Issues](https://github.com/Laomai-codefee/inklayer-vue/i
 
 ---
 
+## 🌐 Runtime Environment
+
+InkLayer Vue is browser-only and does not support server-side rendering (SSR). Load it from a client entry point or a client-only component.
+
+- Vue 3.5+
+- Vite 5+ or Webpack 5
+- ESM and CommonJS package entry points
+- Standard package managers such as npm and pnpm; all runtime dependencies are declared by the package
+
+When using an SSR framework such as Nuxt, disable server rendering for the component and import both the component and its styles on the client only.
+
+---
+
 ## 📄 License
 
 MIT © InkLayer
