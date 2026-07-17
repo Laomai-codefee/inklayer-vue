@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.13](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.12...v1.0.13) (2026-07-17)
+
+
+### Bug Fixes
+
+* clean up annotator lifecycle resources ([7847735](https://github.com/Laomai-codefee/inklayer-vue/commit/7847735e459d76689b19f48711d787ea34d968d3))
+* improve package consumer compatibility ([a3f8a6a](https://github.com/Laomai-codefee/inklayer-vue/commit/a3f8a6aa6db2b745a737f3c8acbffd6f7fc4a3da))
+* preserve annotation mapping semantics ([6399c4c](https://github.com/Laomai-codefee/inklayer-vue/commit/6399c4cf180f719eabb4e058ae09ae6ad4a13a64))
+* prevent stale PDF async updates ([b5efa56](https://github.com/Laomai-codefee/inklayer-vue/commit/b5efa56f082bafd42ec5a763fd09cd943850d4d5))
+
 ### [1.0.12](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.11...v1.0.12) (2026-07-06)
 
 ### [1.0.11](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.10...v1.0.11) (2026-07-06)
