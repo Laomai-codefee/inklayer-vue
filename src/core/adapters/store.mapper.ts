@@ -247,7 +247,12 @@ function extractPayload(store: IAnnotationStore, kind: AnnotationKind): Annotati
     }
 
     case 'shape': {
-      const shape = SUBTYPE_TO_SHAPE_VARIANT[subtype] || 'rect'
+      // InkLayer stores its custom cloud tool on top of the legacy PolyLine
+      // representation. Preserve the product-level semantic when the explicit
+      // annotation type is available, while keeping native PolyLine as polygon.
+      const shape = store.type === AnnotationType.CLOUD
+        ? 'cloud'
+        : SUBTYPE_TO_SHAPE_VARIANT[subtype] || 'rect'
       return {
         kind: 'shape',
         shape,
@@ -312,7 +317,7 @@ function adjustOpacity(color: string, opacity: number): string {
 export function annotationToStore(annotation: Annotation): IAnnotationStore {
   const kind = annotation.kind
   const subtype = getSubtypeFromKind(kind, annotation.payload)
-  const pdfjsType = getPdfjsTypeFromKind(kind)
+  const pdfjsType = getPdfjsTypeFromKind(kind, annotation.payload)
 
   // 从 extensions 恢复旧系统字段（收窄类型，不改 Core 定义）
   const ext = annotation.extensions as KnownExtensions | undefined
@@ -326,7 +331,7 @@ export function annotationToStore(annotation: Annotation): IAnnotationStore {
     konvaString: konva?.serialized || '',
     konvaClientRect: konva?.clientRect || extractBoundingRect(geometry),
     title: legacy?.title || extractTitleFromPayload(annotation.payload),
-    type: getTypeFromKind(kind),
+    type: getTypeFromKind(kind, annotation.payload),
     color: annotation.appearance?.strokeColor || null,
     subtype,
     pdfjsType,
@@ -341,7 +346,7 @@ export function annotationToStore(annotation: Annotation): IAnnotationStore {
 /**
  * 从 Kind 获取 AnnotationType
  */
-function getTypeFromKind(kind: AnnotationKind): AnnotationType {
+function getTypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): AnnotationType {
   const KIND_TO_TYPE: Record<AnnotationKind, AnnotationType> = {
     'text-markup': AnnotationType.HIGHLIGHT,
     'note': AnnotationType.NOTE,
@@ -351,13 +356,16 @@ function getTypeFromKind(kind: AnnotationKind): AnnotationType {
     'stamp': AnnotationType.STAMP,
     'file': AnnotationType.STAMP,
   }
+  if (kind === 'shape' && payload?.kind === 'shape' && payload.shape === 'cloud') {
+    return AnnotationType.CLOUD
+  }
   return KIND_TO_TYPE[kind] || AnnotationType.NONE
 }
 
 /**
  * 从 Kind 获取 PdfjsAnnotationType
  */
-function getPdfjsTypeFromKind(kind: AnnotationKind): PdfjsAnnotationType {
+function getPdfjsTypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): PdfjsAnnotationType {
   const KIND_TO_PDFJS_TYPE: Record<AnnotationKind, PdfjsAnnotationType> = {
     'text-markup': PdfjsAnnotationType.HIGHLIGHT,
     'note': PdfjsAnnotationType.TEXT,
@@ -366,6 +374,9 @@ function getPdfjsTypeFromKind(kind: AnnotationKind): PdfjsAnnotationType {
     'line': PdfjsAnnotationType.LINE,
     'stamp': PdfjsAnnotationType.STAMP,
     'file': PdfjsAnnotationType.FILEATTACHMENT,
+  }
+  if (kind === 'shape' && payload?.kind === 'shape' && payload.shape === 'cloud') {
+    return PdfjsAnnotationType.POLYLINE
   }
   return KIND_TO_PDFJS_TYPE[kind] || PdfjsAnnotationType.NONE
 }
@@ -378,12 +389,18 @@ function getSubtypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): 
 
   switch (kind) {
     case 'text-markup': {
-      const variant = (payload as any)?.variant || 'Highlight'
-      return variant.charAt(0).toUpperCase() + variant.slice(1) as PdfjsAnnotationSubtype
+      const variant = payload.kind === 'text-markup' ? payload.variant : 'highlight'
+      const subtypeByVariant: Record<typeof variant, PdfjsAnnotationSubtype> = {
+        highlight: 'Highlight',
+        underline: 'Underline',
+        squiggly: 'Squiggly',
+        strikeout: 'StrikeOut',
+      }
+      return subtypeByVariant[variant]
     }
     case 'note': return 'Text'
     case 'ink': return 'Ink'
-    case 'shape': return 'Square'
+    case 'shape': return payload.kind === 'shape' && payload.shape === 'cloud' ? 'PolyLine' : 'Square'
     case 'line': return 'Line'
     case 'stamp': return 'Stamp'
     case 'file': return 'FileAttachment'

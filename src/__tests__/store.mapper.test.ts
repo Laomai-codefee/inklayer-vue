@@ -134,6 +134,14 @@ describe('storeToAnnotation', () => {
     expect(payload.shape).toBe('cloud')
   })
 
+  it('普通 PolyLine 不应被误判为 CLOUD', () => {
+    const store = makeStore({ type: AnnotationType.RECTANGLE, subtype: 'PolyLine' })
+    const ann = storeToAnnotation(store)
+
+    expect(ann.kind).toBe('shape')
+    expect((ann.payload as any).shape).toBe('polygon')
+  })
+
   it('应正确转换 FREEHAND 类型', () => {
     const store = makeStore({
       type: AnnotationType.FREEHAND,
@@ -449,6 +457,7 @@ describe('往返转换一致性', () => {
     { name: 'FREEHAND', type: AnnotationType.FREEHAND, subtype: 'Ink' },
     { name: 'SIGNATURE', type: AnnotationType.SIGNATURE, subtype: 'Caret', expectedBackType: AnnotationType.STAMP, expectedBackSubtype: 'Stamp' },
     { name: 'STAMP', type: AnnotationType.STAMP, subtype: 'Stamp' },
+    { name: 'CLOUD', type: AnnotationType.CLOUD, subtype: 'PolyLine' },
   ]
 
   it.each(roundTripTypes)('$name: store → annotation → store id/pageNumber 应保持一致', ({ type, subtype, expectedBackType, expectedBackSubtype }) => {
