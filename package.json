@@ -44,6 +44,7 @@
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
+            "browser": "./dist/index.es.js",
             "import": "./dist/index.es.js",
             "require": "./dist/index.cjs.js"
         },
@@ -62,6 +63,7 @@
         "build": "vue-tsc --noEmit && vite build && echo 'export {}' > dist/style.d.ts",
         "build:playground": "vite build --mode playground --base ./ --outDir docs",
         "preview": "vite preview --mode playground",
+        "check:package": "node scripts/check-package.mjs",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
@@ -69,24 +71,21 @@
     },
     "dependencies": {
         "@floating-ui/dom": "^1.7.4",
-        "@lucide/vue": "^1.21.0",
-        "@vueuse/core": "^10.11.1",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "exceljs": "^4.4.0",
         "file-saver": "^2.0.5",
         "konva": "^9.3.14",
-        "lucide-vue-next": "^0.344.0",
-        "nanoid": "^5.1.6",
         "pdf-lib": "^1.17.1",
         "pdfjs-dist": "~4.3.136",
         "pinia": "^2.1.7",
         "reka-ui": "^2.9.10",
         "tailwind-merge": "^2.3.0",
-        "tailwindcss-animate": "^1.0.7",
-        "vue": "^3.5.0",
         "vue-i18n": "^10.0.0",
         "web-highlighter": "^0.7.4"
+    },
+    "peerDependencies": {
+        "vue": "^3.5.0"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.3.0",
@@ -105,6 +104,7 @@
         "vite": "^5.4.0",
         "vite-plugin-dts": "^3.9.1",
         "vitest": "^1.6.0",
+        "vue": "^3.5.0",
         "vue-tsc": "^2.2.0"
     }
 }

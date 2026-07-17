@@ -4,6 +4,76 @@ import tailwindcssVite from '@tailwindcss/vite'
 import prefixSelector from 'postcss-prefix-selector'
 import dts from 'vite-plugin-dts'
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
+
+const PDF_WORKER_IMPORT = 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
+const PDF_IMAGE_FILES = [
+  'altText_add.svg',
+  'altText_done.svg',
+  'cursor-editorFreeHighlight.svg',
+  'cursor-editorFreeText.svg',
+  'cursor-editorInk.svg',
+  'cursor-editorTextHighlight.svg',
+  'editor-toolbar-delete.svg',
+  'toolbarButton-editorHighlight.svg',
+  'toolbarButton-menuArrow.svg',
+]
+
+const externalDependencies = [
+  '@floating-ui/dom',
+  'class-variance-authority',
+  'clsx',
+  'exceljs',
+  'file-saver',
+  'konva',
+  'pdf-lib',
+  'pdfjs-dist',
+  'pinia',
+  'reka-ui',
+  'tailwind-merge',
+  'vue',
+  'vue-i18n',
+  'web-highlighter',
+]
+
+function isExternalDependency(id: string) {
+  if (id === PDF_WORKER_IMPORT) return false
+  return externalDependencies.some(
+    dependency => id === dependency || id.startsWith(`${dependency}/`)
+  )
+}
+
+function pdfAssetsPlugin() {
+  const virtualWorkerId = '\0inklayer-pdf-worker-url'
+  const workerPath = resolve(__dirname, 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs')
+  const imagesPath = resolve(__dirname, 'node_modules/pdfjs-dist/web/images')
+
+  return {
+    name: 'inklayer-pdf-assets',
+    enforce: 'pre' as const,
+    resolveId(id: string) {
+      if (id === PDF_WORKER_IMPORT) return virtualWorkerId
+    },
+    load(id: string) {
+      if (id !== virtualWorkerId) return
+      const referenceId = this.emitFile({
+        type: 'asset',
+        fileName: 'pdf.worker.min.mjs',
+        source: readFileSync(workerPath),
+      })
+      return `export default import.meta.ROLLUP_FILE_URL_${referenceId}`
+    },
+    buildStart() {
+      for (const fileName of PDF_IMAGE_FILES) {
+        this.emitFile({
+          type: 'asset',
+          fileName: `images/${fileName}`,
+          source: readFileSync(resolve(imagesPath, fileName)),
+        })
+      }
+    },
+  }
+}
 
 export default defineConfig(({ mode }) => {
   const isPlayground = mode === 'playground'
@@ -21,6 +91,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       tailwindcssVite(),
+      pdfAssetsPlugin(),
       dts({
         include: ['src/**/*'],
         exclude: ['playground/**', '**/*.test.ts'],
@@ -69,11 +140,12 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: resolve(__dirname, 'src/index.ts'),
         name: 'InkLayerVue',
+        cssFileName: 'inklayer-vue',
         formats: ['es', 'cjs'],
         fileName: (format) => `index.${format === 'es' ? 'es' : 'cjs'}.js`,
       },
       rollupOptions: {
-        external: ['vue', 'pinia', 'pdfjs-dist', 'konva', 'exceljs', 'file-saver', /^pdfjs-dist\/(?!.*\?url)/, /^konva\//],
+        external: isExternalDependency,
         output: {
           globals: { vue: 'Vue', pinia: 'Pinia', 'pdfjs-dist': 'pdfjsLib', konva: 'Konva' },
           exports: 'named',
@@ -81,6 +153,9 @@ export default defineConfig(({ mode }) => {
         },
       },
       cssCodeSplit: false,
+      sourcemap: false,
+      emptyOutDir: true,
+      copyPublicDir: false,
     },
   }
 })

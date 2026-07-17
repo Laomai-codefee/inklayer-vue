@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import { PDFHexString } from 'pdf-lib'
 import { t } from '@/i18n/global-t'
 import type { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
@@ -69,10 +68,18 @@ function isElementInDOM(element: HTMLElement): boolean {
 
 /**
  * 生成uuid
- * @returns nanoid
+ * @returns browser-generated UUID
  */
 function generateUUID(): string {
-    return nanoid()
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID()
+    }
+
+    const bytes = getRandomBytes(16)
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
 /**
