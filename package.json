@@ -1,7 +1,7 @@
 {
     "name": "inklayer-vue",
     "version": "1.0.13",
-    "description": "Browser-only Vue 3 PDF viewer & annotation SDK for document review, comments, collaboration, and permission-controlled workflows.",
+    "description": "PDF viewer and annotation SDK for Vue 3 applications, with comments, collaborative permissions, and PDF/Excel export.",
     "type": "module",
     "keywords": [
         "pdf",
@@ -21,7 +21,6 @@
         "vue",
         "vue3",
         "vue-pdf",
-        "konva",
         "sdk"
     ],
     "author": "Laomai<codefee@foxmail.com>",
@@ -56,6 +55,7 @@
     "files": [
         "dist",
         "README.md",
+        "README-en-US.md",
         "LICENSE"
     ],
     "scripts": {
