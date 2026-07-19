@@ -1,10 +1,9 @@
 <template>
-  <div>
     <PdfViewer
       :enable-range="false"
       title="PDF VIEWER CUSTOM"
       :url="pdfUrl"
-      :layout-style="{ width: '100vw', height: '96vh' }"
+      :layout-style="{ width: '100%', height: '100%' }"
       :show-text-layer="false"
       :show-annotations="true"
       default-active-sidebar-key="sidebar-1"
@@ -55,7 +54,6 @@
         </div>
       </template>
     </PdfViewer>
-  </div>
 </template>
 
 <script setup lang="ts">

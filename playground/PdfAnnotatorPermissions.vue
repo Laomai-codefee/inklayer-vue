@@ -1,34 +1,40 @@
 <template>
-  <div>
+  <div class="grid h-full grid-rows-[auto_minmax(0,1fr)]">
     <div class="flex flex-wrap items-center gap-2 px-3 py-2 border-y border-border">
       <strong>Current user: <span data-testid="current-user">{{ user.name }}</span></strong>
-      <button
+      <Button
         v-for="option in USERS"
         :key="option.id"
         :data-testid="`switch-${option.id}`"
         :aria-pressed="option.id === user.id"
+        variant="outline"
+        size="sm"
         @click="user = option"
       >
         {{ option.name }}
-      </button>
+      </Button>
 
       <strong class="ml-3">
         Permission: <span data-testid="current-permission">{{ permissionLabel }}</span>
       </strong>
-      <button
+      <Button
         data-testid="permission-owner-only"
         :aria-pressed="permissionPreset === 'owner-only'"
+        variant="outline"
+        size="sm"
         @click="permissionPreset = 'owner-only'"
       >
         Owner only
-      </button>
-      <button
+      </Button>
+      <Button
         data-testid="permission-read-only"
         :aria-pressed="permissionPreset === 'read-only'"
+        variant="outline"
+        size="sm"
         @click="permissionPreset = 'read-only'"
       >
         Read only
-      </button>
+      </Button>
       <span class="ml-auto" data-testid="permission-event">{{ lastEvent }}</span>
     </div>
 
@@ -40,7 +46,7 @@
       :initial-annotations="INITIAL_ANNOTATIONS"
       default-show-annotations-sidebar
       locale="en-US"
-      :layout-style="{ height: '90vh' }"
+      :layout-style="{ height: '100%' }"
       @load="lastEvent = 'PDF loaded'"
       @annotation-added="(annotation) => lastEvent = `Added ${annotation.id}`"
       @annotation-updated="(annotation) => lastEvent = `Updated ${annotation.id}`"
@@ -51,6 +57,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { Button } from '@/components/ui/button'
 import PdfAnnotator from '@/PdfAnnotator.vue'
 import type { Annotation } from '@/core/annotation.core'
 import type { AnnotationPermissions } from '@/extensions/annotator/types/annotator'

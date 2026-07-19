@@ -1,7 +1,7 @@
 {
     "name": "inklayer-vue",
     "version": "1.0.13",
-    "description": "Extensible Vue3 PDF viewer & annotation SDK built on PDF.js. PdfViewer + PdfAnnotator for display, review, comments, and markup.",
+    "description": "Browser-only Vue 3 PDF viewer & annotation SDK for document review, comments, collaboration, and permission-controlled workflows.",
     "type": "module",
     "keywords": [
         "pdf",
@@ -16,11 +16,11 @@
         "comment",
         "review",
         "document-review",
+        "collaboration",
+        "annotation-permissions",
         "vue",
         "vue3",
         "vue-pdf",
-        "pdfjs",
-        "pdf.js",
         "konva",
         "sdk"
     ],

@@ -7,6 +7,7 @@
         :url="pdfUrl"
         :user="{ id: 'u1', name: 'Alice' }"
         :initial-annotations="initialAnnotations"
+        :layout-style="{ height: '100%' }"
         @save="(a) => console.log('Saved:', a)"
         @load="() => console.log('🎉 PDF Loaded')"
         @annotation-added="(a) => console.log('➕', a)"

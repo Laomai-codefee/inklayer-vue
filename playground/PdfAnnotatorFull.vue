@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-full">
     <PdfAnnotator
       theme="amber"
       :enable-range="false"
@@ -11,7 +11,7 @@
       locale="en-US"
       :initial-annotations="[]"
       :default-options="defaultOptions"
-      :layout-style="{ height: '96vh' }"
+      :layout-style="{ height: '100%' }"
       @save="(a) => console.log('Saved:', a)"
       @load="() => console.log('🎉 PDF Loaded')"
       @annotation-added="(a) => console.log('➕', (a as any).id, (a as any).kind)"

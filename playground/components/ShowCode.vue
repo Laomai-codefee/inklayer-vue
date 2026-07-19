@@ -5,7 +5,7 @@
         <div class="showcode-header">
           <span class="showcode-filename">{{ props.filename }}</span>
           <div class="showcode-actions">
-            <button class="showcode-btn" @click="handleCopy">{{ copied ? '✓ 已复制' : '📋 复制' }}</button>
+            <button class="showcode-btn" @click="handleCopy">{{ copied ? '✓ Copy' : '📋 Copy' }}</button>
             <button class="showcode-btn showcode-btn-close" @click="close">✕</button>
           </div>
         </div>

@@ -4,7 +4,7 @@
  */
 export const snippets: Record<string, string> = {
   PdfAnnotatorPermissions: `<template>
-  <div>
+  <div class="grid h-full grid-rows-[auto_minmax(0,1fr)]">
     <div style="display:flex;align-items:center;gap:8px;padding:8px;flex-wrap:wrap">
       <strong>Current user: {{ user.name }}</strong>
       <button
@@ -41,7 +41,7 @@ export const snippets: Record<string, string> = {
       :initial-annotations="INITIAL_ANNOTATIONS"
       default-show-annotations-sidebar
       locale="en-US"
-      :layout-style="{ height: '90vh' }"
+      :layout-style="{ height: '100%' }"
     />
   </div>
 </template>
@@ -84,6 +84,7 @@ const permissions = computed(() => permissionPreset.value === 'read-only'
   <PdfViewer
     title="PDF VIEWER"
     url="'https://inklayer.dev/inklayer-demo.pdf'"
+    :layout-style="{ width: '100%', height: '100%' }"
   />
 </template>
 
@@ -96,6 +97,7 @@ import 'inklayer-vue/style'
   <PdfViewer
     title="PDF VIEWER DATA"
     :data="pdfData"
+    :layout-style="{ width: '100%', height: '100%' }"
   />
 </template>
 
@@ -111,7 +113,7 @@ const pdfData = '...' // base64 or byte array
       :enable-range="false"
       title="PDF VIEWER CUSTOM"
       :url="pdfUrl"
-      :layout-style="{ width: '100vw', height: '96vh' }"
+      :layout-style="{ width: '100%', height: '100%' }"
       :show-text-layer="false"
       :show-annotations="true"
       default-active-sidebar-key="sidebar-1"
@@ -197,6 +199,7 @@ function onEventBusReady(eventBus: any) {
     title="PDF ANNOTATOR"
     url="'https://inklayer.dev/inklayer-demo.pdf'"
     :user="{ id: 'u1', name: 'Alice' }"
+    :layout-style="{ height: '100%' }"
     @save="(annotations) => console.log(annotations)"
   />
 </template>
@@ -217,7 +220,7 @@ import 'inklayer-vue/style'
             :enable-native-annotations="false"
             :initial-annotations="initialAnnotations"
             :default-options="customOptions"
-            :layout-style="{ height: '96vh' }"
+            :layout-style="{ height: '100%' }"
             @save="(a) => console.log('Saved:', a)"
             @load="() => console.log('🎉 PDF Loaded')"
             @annotation-added="(a) => console.log('➕', (a as any).id, (a as any).kind)"
@@ -418,7 +421,7 @@ const initialAnnotations = [
       locale="en-US"
       :initial-annotations="[]"
       :default-options="defaultOptions"
-      :layout-style="{ height: '96vh' }"
+      :layout-style="{ height: '100%' }"
       @save="(a) => console.log('Saved:', a)"
       @load="() => console.log('🎉 PDF Loaded')"
       @annotation-added="(a) => console.log('➕', (a as any).id, (a as any).kind)"
