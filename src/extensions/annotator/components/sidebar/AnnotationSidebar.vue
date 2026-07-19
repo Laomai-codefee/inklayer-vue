@@ -352,7 +352,7 @@ function deleteReplyDirect(annId: string, replyId: string) {
   const reply = ann.comments.find((comment) => comment.id === replyId)
   if (!reply || !can('comment.delete', ann, reply)) return
   const updatedComments = (ann.comments || []).filter((c) => c.id !== replyId)
-  painter.value.update(ann.id, { comments: updatedComments })
+  painter.value.update(ann.id, { comments: updatedComments }, 'comment.delete', reply)
 }
 
 // ====== Start reply with focus ======
@@ -385,7 +385,7 @@ function updateComment(ann: IAnnotationStore) {
   painter.value.update(ann.id, {
     contentsObj: { ...(ann.contentsObj || { text: '' }), text: editComment.value },
     date: formatTimestamp(Date.now()),
-  })
+  }, 'annotation.edit')
   editAnnotationId.value = null
 }
 
@@ -403,7 +403,7 @@ function addReply(ann: IAnnotationStore, status?: CommentStatus) {
     status,
     user: currentUser,
   }
-  painter.value.update(ann.id, { comments: [...(ann.comments || []), newReply] })
+  painter.value.update(ann.id, { comments: [...(ann.comments || []), newReply] }, action)
   replyAnnotationId.value = null
   newReplyContent.value = ''
 }
@@ -417,7 +417,7 @@ function updateReply(ann: IAnnotationStore, reply: IAnnotationComment) {
     }
     return r
   })
-  painter.value.update(ann.id, { comments: updatedComments })
+  painter.value.update(ann.id, { comments: updatedComments }, 'comment.edit', reply)
   editReplyId.value = null
   editReplyContent.value = ''
 }
@@ -426,8 +426,8 @@ function updateReply(ann: IAnnotationStore, reply: IAnnotationComment) {
 function deleteAnnotation(id: string) {
   const annotation = props.annotations.find((item) => item.id === id)
   if (!annotation || !can('annotation.delete', annotation)) return
-  painter.value?.delete(id, true)
-  emit('delete', id)
+  const deleted = painter.value?.delete(id, true) ?? false
+  if (deleted) emit('delete', id)
 }
 
 // ====== Mount check: sidebar just opened with an existing selection ======

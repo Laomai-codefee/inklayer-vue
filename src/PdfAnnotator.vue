@@ -66,7 +66,6 @@
         :selected-id="selectedAnnotationId || undefined"
         :annotation-permissions="annotationPermissions"
         @select="handleSelectAnnotation"
-        @delete="(id) => emit('annotationDeleted', id)"
       />
     </template>
 
