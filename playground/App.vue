@@ -10,6 +10,7 @@
           <TabsTrigger value="PdfAnnotatorBasic">PdfAnnotator Basic</TabsTrigger>
           <TabsTrigger value="PdfAnnotatorCustom">PdfAnnotator Custom</TabsTrigger>
           <TabsTrigger value="PdfAnnotatorFull">PdfAnnotator Full</TabsTrigger>
+          <TabsTrigger value="PdfAnnotatorPermissions">Collaboration Permissions</TabsTrigger>
           <TabsTrigger value="PdfViewerBasic">PdfViewer Basic</TabsTrigger>
           <TabsTrigger value="PdfViewerData">PdfViewer Data</TabsTrigger>
           <TabsTrigger value="PdfViewerCustom">PdfViewer Custom</TabsTrigger>
@@ -41,6 +42,7 @@
       <PdfAnnotatorBasic v-else-if="activeTab === 'PdfAnnotatorBasic'" />
       <PdfAnnotatorCustom v-else-if="activeTab === 'PdfAnnotatorCustom'" />
       <PdfAnnotatorFull v-else-if="activeTab === 'PdfAnnotatorFull'" />
+      <PdfAnnotatorPermissions v-else-if="activeTab === 'PdfAnnotatorPermissions'" />
     </div>
 
     <ShowCode ref="showCodeRef" :filename="currentDemo" :code="currentCode" />
@@ -59,6 +61,7 @@ import PdfViewerCustom from './PdfViewerCustom.vue'
 import PdfAnnotatorBasic from './PdfAnnotatorBasic.vue'
 import PdfAnnotatorCustom from './PdfAnnotatorCustom.vue'
 import PdfAnnotatorFull from './PdfAnnotatorFull.vue'
+import PdfAnnotatorPermissions from './PdfAnnotatorPermissions.vue'
 
 const activeTab = ref('PdfAnnotatorBasic')
 const headless = ref(window.location.hash === '#headless')

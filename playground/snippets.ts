@@ -3,6 +3,83 @@
  * 每个 key 对应一个 demo tab，显示的是给用户看的"如何使用"代码
  */
 export const snippets: Record<string, string> = {
+  PdfAnnotatorPermissions: `<template>
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;flex-wrap:wrap">
+      <strong>Current user: {{ user.name }}</strong>
+      <button
+        v-for="option in USERS"
+        :key="option.id"
+        :aria-pressed="option.id === user.id"
+        @click="user = option"
+      >
+        {{ option.name }}
+      </button>
+
+      <strong style="margin-left:12px">
+        Permission: {{ permissionPreset === 'read-only' ? 'Read only' : 'Owner only' }}
+      </strong>
+      <button
+        :aria-pressed="permissionPreset === 'owner-only'"
+        @click="permissionPreset = 'owner-only'"
+      >
+        Owner only
+      </button>
+      <button
+        :aria-pressed="permissionPreset === 'read-only'"
+        @click="permissionPreset = 'read-only'"
+      >
+        Read only
+      </button>
+    </div>
+
+    <PdfAnnotator
+      title="COLLABORATION PERMISSIONS"
+      url="https://inklayer.dev/inklayer-demo.pdf"
+      :user="user"
+      :annotation-permissions="permissions"
+      :initial-annotations="INITIAL_ANNOTATIONS"
+      default-show-annotations-sidebar
+      locale="en-US"
+      :layout-style="{ height: '90vh' }"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { PdfAnnotator } from 'inklayer-vue'
+import type { AnnotationPermissions, User } from 'inklayer-vue'
+import 'inklayer-vue/style'
+
+const USERS: User[] = [
+  { id: 'alice', name: 'Alice' },
+  { id: 'bob', name: 'Bob' },
+  { id: 'admin', name: 'Admin' }
+]
+
+const OWNER_ONLY_PERMISSIONS: AnnotationPermissions = {
+  mode: 'owner-only',
+  // undefined keeps the owner-only default; Admin overrides every action.
+  can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined
+}
+
+const READ_ONLY_PERMISSIONS: AnnotationPermissions = {
+  // Annotations remain selectable, but every mutation is denied.
+  can: () => false
+}
+
+// Replace this with annotations loaded from your API. Each annotation's
+// meta.authorId determines who owns it in owner-only mode.
+const INITIAL_ANNOTATIONS = []
+
+const user = ref<User>(USERS[0])
+const permissionPreset = ref<'owner-only' | 'read-only'>('owner-only')
+const permissions = computed(() => permissionPreset.value === 'read-only'
+  ? READ_ONLY_PERMISSIONS
+  : OWNER_ONLY_PERMISSIONS)
+<\/script>`,
+
   PdfViewerBasic: `<template>
   <PdfViewer
     title="PDF VIEWER"

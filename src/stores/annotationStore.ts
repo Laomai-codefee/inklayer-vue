@@ -24,6 +24,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
   const currentAnnotationType = ref<IAnnotationType | null>(null)
   const dataTransfer = ref<string | null>(null)
   const _painter = shallowRef<Painter | null>(null) as ReturnType<typeof shallowRef<Painter | null>>
+  const permissionRevision = ref(0)
 
   // -- Getters --
   const annotationList = computed(() =>
@@ -131,6 +132,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
   }
 
   function setPainter(p: Painter | null) { _painter.value = p }
+  function notifyPainterChanged() { permissionRevision.value += 1 }
   function getPainter(): Painter | null { return _painter.value ?? null }
   const painter = computed(() => _painter.value)
 
@@ -142,6 +144,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
     currentAnnotationType,
     dataTransfer,
     _painter,
+    permissionRevision,
     // Getters
     annotationList,
     selectedAnnotationStore,
@@ -158,6 +161,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
     setDataTransfer,
     clearSelectedAnnotation,
     setPainter,
+    notifyPainterChanged,
     getPainter,
   }
 })

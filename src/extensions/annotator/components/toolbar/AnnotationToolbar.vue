@@ -80,6 +80,7 @@ const store = useAnnotationStore()
 const selectedType = computed(() => store.currentAnnotationType)
 
 const canCreate = computed(() => {
+  void store.permissionRevision
   void props.annotationPermissions?.mode
   void props.annotationPermissions?.can
   void props.currentUser?.id

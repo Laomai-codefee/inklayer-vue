@@ -30,6 +30,7 @@ const store = {
   removeAnnotation: vi.fn(),
   setSelectedAnnotation: vi.fn(),
   setCurrentAnnotationType: vi.fn(),
+  notifyPainterChanged: vi.fn(),
 }
 
 function createPainter(allowed: boolean) {
@@ -155,6 +156,7 @@ describe('Painter permission guards', () => {
     expect(painter.can('annotation.edit', annotation)).toBe(false)
     expect(editor.setCurrentUser).toHaveBeenCalledWith({ id: 'bob', name: 'Bob' })
     expect((painter as unknown as { selector: { refreshCurrentSelection: ReturnType<typeof vi.fn> } }).selector.refreshCurrentSelection).toHaveBeenCalledOnce()
+    expect(store.notifyPainterChanged).toHaveBeenCalledOnce()
   })
 
   it('denies every public mutation in read-only mode while leaving selection outside the permission model', () => {

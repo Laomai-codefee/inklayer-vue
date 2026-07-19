@@ -194,6 +194,7 @@ export class Painter {
             this.setDefaultMode()
         }
         this.selector.refreshCurrentSelection()
+        this.store.notifyPainterChanged()
     }
 
     public can(
