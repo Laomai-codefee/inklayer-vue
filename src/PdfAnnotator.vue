@@ -74,6 +74,7 @@
       :colors="mergedOptions.colors"
       :initial-annotations="effectiveAnnotations"
       :enable-native-annotations="enableNativeAnnotations"
+      :annotation-permissions="annotationPermissions"
       @save="(a) => emit('save', storesToAnnotations(a))"
       @annotation-added="(a) => emit('annotationAdded', a as Annotation)"
       @annotation-deleted="(id) => emit('annotationDeleted', id)"

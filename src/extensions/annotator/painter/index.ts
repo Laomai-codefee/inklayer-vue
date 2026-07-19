@@ -22,11 +22,12 @@ import { Transform } from './transform/transform'
 import { EditorArrow } from './editor/editor_arrow'
 import { EditorCloud } from './editor/editor_cloud'
 import { IRect } from 'konva/lib/types'
-import { PdfAnnotatorOptions } from '../types/annotator'
+import type { AnnotationPermissions, PdfAnnotatorOptions } from '../types/annotator'
 import { PageViewport } from 'pdfjs-dist/types/web/interfaces'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 import { User } from '@/types'
+import { AnnotationPermissionController } from '../permissions/permission_controller'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -41,6 +42,8 @@ export class Painter {
     private primaryColor: string
     private defaultOptions: PdfAnnotatorOptions
     private currentUser: User
+    private annotationPermissions?: AnnotationPermissions
+    private readonly permissionController: AnnotationPermissionController
     private konvaCanvasStore: Map<number, KonvaCanvas> = new Map() // 存储 KonvaCanvas 实例
     private editorStore: Map<string, Editor> = new Map() // 存储编辑器实例
     private pdfViewerApplication: PDFViewer // PDFViewerApplication 实例
@@ -66,6 +69,7 @@ export class Painter {
         primaryColor,
         defaultOptions,
         currentUser,
+        annotationPermissions,
         PDFViewerApplication,
         store,
         onTextSelected,
@@ -78,6 +82,7 @@ export class Painter {
         primaryColor: string
         defaultOptions: PdfAnnotatorOptions
         currentUser: User
+        annotationPermissions?: AnnotationPermissions
         PDFViewerApplication: PDFViewer
         store: ReturnType<typeof UseAnnotationStoreType>
         onTextSelected: (range: Range | null) => void
@@ -91,6 +96,11 @@ export class Painter {
         this.store = store
         this.defaultOptions = defaultOptions
         this.currentUser = currentUser
+        this.annotationPermissions = annotationPermissions
+        this.permissionController = new AnnotationPermissionController({
+            getCurrentUser: () => this.currentUser,
+            getPermissions: () => this.annotationPermissions
+        })
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
         this.onAnnotationAdd = onAnnotationAdd
@@ -105,6 +115,7 @@ export class Painter {
             getAnnotationStore: (id: string) => {
                 return this.store.getAnnotation(id)
             },
+            canTransform: (annotationStore) => this.permissionController.can('annotation.transform', annotationStore),
             onSelected: (id, isClick, transformerRect) => {
                 const annotationStore = this.store.getAnnotation(id)
                 if (annotationStore) {
@@ -172,6 +183,13 @@ export class Painter {
         })
         this.transform = new Transform(PDFViewerApplication)
         this.bindGlobalEvents() // 绑定全局事件
+    }
+
+    public setPermissionContext(currentUser: User, annotationPermissions?: AnnotationPermissions): void {
+        this.currentUser = currentUser
+        this.annotationPermissions = annotationPermissions
+        this.editorStore.forEach(editor => editor.setCurrentUser(currentUser))
+        this.selector.refreshCurrentSelection()
     }
 
     private setDefaultMode = () => {

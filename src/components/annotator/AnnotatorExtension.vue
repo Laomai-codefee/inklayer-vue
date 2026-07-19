@@ -18,13 +18,13 @@ import { Painter } from '@/extensions/annotator/painter'
 import { annotationDefinitions, type IAnnotationStore, type IAnnotationType, type IAnnotationStyle } from '@/extensions/annotator/const/definitions'
 import SelectionBar from '@/extensions/annotator/components/selection_bar/SelectionBar.vue'
 import MenuBar from '@/extensions/annotator/components/menu_bar/MenuBar.vue'
-import type { PdfAnnotatorOptions } from '@/extensions/annotator/types/annotator'
+import type { AnnotationPermissions, PdfAnnotatorOptions } from '@/extensions/annotator/types/annotator'
 import { debounce, getThemeColor } from '@/utils'
 import { storesToAnnotations } from '@/core/adapters/store.mapper'
 import { FREE_TEXT_EDITOR } from '@/extensions/annotator/painter/const'
 
 const props = defineProps<{
-  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean
+  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean; annotationPermissions?: AnnotationPermissions
 }>()
 const emit = defineEmits<{
   'save': [annotations: any[]]; 'annotation-added': [annotation: any]; 'annotation-deleted': [id: string]
@@ -64,7 +64,7 @@ function initPainter() {
   const user = userContext?.user.value || { id: 'anonymous', name: 'Anonymous' }
 
   const currentPainter = new Painter({
-    primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, PDFViewerApplication: viewer, store,
+    primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, annotationPermissions: props.annotationPermissions, PDFViewerApplication: viewer, store,
     onTextSelected: (range) => { selectionBarRef.value?.open(range) },
     onAnnotationAdd: (annStore) => { emit('annotation-added', annStore) },
     onAnnotationDelete: (id) => { emit('annotation-deleted', id) },
@@ -142,6 +142,14 @@ function initPainter() {
 
 watch(() => pdfContext.isReady.value, (ready) => { if (ready && !painter) { store.clearAnnotations(); initPainter() } })
 onMounted(() => { disposed = false; if (pdfContext.isReady.value) { store.clearAnnotations(); initPainter() } })
+
+watch(
+  [() => userContext?.user.value, () => props.annotationPermissions],
+  ([user, permissions]) => {
+    if (user) painter?.setPermissionContext(user, permissions)
+  },
+  { deep: true },
+)
 
 // Tool activation watcher
 let lastActivatedType: number | null = null; let lastActivatedColor: string | null = null
