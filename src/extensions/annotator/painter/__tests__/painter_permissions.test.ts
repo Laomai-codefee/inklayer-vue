@@ -6,6 +6,8 @@ import {
   type IAnnotationStore,
   type IAnnotationType,
 } from '../../const/definitions'
+import type { AnnotationPermissions } from '../../types/annotator'
+import type { User } from '@/types'
 
 const annotation: IAnnotationStore = {
   id: 'annotation-1',
@@ -44,6 +46,33 @@ function createPainter(allowed: boolean) {
     disablePainting: vi.fn(),
     setDefaultMode: vi.fn(),
   })
+  return painter
+}
+
+function createCollaborativePainter(currentUser: User, permissions: AnnotationPermissions) {
+  const painter = createPainter(false)
+  Object.assign(painter as unknown as Record<string, unknown>, {
+    currentUser,
+    annotationPermissions: permissions,
+  })
+  const permissionController = {
+    can: vi.fn((action: string, target?: IAnnotationStore) => {
+      const user = (painter as unknown as { currentUser: User }).currentUser
+      const activePermissions = (painter as unknown as { annotationPermissions?: AnnotationPermissions }).annotationPermissions
+      const defaultAllowed = activePermissions?.mode !== 'owner-only'
+        ? true
+        : action === 'annotation.create' || action === 'annotation.comment'
+          ? Boolean(user.id && user.id !== 'null')
+          : user.id === target?.user.id
+      const override = activePermissions?.can?.({
+        action: action as Parameters<NonNullable<AnnotationPermissions['can']>>[0]['action'],
+        currentUser: user,
+        defaultAllowed,
+      })
+      return override ?? defaultAllowed
+    }),
+  }
+  Object.assign(painter as unknown as Record<string, unknown>, { permissionController })
   return painter
 }
 
@@ -90,6 +119,58 @@ describe('Painter permission guards', () => {
 
     expect((painter as unknown as { disablePainting: ReturnType<typeof vi.fn> }).disablePainting).toHaveBeenCalledTimes(1)
     expect((painter as unknown as { setDefaultMode: ReturnType<typeof vi.fn> }).setDefaultMode).toHaveBeenCalledTimes(1)
+    expect((painter as unknown as { webSelection: { highlight: ReturnType<typeof vi.fn> } }).webSelection.highlight).not.toHaveBeenCalled()
+  })
+
+  it('enforces the Alice, Bob, and admin collaboration flow through public mutations', () => {
+    const ownerOnly = { mode: 'owner-only' as const }
+    const alice = createCollaborativePainter({ id: 'alice', name: 'Alice' }, ownerOnly)
+    const bob = createCollaborativePainter({ id: 'bob', name: 'Bob' }, ownerOnly)
+    const admin = createCollaborativePainter(
+      { id: 'admin', name: 'Admin' },
+      {
+        mode: 'owner-only',
+        can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined,
+      },
+    )
+
+    expect(alice.update(annotation.id, { title: 'Alice edited' })).toBeDefined()
+    expect(bob.update(annotation.id, { title: 'Bob edited' })).toBeUndefined()
+    expect(bob.update(annotation.id, { comments: [] }, 'annotation.comment')).toBeDefined()
+    expect(bob.delete(annotation.id, true)).toBe(false)
+    expect(admin.update(annotation.id, { title: 'Admin edited' })).toBeDefined()
+    expect(admin.delete(annotation.id, true)).toBe(true)
+  })
+
+  it('updates the current user and permissions without recreating the painter', () => {
+    const painter = createCollaborativePainter(
+      { id: 'alice', name: 'Alice' },
+      { mode: 'owner-only' },
+    )
+    const editor = { setCurrentUser: vi.fn() }
+    ;(painter as unknown as { editorStore: Map<string, typeof editor> }).editorStore.set('editor', editor)
+
+    painter.setPermissionContext({ id: 'bob', name: 'Bob' }, { can: () => false })
+
+    expect(painter.can('annotation.edit', annotation)).toBe(false)
+    expect(editor.setCurrentUser).toHaveBeenCalledWith({ id: 'bob', name: 'Bob' })
+    expect((painter as unknown as { selector: { refreshCurrentSelection: ReturnType<typeof vi.fn> } }).selector.refreshCurrentSelection).toHaveBeenCalledOnce()
+  })
+
+  it('denies every public mutation in read-only mode while leaving selection outside the permission model', () => {
+    const painter = createCollaborativePainter(
+      { id: 'alice', name: 'Alice' },
+      { can: () => false },
+    )
+    const rectangle = { type: AnnotationType.RECTANGLE } as IAnnotationType
+
+    expect(painter.update(annotation.id, { title: 'Blocked' })).toBeUndefined()
+    expect(painter.delete(annotation.id, true)).toBe(false)
+    painter.activate(rectangle, null)
+    painter.highlightRange(null, rectangle)
+
+    expect(store.updateAnnotation).not.toHaveBeenCalled()
+    expect(store.removeAnnotation).not.toHaveBeenCalled()
     expect((painter as unknown as { webSelection: { highlight: ReturnType<typeof vi.fn> } }).webSelection.highlight).not.toHaveBeenCalled()
   })
 })
