@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AnnotationType, PdfjsAnnotationType, type IAnnotationStore } from '../../const/definitions'
-import { getAnnotationControlPermissions } from '../control_permissions'
+import { getAnnotationControlPermissions, hasAnnotationMenuControls } from '../control_permissions'
 
 const annotation: IAnnotationStore = {
   id: 'annotation-1',
@@ -34,5 +34,20 @@ describe('getAnnotationControlPermissions', () => {
       edit: false,
       delete: false,
     })
+  })
+})
+
+describe('hasAnnotationMenuControls', () => {
+  it('hides the empty menu when commenting is the only permission and the sidebar is already open', () => {
+    const permissions = { comment: true, edit: false, delete: false }
+
+    expect(hasAnnotationMenuControls(permissions, true, true)).toBe(false)
+    expect(hasAnnotationMenuControls(permissions, false, true)).toBe(true)
+  })
+
+  it('keeps edit or delete controls visible independently of the comment sidebar', () => {
+    expect(hasAnnotationMenuControls({ comment: false, edit: true, delete: false }, true, true)).toBe(true)
+    expect(hasAnnotationMenuControls({ comment: false, edit: true, delete: false }, true, false)).toBe(false)
+    expect(hasAnnotationMenuControls({ comment: false, edit: false, delete: true }, true, false)).toBe(true)
   })
 })

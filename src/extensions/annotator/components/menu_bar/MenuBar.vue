@@ -60,7 +60,7 @@
     </div>
 
     <!-- Buttons row (hidden when style panel is showing) -->
-    <div v-else class="flex items-center gap-0.5 p-1">
+    <div v-else-if="hasVisibleControls" class="flex items-center gap-0.5 p-1">
       <!-- Comment button -->
       <Button v-if="canComment && !isCommentSidebarOpen" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleOpenComment">
         <Icon name="anno" :size="14" />
@@ -96,7 +96,7 @@ import { defaultOptions } from '../../const/default_options'
 import { PAINTER_WRAPPER_PREFIX } from '../../painter/const'
 import { useT } from '@/composables/useT'
 import type { AnnotationPermissions } from '../../types/annotator'
-import { getAnnotationControlPermissions } from '../../permissions/control_permissions'
+import { getAnnotationControlPermissions, hasAnnotationMenuControls } from '../../permissions/control_permissions'
 const { t } = useT()
 
 const ctx = inject(PdfViewerContextKey)
@@ -143,6 +143,11 @@ const controlPermissions = computed(() => {
 const canComment = computed(() => controlPermissions.value.comment)
 const canEdit = computed(() => controlPermissions.value.edit)
 const canDelete = computed(() => controlPermissions.value.delete)
+const hasVisibleControls = computed(() => hasAnnotationMenuControls(
+  controlPermissions.value,
+  isCommentSidebarOpen.value,
+  Boolean(isStyleSupported.value),
+))
 
 function getKonvaShapeFromString(konvaString: string) {
   try { return Konva.Node.create(konvaString).children?.[0] || null }
@@ -200,7 +205,7 @@ function open(annotation: IAnnotationStore, selectorRect: IRect) {
   }
   calcPosition(annotation, selectorRect)
 
-  if (!canComment.value && !canEdit.value && !canDelete.value) {
+  if (!hasVisibleControls.value) {
     visible.value = false
     return
   }
@@ -244,8 +249,8 @@ function handleOpenComment() {
 }
 function setMenuBarPainter(painter: any) { painterRef.value = painter }
 
-watch([canComment, canEdit, canDelete], ([comment, edit, remove]) => {
-  if (!comment && !edit && !remove) close()
+watch(hasVisibleControls, (hasControls) => {
+  if (!hasControls) close()
 })
 
 defineExpose({ open, close, setMenuBarPainter })

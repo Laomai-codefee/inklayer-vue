@@ -22,3 +22,13 @@ export function getAnnotationControlPermissions(
     delete: check('annotation.delete', annotation),
   }
 }
+
+export function hasAnnotationMenuControls(
+  permissions: AnnotationControlPermissions,
+  isCommentSidebarOpen: boolean,
+  isStyleSupported: boolean,
+): boolean {
+  return (permissions.comment && !isCommentSidebarOpen)
+    || (permissions.edit && isStyleSupported)
+    || permissions.delete
+}
