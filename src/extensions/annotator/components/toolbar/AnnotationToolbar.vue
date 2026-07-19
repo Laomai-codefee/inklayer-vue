@@ -13,6 +13,7 @@
           :default-stamps="stampOptions?.defaultStamp"
           :stamp-options="stampOptions"
           :colors="colorPresets"
+          :disabled="!canCreate"
           @select="(dataUrl) => handleToolClick(tool, dataUrl)"
         />
 
@@ -22,6 +23,7 @@
           :active="isSelected(tool)"
           :default-signatures="signatureOptions?.defaultSignature"
           :signature-options="signatureOptions"
+          :disabled="!canCreate"
           @select="(dataUrl) => handleToolClick(tool, dataUrl)"
         />
 
@@ -33,6 +35,7 @@
               size="icon"
               class="size-8"
               :class="isSelected(tool) ? 'bg-primary/15 text-primary hover:bg-primary/25 dark:bg-primary/25 dark:text-primary-foreground dark:hover:bg-primary/35' : ''"
+              :disabled="tool.type !== AnnotationType.SELECT && !canCreate"
               @click="handleToolClick(tool)"
             >
               <Icon :name="tool.icon" :size="16" />
@@ -55,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -68,15 +71,24 @@ import { useAnnotationStore } from '@/stores/annotationStore'
 import { annotationDefinitions, AnnotationType, type IAnnotationType } from '@/extensions/annotator/const/definitions'
 import { defaultOptions } from '@/extensions/annotator/const/default_options'
 import { useT } from '@/composables/useT'
+import type { AnnotationPermissions } from '@/extensions/annotator/types/annotator'
+import type { User } from '@/types'
 const { t } = useT()
 
-const props = defineProps<{ colors?: string[]; signatureOptions?: any; stampOptions?: any }>()
+const props = defineProps<{ colors?: string[]; signatureOptions?: any; stampOptions?: any; annotationPermissions?: AnnotationPermissions; currentUser?: User }>()
 const store = useAnnotationStore()
 const selectedType = computed(() => store.currentAnnotationType)
 
+const canCreate = computed(() => {
+  void props.annotationPermissions?.mode
+  void props.annotationPermissions?.can
+  void props.currentUser?.id
+  return store.painter?.can('annotation.create') ?? true
+})
+
 const colorPresets = computed(() => props.colors ?? defaultOptions.colors)
 
-const isColorEnabled = computed(() => selectedType.value?.styleEditable?.color ?? false)
+const isColorEnabled = computed(() => canCreate.value && (selectedType.value?.styleEditable?.color ?? false))
 const currentColor = computed(() => selectedType.value?.style?.color || colorPresets.value?.[0] || '#ff6b6b')
 
 // Local annotations state with per-tool-type color persistence (align React)
@@ -89,6 +101,7 @@ function isSelected(tool: IAnnotationType): boolean {
 }
 
 function handleToolClick(annotation: IAnnotationType, dataTransfer?: string) {
+  if (annotation.type !== AnnotationType.SELECT && !canCreate.value) return
   if (selectedType.value?.type === annotation.type) {
     store.setCurrentAnnotationType(null)
     return
@@ -98,6 +111,13 @@ function handleToolClick(annotation: IAnnotationType, dataTransfer?: string) {
   }
   store.setCurrentAnnotationType(annotation)
 }
+
+watch(canCreate, (allowed) => {
+  if (!allowed && selectedType.value?.type !== AnnotationType.SELECT) {
+    store.setDataTransfer(null)
+    store.setCurrentAnnotationType(annotationDefinitions[0])
+  }
+})
 
 function handleColorChange(color: string) {
   if (!selectedType.value) return

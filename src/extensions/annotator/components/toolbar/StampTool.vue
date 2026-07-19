@@ -1,10 +1,11 @@
 <template>
   <!-- Stamp Popover -->
-  <Popover :open="popoverOpen" @update:open="popoverOpen = $event">
+  <Popover :open="disabled ? false : popoverOpen" @update:open="popoverOpen = disabled ? false : $event">
     <template #trigger>
       <Button variant="ghost" size="icon" class="size-8"
         :class="active ? 'bg-primary/15 text-primary hover:bg-primary/25' : ''"
-        :title="t('annotator.tool.stamp')">
+        :title="t('annotator.tool.stamp')"
+        :disabled="disabled">
         <Icon name="stamp" :size="18" />
       </Button>
     </template>
@@ -194,7 +195,7 @@ import { formatFileSize } from '../../utils/utils'
 
 const { t } = useT()
 
-const props = defineProps<{ active?: boolean; defaultStamps?: string[]; stampOptions?: typeof defaultOptions.stamp; colors?: string[] }>()
+const props = defineProps<{ active?: boolean; defaultStamps?: string[]; stampOptions?: typeof defaultOptions.stamp; colors?: string[]; disabled?: boolean }>()
 const emit = defineEmits<{ select: [dataUrl: string] }>()
 
 // Options: user-provided first, fallback to system defaults
@@ -213,7 +214,7 @@ const customStamps = ref<string[]>([])
 const allStamps = computed(() => ({ default: props.defaultStamps || [], custom: customStamps.value }))
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-function emitStamp(d: string) { emit('select', d) }
+function emitStamp(d: string) { if (!props.disabled) emit('select', d) }
 
 // Date format options (align React)
 const dateFormatOptions = [
@@ -360,12 +361,14 @@ function renderPreview() {
 }
 
 function openEditor() {
+  if (props.disabled) return
   popoverOpen.value = false
   editorOpen.value = true
   nextTick(renderPreview)
 }
 
 function handleOk() {
+  if (props.disabled) return
   const layer = konvaStage?.getLayers()[0]
   if (!layer) return
   const shape = layer.getChildren((n) => n.name() === 'StampGroup')[0]
@@ -379,6 +382,7 @@ function handleOk() {
 }
 
 function onFileUpload(e: Event) {
+  if (props.disabled) return
   const f = (e.target as HTMLInputElement).files?.[0]
   if (!f) return
   const r = new FileReader()

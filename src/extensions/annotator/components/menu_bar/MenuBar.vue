@@ -10,7 +10,7 @@
     </template>
 
     <!-- Style panel (shown when style is toggled, hides buttons) -->
-    <div v-if="showStyle && currentAnnotation && isStyleSupported" class="p-3 min-w-[170px]">
+    <div v-if="showStyle && currentAnnotation && isStyleSupported && canEdit" class="p-3 min-w-[170px]">
       <!-- Header with back button -->
       <div class="flex items-center gap-2 mb-3">
         <Button variant="ghost" size="icon" class="size-6" @click="showStyle = false">
@@ -62,17 +62,17 @@
     <!-- Buttons row (hidden when style panel is showing) -->
     <div v-else class="flex items-center gap-0.5 p-1">
       <!-- Comment button -->
-      <Button v-if="!isCommentSidebarOpen" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleOpenComment">
+      <Button v-if="canComment && !isCommentSidebarOpen" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="handleOpenComment">
         <Icon name="anno" :size="14" />
         <span>{{ t('common.comment') }}</span>
       </Button>
       <!-- Style button -->
-      <Button v-if="isStyleSupported" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="showStyle = true">
+      <Button v-if="canEdit && isStyleSupported" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs" @click="showStyle = true">
         <Icon name="paletteSingle" :size="14" />
         <span>{{ t('common.color') }}</span>
       </Button>
       <!-- Delete button -->
-      <Button variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive" @click="handleDelete">
+      <Button v-if="canDelete" variant="ghost" size="sm" class="h-7 px-2 gap-1.5 text-xs hover:bg-destructive/10 hover:text-destructive" @click="handleDelete">
         <Icon name="delete" :size="14" />
         <span>{{ t('common.delete') }}</span>
       </Button>
@@ -81,23 +81,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, shallowRef, watch } from 'vue'
 import Konva from 'konva'
 import type { IRect } from 'konva/lib/types'
 import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import Icon from '@/components/Icon.vue'
-import { PdfViewerContextKey } from '@/context/pdfViewerContext'
+import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
 import {
   annotationDefinitions, type IAnnotationStore,
 } from '../../const/definitions'
 import { defaultOptions } from '../../const/default_options'
 import { PAINTER_WRAPPER_PREFIX } from '../../painter/const'
 import { useT } from '@/composables/useT'
+import type { AnnotationPermissions } from '../../types/annotator'
+import { getAnnotationControlPermissions } from '../../permissions/control_permissions'
 const { t } = useT()
 
 const ctx = inject(PdfViewerContextKey)
+const userContext = inject(UserContextKey)
 
 const visible = ref(false)
 const triggerX = ref(0)
@@ -109,12 +112,12 @@ const showStyle = ref(false)
 const currentColor = ref('#ff6b6b')
 const currentStrokeWidth = ref(2)
 const currentOpacity = ref(1)
-let painterRef: any = null
+const painterRef = shallowRef<any>(null)
 
 /** Estimated menu bar height — used to decide top/bottom placement */
 const ESTIMATED_MENU_HEIGHT = 120
 
-const props = defineProps<{ colors?: string[] }>()
+const props = defineProps<{ colors?: string[]; annotationPermissions?: AnnotationPermissions }>()
 const presetColors = computed(() => props.colors?.length ? props.colors : defaultOptions.colors!)
 
 const isCommentSidebarOpen = computed(() =>
@@ -125,6 +128,21 @@ const isStyleSupported = computed(() => {
   if (!currentAnnotation.value) return null
   return annotationDefinitions.find(a => a.type === currentAnnotation.value!.type)?.styleEditable ?? null
 })
+
+const controlPermissions = computed(() => {
+  void props.annotationPermissions?.mode
+  void props.annotationPermissions?.can
+  void userContext?.user.value?.id
+  return currentAnnotation.value
+    ? getAnnotationControlPermissions(
+      (action, annotation) => painterRef.value?.can(action, annotation) ?? true,
+      currentAnnotation.value,
+    )
+    : { comment: false, edit: false, delete: false }
+})
+const canComment = computed(() => controlPermissions.value.comment)
+const canEdit = computed(() => controlPermissions.value.edit)
+const canDelete = computed(() => controlPermissions.value.delete)
 
 function getKonvaShapeFromString(konvaString: string) {
   try { return Konva.Node.create(konvaString).children?.[0] || null }
@@ -182,6 +200,11 @@ function open(annotation: IAnnotationStore, selectorRect: IRect) {
   }
   calcPosition(annotation, selectorRect)
 
+  if (!canComment.value && !canEdit.value && !canDelete.value) {
+    visible.value = false
+    return
+  }
+
   if (sameAnnotation && visible.value) {
     // Already open for this annotation — no visibility toggle needed.
     // Radix Popover auto-repositions when trigger position changes,
@@ -196,27 +219,34 @@ function close() { visible.value = false; currentAnnotation.value = null; showSt
 
 // ========== Actions ==========
 function changeColor(color: string) {
+  if (!canEdit.value) return
   currentColor.value = color
-  painterRef?.updateAnnotationStyle(currentAnnotation.value, { color })
+  painterRef.value?.updateAnnotationStyle(currentAnnotation.value, { color })
 }
 function changeStrokeWidth(w: number) {
+  if (!canEdit.value) return
   currentStrokeWidth.value = w
-  painterRef?.updateAnnotationStyle(currentAnnotation.value, { strokeWidth: w })
+  painterRef.value?.updateAnnotationStyle(currentAnnotation.value, { strokeWidth: w })
 }
 function changeOpacity(o: number) {
+  if (!canEdit.value) return
   currentOpacity.value = o
-  painterRef?.updateAnnotationStyle(currentAnnotation.value, { opacity: o })
+  painterRef.value?.updateAnnotationStyle(currentAnnotation.value, { opacity: o })
 }
 function handleDelete() {
-  if (currentAnnotation.value) painterRef?.delete(currentAnnotation.value.id, true)
+  if (currentAnnotation.value && canDelete.value) painterRef.value?.delete(currentAnnotation.value.id, true)
   close()
 }
 function handleOpenComment() {
-  if (!currentAnnotation.value || !ctx) return
+  if (!currentAnnotation.value || !ctx || !canComment.value) return
   ctx.openSidebar('annotator-sidebar-toggle')
   close()
 }
-function setMenuBarPainter(painter: any) { painterRef = painter }
+function setMenuBarPainter(painter: any) { painterRef.value = painter }
+
+watch([canComment, canEdit, canDelete], ([comment, edit, remove]) => {
+  if (!comment && !edit && !remove) close()
+})
 
 defineExpose({ open, close, setMenuBarPainter })
 </script>

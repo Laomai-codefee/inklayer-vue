@@ -23,29 +23,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, inject, ref, shallowRef, watch } from 'vue'
 import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import Icon from '@/components/Icon.vue'
 import { annotationDefinitions } from '../../const/definitions'
 import type { IAnnotationType } from '../../const/definitions'
 import { useT } from '@/composables/useT'
+import { UserContextKey } from '@/context/pdfViewerContext'
+import type { AnnotationPermissions } from '../../types/annotator'
 const { t } = useT()
+
+const props = defineProps<{ annotationPermissions?: AnnotationPermissions }>()
+const userContext = inject(UserContextKey)
 
 const visible = ref(false)
 const x = ref(0)
 const y = ref(0)
 let currentRange: Range | null = null
-let painterRef: any = null
+const painterRef = shallowRef<any>(null)
+
+const canCreate = computed(() => {
+  void props.annotationPermissions?.mode
+  void props.annotationPermissions?.can
+  void userContext?.user.value?.id
+  return painterRef.value?.can('annotation.create') ?? true
+})
 
 function handleAction(name: string) {
+  if (!canCreate.value) return
   const annotation = annotationDefinitions.find(a => a.name === name) as IAnnotationType
-  if (annotation && currentRange) { painterRef?.highlightRange(currentRange, annotation) }
+  if (annotation && currentRange) { painterRef.value?.highlightRange(currentRange, annotation) }
   close()
 }
 
 function open(range: Range | null) {
-  if (!range) return
+  if (!range || !canCreate.value) return
   currentRange = range
   const rect = range.getBoundingClientRect()
   x.value = rect.left + rect.width / 2
@@ -53,6 +66,7 @@ function open(range: Range | null) {
   visible.value = true
 }
 function close() { visible.value = false }
-function setPainterRef(painter: any) { painterRef = painter }
+function setPainterRef(painter: any) { painterRef.value = painter }
+watch(canCreate, (allowed) => { if (!allowed) close() })
 defineExpose({ open, close, setPainterRef })
 </script>

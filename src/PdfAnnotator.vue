@@ -19,6 +19,8 @@
         :colors="mergedOptions.colors"
         :signature-options="mergedOptions.signature"
         :stamp-options="mergedOptions.stamp"
+        :annotation-permissions="annotationPermissions"
+        :current-user="user"
       />
     </template>
 
@@ -62,6 +64,7 @@
       <AnnotationSidebar
         :annotations="annotationList"
         :selected-id="selectedAnnotationId || undefined"
+        :annotation-permissions="annotationPermissions"
         @select="handleSelectAnnotation"
         @delete="(id) => emit('annotationDeleted', id)"
       />

@@ -65,7 +65,7 @@
             </div>
             <div class="flex items-center shrink-0 gap-0.5 ml-auto" @click.stop>
               <!-- Status dropdown -->
-              <DropdownMenu>
+              <DropdownMenu v-if="can('annotation.change-status', ann)">
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="t('common.status')">
                     <Icon :name="getStatusIcon(ann)" :size="14" />
@@ -77,19 +77,19 @@
                 </DropdownMenuItem>
               </DropdownMenu>
               <!-- Action dropdown -->
-              <DropdownMenu>
+              <DropdownMenu v-if="can('annotation.comment', ann) || can('annotation.edit', ann) || can('annotation.delete', ann)">
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" title="More"><Icon name="more" :size="14" /></Button>
                 </template>
-                <DropdownMenuItem class="text-xs" @select="handleReplyFromMenu(ann)">{{ t('common.reply') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="handleEditFromMenu(ann)">{{ t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="deleteAnnotation(ann.id)">{{ t('common.delete') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="can('annotation.comment', ann)" class="text-xs" @select="handleReplyFromMenu(ann)">{{ t('common.reply') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="can('annotation.edit', ann)" class="text-xs" @select="handleEditFromMenu(ann)">{{ t('common.edit') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="can('annotation.delete', ann)" class="text-xs" @select="deleteAnnotation(ann.id)">{{ t('common.delete') }}</DropdownMenuItem>
               </DropdownMenu>
             </div>
           </div>
 
           <!-- Comment text / edit -->
-          <template v-if="editAnnotationId === ann.id">
+          <template v-if="editAnnotationId === ann.id && can('annotation.edit', ann)">
             <Textarea :id="`edit-comment-${ann.id}`" :ref="(el) => setTextareaRef(el, 'edit-comment-' + ann.id)" :model-value="ann.contentsObj?.text || ''"
               class="w-full min-h-[50px] text-xs resize-none mt-1.5 bg-background" rows="3"
               @update:model-value="editComment = $event"
@@ -107,7 +107,7 @@
           <div v-for="reply in ann.comments" :key="reply.id" class="bg-secondary rounded-md p-2 mt-2 ml-[22px]">
             <div class="flex items-start">
               <div class="flex-1 min-w-0">
-                <template v-if="editReplyId === reply.id">
+                <template v-if="editReplyId === reply.id && can('comment.edit', ann, reply)">
                   <Textarea :id="`edit-reply-${reply.id}`" :ref="(el) => setTextareaRef(el, 'edit-reply-' + reply.id)" :model-value="reply.content"
                     class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
                     @update:model-value="editReplyContent = $event"
@@ -125,18 +125,18 @@
                   <p class="text-xs whitespace-pre-wrap mt-0.5">{{ reply.content }}</p>
                 </template>
               </div>
-              <DropdownMenu v-if="editReplyId !== reply.id">
+              <DropdownMenu v-if="editReplyId !== reply.id && (can('comment.edit', ann, reply) || can('comment.delete', ann, reply))">
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-5 text-muted-foreground shrink-0 ml-1"><Icon name="more" :size="12" /></Button>
                 </template>
-                <DropdownMenuItem class="text-xs" @select="handleEditReplyFromMenu(ann, reply)"> {{ t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ t('common.delete') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="can('comment.edit', ann, reply)" class="text-xs" @select="handleEditReplyFromMenu(ann, reply)"> {{ t('common.edit') }}</DropdownMenuItem>
+                <DropdownMenuItem v-if="can('comment.delete', ann, reply)" class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ t('common.delete') }}</DropdownMenuItem>
               </DropdownMenu>
             </div>
           </div>
 
           <!-- Reply input -->
-          <div v-if="replyAnnotationId === ann.id" class="mt-2 pl-7">
+          <div v-if="replyAnnotationId === ann.id && can('annotation.comment', ann)" class="mt-2 pl-7">
             <Textarea :id="`reply-input-${ann.id}`" :ref="(el) => setTextareaRef(el, 'reply-input-' + ann.id)"
               class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
               :placeholder="t('common.reply') + '...'"
@@ -149,7 +149,7 @@
           </div>
 
           <!-- Reply button -->
-          <div v-if="selectedAnnotationId === ann.id && !replyAnnotationId && !editAnnotationId && !editReplyId" class="mt-2">
+          <div v-if="selectedAnnotationId === ann.id && !replyAnnotationId && !editAnnotationId && !editReplyId && can('annotation.comment', ann)" class="mt-2">
             <Button size="sm" class="w-full text-xs" @mousedown.prevent="startReply(ann)">{{ t('common.reply') }}</Button>
           </div>
         </div>
@@ -178,10 +178,12 @@ import { useAnnotationStore, SelectionSource } from '@/stores/annotationStore'
 import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
 import { generateUUID, formatTimestamp, formatPDFDate } from '@/extensions/annotator/utils/utils'
 import { useT } from '@/composables/useT'
+import type { AnnotationPermissionAction, AnnotationPermissions } from '@/extensions/annotator/types/annotator'
 
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },
   selectedId: { type: String, default: null },
+  annotationPermissions: { type: Object as PropType<AnnotationPermissions>, default: undefined },
 })
 
 const emit = defineEmits<{ select: [ann: IAnnotationStore]; delete: [id: string] }>()
@@ -212,6 +214,13 @@ const shouldFocusTextarea = ref(false)
 const selectedAnnotationId = computed(() => props.selectedId)
 const currentUserName = computed(() => userContext?.user?.value?.name ?? 'Anonymous')
 
+function can(action: AnnotationPermissionAction, annotation?: IAnnotationStore, comment?: IAnnotationComment): boolean {
+  void props.annotationPermissions?.mode
+  void props.annotationPermissions?.can
+  void userContext?.user.value?.id
+  return painter.value?.can(action, annotation, comment) ?? true
+}
+
 // All users/types
 const allUsers = computed(() => {
   const map = new Map<string, number>()
@@ -236,13 +245,11 @@ watch(() => props.annotations, (anns) => {
 //                      false when sidebar already open and canvas annotation clicked (MenuBar is opening)
 function autoOpenComment(sel: IAnnotationStore, shouldFocus: boolean = false) {
   shouldFocusTextarea.value = shouldFocus
-  const userName = userContext?.user?.value?.name ?? 'Anonymous'
-  const isOwn = sel.title === userName
   const isEmptyComment = !sel.contentsObj?.text
   const isEmptyReply = !sel.comments?.length
-  if (isOwn && isEmptyComment && isEmptyReply) {
+  if (can('annotation.edit', sel) && isEmptyComment && isEmptyReply) {
     editAnnotationId.value = sel.id
-  } else {
+  } else if (can('annotation.comment', sel)) {
     replyAnnotationId.value = sel.id
   }
 }
@@ -330,10 +337,11 @@ function setTextareaRef(el: any, id: string) {
 }
 
 // ====== Menu handlers (DropdownMenu auto-closes on select) ======
-function handleReplyFromMenu(ann: IAnnotationStore) { shouldFocusTextarea.value = true; replyAnnotationId.value = ann.id }
-function handleEditFromMenu(ann: IAnnotationStore) { shouldFocusTextarea.value = true; editAnnotationId.value = ann.id }
-function handleEditReplyFromMenu(_ann: IAnnotationStore, reply: IAnnotationComment) { shouldFocusTextarea.value = true; editReplyId.value = reply.id; editReplyContent.value = reply.content }
+function handleReplyFromMenu(ann: IAnnotationStore) { if (!can('annotation.comment', ann)) return; shouldFocusTextarea.value = true; replyAnnotationId.value = ann.id }
+function handleEditFromMenu(ann: IAnnotationStore) { if (!can('annotation.edit', ann)) return; shouldFocusTextarea.value = true; editAnnotationId.value = ann.id }
+function handleEditReplyFromMenu(ann: IAnnotationStore, reply: IAnnotationComment) { if (!can('comment.edit', ann, reply)) return; shouldFocusTextarea.value = true; editReplyId.value = reply.id; editReplyContent.value = reply.content }
 function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) {
+  if (!can('annotation.change-status', ann)) return
   const opt = statusOptions.find((o) => o.key === status)
   newReplyContent.value = t('annotator.comment.statusText', { value: t(opt?.labelKey ?? 'annotator.comment.status.none') })
   addReply(ann, status)
@@ -341,12 +349,15 @@ function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) 
 function deleteReplyDirect(annId: string, replyId: string) {
   const ann = props.annotations.find((a) => a.id === annId)
   if (!ann || !painter.value) return
+  const reply = ann.comments.find((comment) => comment.id === replyId)
+  if (!reply || !can('comment.delete', ann, reply)) return
   const updatedComments = (ann.comments || []).filter((c) => c.id !== replyId)
   painter.value.update(ann.id, { comments: updatedComments })
 }
 
 // ====== Start reply with focus ======
 function startReply(ann: IAnnotationStore) {
+  if (!can('annotation.comment', ann)) return
   shouldFocusTextarea.value = true
   replyAnnotationId.value = ann.id
 }
@@ -370,7 +381,7 @@ function handleAnnotationClick(ann: IAnnotationStore) {
 
 // ====== Update comment ======
 function updateComment(ann: IAnnotationStore) {
-  if (!painter.value) return
+  if (!painter.value || !can('annotation.edit', ann)) return
   painter.value.update(ann.id, {
     contentsObj: { ...(ann.contentsObj || { text: '' }), text: editComment.value },
     date: formatTimestamp(Date.now()),
@@ -380,13 +391,17 @@ function updateComment(ann: IAnnotationStore) {
 
 // ====== Add reply ======
 function addReply(ann: IAnnotationStore, status?: CommentStatus) {
-  if (!painter.value) return
+  const action = status === undefined ? 'annotation.comment' : 'annotation.change-status'
+  if (!painter.value || !can(action, ann)) return
+  const currentUser = userContext?.user.value
+  if (!currentUser) return
   const newReply: IAnnotationComment = {
     id: generateUUID(),
     title: currentUserName.value,
     date: formatTimestamp(Date.now()),
     content: newReplyContent.value,
     status,
+    user: currentUser,
   }
   painter.value.update(ann.id, { comments: [...(ann.comments || []), newReply] })
   replyAnnotationId.value = null
@@ -395,7 +410,7 @@ function addReply(ann: IAnnotationStore, status?: CommentStatus) {
 
 // ====== Update reply ======
 function updateReply(ann: IAnnotationStore, reply: IAnnotationComment) {
-  if (!painter.value) return
+  if (!painter.value || !can('comment.edit', ann, reply)) return
   const updatedComments = (ann.comments || []).map((r) => {
     if (r.id === reply.id) {
       return { ...r, content: editReplyContent.value, date: formatTimestamp(Date.now()), title: currentUserName.value || r.title }
@@ -409,6 +424,8 @@ function updateReply(ann: IAnnotationStore, reply: IAnnotationComment) {
 
 // ====== Delete ======
 function deleteAnnotation(id: string) {
+  const annotation = props.annotations.find((item) => item.id === id)
+  if (!annotation || !can('annotation.delete', annotation)) return
   painter.value?.delete(id, true)
   emit('delete', id)
 }

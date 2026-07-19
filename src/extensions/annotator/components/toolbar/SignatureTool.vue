@@ -1,10 +1,11 @@
 <template>
   <!-- Signature Popover -->
-  <Popover :open="popoverOpen" @update:open="popoverOpen = $event">
+  <Popover :open="disabled ? false : popoverOpen" @update:open="popoverOpen = disabled ? false : $event">
     <template #trigger>
       <Button variant="ghost" size="icon" class="size-8"
         :class="active ? 'bg-primary/15 text-primary hover:bg-primary/25' : ''"
-        :title="t('annotator.tool.signature')">
+        :title="t('annotator.tool.signature')"
+        :disabled="disabled">
         <Icon name="signature" :size="18" />
       </Button>
     </template>
@@ -118,7 +119,7 @@ import { formatFileSize } from '../../utils/utils'
 
 const { t } = useT()
 
-const props = defineProps<{ active?: boolean; defaultSignatures?: string[]; signatureOptions?: typeof defaultOptions.signature }>()
+const props = defineProps<{ active?: boolean; defaultSignatures?: string[]; signatureOptions?: typeof defaultOptions.signature; disabled?: boolean }>()
 const emit = defineEmits<{ select: [dataUrl: string] }>()
 
 // Options: user-provided first, fallback to system defaults
@@ -135,7 +136,7 @@ const defaultSignatures = computed(() => props.defaultSignatures?.length ? props
 const popoverOpen = ref(false)
 const customSigs = ref<string[]>([])
 const allSignatures = computed(() => [...defaultSignatures.value, ...customSigs.value])
-function selectSig(d: string) { emit('select', d) }
+function selectSig(d: string) { if (!props.disabled) emit('select', d) }
 
 async function loadFont(value: string) {
   const fontItem = handwritingFonts.value.find(f => f.value === value)
@@ -246,6 +247,7 @@ function setSignatureType(type: SigType) {
 }
 
 async function openModal() {
+  if (props.disabled) return
   popoverOpen.value = false
   modalOpen.value = true
   signatureType.value = (signatureDefaultType.value as SigType) || 'Enter'
@@ -292,6 +294,7 @@ function onFileChange(e: Event) {
 }
 
 function handleOk() {
+  if (props.disabled) return
   let dataUrl = ''
   if (signatureType.value === 'Draw') {
     dataUrl = konvaStage?.toDataURL() || ''

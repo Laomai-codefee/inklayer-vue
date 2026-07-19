@@ -1,7 +1,7 @@
 import './index.scss' // 导入画笔样式文件
 
 import Konva from 'konva'
-import { annotationDefinitions, AnnotationType, IAnnotationStore, IAnnotationStyle, IAnnotationType } from '../const/definitions'
+import { annotationDefinitions, AnnotationType, IAnnotationStore, IAnnotationStyle, IAnnotationType, type IAnnotationComment } from '../const/definitions'
 import { isElementInDOM, removeCssCustomProperty } from '../utils/utils'
 import { CURSOR_CSS_PROPERTY, PAINTER_IS_PAINTING_STYLE, PAINTER_PAINTING_TYPE, PAINTER_WRAPPER_PREFIX } from './const'
 import { Editor } from './editor/editor'
@@ -22,7 +22,7 @@ import { Transform } from './transform/transform'
 import { EditorArrow } from './editor/editor_arrow'
 import { EditorCloud } from './editor/editor_cloud'
 import { IRect } from 'konva/lib/types'
-import type { AnnotationPermissions, PdfAnnotatorOptions } from '../types/annotator'
+import type { AnnotationPermissionAction, AnnotationPermissions, PdfAnnotatorOptions } from '../types/annotator'
 import { PageViewport } from 'pdfjs-dist/types/web/interfaces'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
@@ -190,6 +190,14 @@ export class Painter {
         this.annotationPermissions = annotationPermissions
         this.editorStore.forEach(editor => editor.setCurrentUser(currentUser))
         this.selector.refreshCurrentSelection()
+    }
+
+    public can(
+        action: AnnotationPermissionAction,
+        annotation?: IAnnotationStore,
+        comment?: IAnnotationComment
+    ): boolean {
+        return this.permissionController.can(action, annotation, comment)
     }
 
     private setDefaultMode = () => {

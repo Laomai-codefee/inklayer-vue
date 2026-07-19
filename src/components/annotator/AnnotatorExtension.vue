@@ -1,7 +1,7 @@
 <template>
   <div class="annotator-extension" style="display:contents">
-    <SelectionBar ref="selectionBarRef" />
-    <MenuBar ref="menuBarRef" :colors="colors" />
+    <SelectionBar ref="selectionBarRef" :annotation-permissions="annotationPermissions" />
+    <MenuBar ref="menuBarRef" :colors="colors" :annotation-permissions="annotationPermissions" />
   </div>
 </template>
 
