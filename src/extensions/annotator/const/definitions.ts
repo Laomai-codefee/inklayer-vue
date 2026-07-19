@@ -75,6 +75,8 @@ export interface IAnnotationComment {
   date: string | null
   content: string
   status?: CommentStatus
+  /** Stable author identity used by collaboration permissions. */
+  user?: User
 }
 
 export enum CommentStatus {

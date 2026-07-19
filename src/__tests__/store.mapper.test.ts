@@ -470,6 +470,38 @@ describe('往返转换一致性', () => {
     expect(back.type).toBe(expectedBackType ?? original.type)
     expect(back.subtype).toBe(expectedBackSubtype ?? original.subtype)
   })
+
+  it('应在往返转换中保留回复作者身份', () => {
+    const original = makeStore({
+      comments: [{
+        id: 'comment-1',
+        title: 'Alice',
+        date: '2026-07-19T00:00:00Z',
+        content: 'Please review this.',
+        user: { id: 'user-alice', name: 'Alice' },
+      }],
+    })
+
+    const restored = annotationToStore(storeToAnnotation(original))
+
+    expect(restored.comments).toEqual(original.comments)
+  })
+
+  it('应兼容没有稳定作者身份的旧回复', () => {
+    const original = makeStore({
+      comments: [{
+        id: 'legacy-comment',
+        title: 'Legacy reviewer',
+        date: null,
+        content: 'No stable author id.',
+      }],
+    })
+
+    const restored = annotationToStore(storeToAnnotation(original))
+
+    expect(restored.comments).toEqual(original.comments)
+    expect(restored.comments[0].user).toBeUndefined()
+  })
 })
 
 // =============================================================================

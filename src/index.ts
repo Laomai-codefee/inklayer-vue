@@ -79,8 +79,15 @@ export {
 export type { MatchSnippet, PageMatch, KeywordResult, User, PdfScale, PdfBaseProps } from './types'
 export type { PdfViewerProps } from './types/viewer'
 export type { DeepPartial } from './types/utils'
-export type { PdfAnnotatorProps, PdfAnnotatorOptions } from './extensions/annotator/types/annotator'
-export type { IAnnotationStore } from './extensions/annotator/const/definitions'
+export type {
+  PdfAnnotatorProps,
+  PdfAnnotatorOptions,
+  AnnotationPermissionAction,
+  AnnotationPermissionMode,
+  AnnotationPermissionRequest,
+  AnnotationPermissions,
+} from './extensions/annotator/types/annotator'
+export type { IAnnotationStore, IAnnotationComment } from './extensions/annotator/const/definitions'
 
 // ========== Core ==========
 export * from './core'
