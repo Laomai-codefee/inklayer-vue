@@ -2,9 +2,10 @@
 import { globalI18n } from '@/i18n'
 
 export function t(key: string, params?: Record<string, string | number>): string {
+  const normalizedKey = key.replace(':', '.')
   try {
-    return (globalI18n.global.t(key, params ?? {}) as string) || key.split(':').pop() || key
+    return (globalI18n.global.t(normalizedKey, params ?? {}) as string) || normalizedKey
   } catch {
-    return key.split(':').pop() || key
+    return normalizedKey
   }
 }
