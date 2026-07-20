@@ -54,11 +54,29 @@
       :disabled="!isColorEnabled"
       @update:model-value="handleColorChange"
     />
+
+    <Separator orientation="vertical" class="h-6" />
+
+    <Tooltip :content="authorLabelsTooltip">
+      <template #trigger>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-8"
+          :class="authorLabelsVisible ? 'bg-primary/15 text-primary hover:bg-primary/25 dark:bg-primary/25 dark:text-primary-foreground dark:hover:bg-primary/35' : ''"
+          :disabled="!store.painter"
+          :aria-pressed="authorLabelsVisible"
+          @click="handleAuthorLabelsToggle"
+        >
+          <Icon name="authorLabels" :size="18" />
+        </Button>
+      </template>
+    </Tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, watch } from 'vue'
+import { reactive, computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -78,6 +96,15 @@ const { t } = useT()
 const props = defineProps<{ colors?: string[]; signatureOptions?: any; stampOptions?: any; annotationPermissions?: AnnotationPermissions; currentUser?: User }>()
 const store = useAnnotationStore()
 const selectedType = computed(() => store.currentAnnotationType)
+const authorLabelsVisible = ref(false)
+const authorLabelShortcut = /mac/i.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Alt'
+const authorLabelsTooltip = computed(() => authorLabelsVisible.value
+  ? t('annotator.authorLabels.hide')
+  : t('annotator.authorLabels.show', { shortcut: authorLabelShortcut }))
+
+watch(() => store.painter, (painter) => {
+  authorLabelsVisible.value = painter?.areAnnotationAuthorLabelsVisible() ?? false
+}, { immediate: true })
 
 const canCreate = computed(() => {
   void store.permissionRevision
@@ -111,6 +138,14 @@ function handleToolClick(annotation: IAnnotationType, dataTransfer?: string) {
     store.setDataTransfer(dataTransfer)
   }
   store.setCurrentAnnotationType(annotation)
+}
+
+function handleAuthorLabelsToggle() {
+  const painter = store.painter
+  if (!painter) return
+  const visible = !painter.areAnnotationAuthorLabelsVisible()
+  painter.setAnnotationAuthorLabelsVisible(visible)
+  authorLabelsVisible.value = visible
 }
 
 watch(canCreate, (allowed) => {

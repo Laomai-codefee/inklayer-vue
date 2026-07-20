@@ -242,6 +242,14 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
     annotationPermissions?: AnnotationPermissions
 
     /**
+     * 是否在批注器初始化时显示全部批注作者标签。
+     * 用户仍可通过工具栏按钮切换，或在 macOS 按住 Command、
+     * Windows/Linux 按住 Alt 临时显示全部作者标签。
+     * @default false
+     */
+    defaultShowAnnotationAuthorLabels?: boolean
+
+    /**
      * 是否加载PDF自带的批注
      * @default false
      */

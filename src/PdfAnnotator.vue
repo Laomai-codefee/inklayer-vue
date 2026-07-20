@@ -77,6 +77,7 @@
       :initial-annotations="effectiveAnnotations"
       :enable-native-annotations="enableNativeAnnotations"
       :annotation-permissions="annotationPermissions"
+      :default-show-annotation-author-labels="defaultShowAnnotationAuthorLabels"
       @save="(a) => emit('save', storesToAnnotations(a))"
       @annotation-added="(a) => emit('annotationAdded', a as Annotation)"
       @annotation-deleted="(id) => emit('annotationDeleted', id)"
@@ -121,6 +122,7 @@ const props = withDefaults(defineProps<PdfAnnotatorProps>(), {
   initialScale: 'auto', enableRange: 'auto',
   user: () => ({ id: 'null', name: 'unknown' }),
   enableNativeAnnotations: false, defaultShowAnnotationsSidebar: false,
+  defaultShowAnnotationAuthorLabels: false,
 })
 
 const emit = defineEmits<{

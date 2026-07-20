@@ -24,7 +24,7 @@ import { storesToAnnotations } from '@/core/adapters/store.mapper'
 import { FREE_TEXT_EDITOR } from '@/extensions/annotator/painter/const'
 
 const props = defineProps<{
-  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean; annotationPermissions?: AnnotationPermissions
+  defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean; annotationPermissions?: AnnotationPermissions; defaultShowAnnotationAuthorLabels?: boolean
 }>()
 const emit = defineEmits<{
   'save': [annotations: any[]]; 'annotation-added': [annotation: any]; 'annotation-deleted': [id: string]
@@ -64,7 +64,7 @@ function initPainter() {
   const user = userContext?.user.value || { id: 'anonymous', name: 'Anonymous' }
 
   const currentPainter = new Painter({
-    primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, annotationPermissions: props.annotationPermissions, PDFViewerApplication: viewer, store,
+    primaryColor: getThemeColor(), defaultOptions: props.defaultOptions || {}, currentUser: user, annotationPermissions: props.annotationPermissions, defaultShowAnnotationAuthorLabels: props.defaultShowAnnotationAuthorLabels ?? false, PDFViewerApplication: viewer, store,
     onTextSelected: (range) => { selectionBarRef.value?.open(range) },
     onAnnotationAdd: (annStore) => { emit('annotation-added', annStore) },
     onAnnotationDelete: (id) => { emit('annotation-deleted', id) },

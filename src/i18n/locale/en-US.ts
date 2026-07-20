@@ -18,6 +18,7 @@ export default {
   annotator: {
     tool: { select: 'Select', highlight: 'Highlight', strikeout: 'Strikeout', underline: 'Underline', rectangle: 'Rectangle', circle: 'Circle', freehand: 'Free Hand', freeHighlight: 'Free Highlight', freeText: 'Text', signature: 'Signature', stamp: 'Stamp', note: 'Note', arrow: 'Arrow', cloud: 'Cloud' },
     sidebar: { toggle: 'Show Annotations' },
+    authorLabels: { show: 'Show annotation authors · Hold {shortcut} to peek', hide: 'Hide annotation authors' },
     common: { createStamp: 'Create Stamp', createSignature: 'Create signature', loadError: 'Annotation load failed', errorCode: 'Error code', unknownError: 'Unknown error', loading: 'Annotation loading...', loadingHint: 'Annotation loading time is long, please wait...' },
     editor: {
       text: { startTyping: 'Start typing\u2026' },

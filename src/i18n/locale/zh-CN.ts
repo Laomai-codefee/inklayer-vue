@@ -18,6 +18,7 @@ export default {
   annotator: {
     tool: { select: '选择', highlight: '高亮', strikeout: '删除线', underline: '下划线', rectangle: '矩形', circle: '圆形', freehand: '自由绘制', freeHighlight: '自由高亮', freeText: '文字', signature: '签名', stamp: '盖章', note: '注解', arrow: '箭头', cloud: '云线' },
     sidebar: { toggle: '查看所有批注' },
+    authorLabels: { show: '显示所有批注作者 · 按住 {shortcut} 临时查看', hide: '隐藏批注作者' },
     common: { createStamp: '创建印章', createSignature: '创建签名', loadError: '批注加载失败', errorCode: '错误代码', unknownError: '未知错误', loading: '批注加载中...', loadingHint: '批注加载时间较长，请稍候...' },
     editor: {
       text: { startTyping: '输入文字，回车确认...' },

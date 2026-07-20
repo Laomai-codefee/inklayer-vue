@@ -10,6 +10,8 @@ export default defineConfig({
     },
   },
   test: {
+    // Konva's optional node-canvas native module is not safe to load in multiple worker threads.
+    pool: 'forks',
     // 使用 jsdom 模拟浏览器环境
     environment: 'jsdom',
     // 全局 API（无需每次 import describe/it/expect）

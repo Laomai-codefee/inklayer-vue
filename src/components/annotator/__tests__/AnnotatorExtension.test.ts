@@ -11,6 +11,7 @@ const painterMocks = vi.hoisted(() => ({
 
 vi.mock('@/extensions/annotator/painter', () => ({
     Painter: class MockPainter {
+        options: Record<string, unknown>
         initWebSelection = vi.fn()
         destroy = vi.fn()
         activate = vi.fn()
@@ -19,7 +20,8 @@ vi.mock('@/extensions/annotator/painter', () => ({
         initAnnotationsOnce = vi.fn(() => new Promise<void>((resolve) => {
             painterMocks.resolveAnnotations = resolve
         }))
-        constructor() {
+        constructor(options: Record<string, unknown>) {
+            this.options = options
             painterMocks.instances.push(this)
         }
     }
@@ -71,6 +73,7 @@ describe('AnnotatorExtension lifecycle', () => {
         }
 
         const wrapper = mount(AnnotatorExtension, {
+            props: { defaultShowAnnotationAuthorLabels: true },
             global: {
                 provide: {
                     [PdfViewerContextKey as symbol]: pdfContext,
@@ -80,6 +83,7 @@ describe('AnnotatorExtension lifecycle', () => {
         })
         await vi.waitFor(() => expect(painterMocks.resolveAnnotations).toBeTypeOf('function'))
         const painter = painterMocks.instances[0]
+        expect(painter.options.defaultShowAnnotationAuthorLabels).toBe(true)
 
         wrapper.unmount()
         painterMocks.resolveAnnotations?.()
