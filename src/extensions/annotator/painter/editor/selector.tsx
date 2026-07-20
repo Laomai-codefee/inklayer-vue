@@ -14,6 +14,7 @@ export interface ISelectorOptions {
     getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
     canTransform: (annotation: IAnnotationStore) => boolean
     onSelected: (id: string, isClick: boolean, transformerRect: IRect) => void // 选中回调
+    onSelectionChanged: (id: string | null) => void
     onCancel: () => void
     onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void // 注解变化时的回调
     onDelete: (id: string) => void // 删除注解时的回调
@@ -25,6 +26,7 @@ export interface ISelectorOptions {
 export class Selector {
     private primaryColor: string
     public readonly onSelected: (id: string, isClick: boolean, clientRect: IRect) => void
+    public readonly onSelectionChanged: (id: string | null) => void
     public readonly onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void
     public readonly onDelete: (id: string) => void
     public readonly onCancel: () => void
@@ -45,13 +47,14 @@ export class Selector {
 
 
     // 构造函数，初始化选择器类
-    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
+    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onSelectionChanged, onCancel, onChanged }: ISelectorOptions) {
         this.primaryColor = primaryColor
         this.konvaCanvasStore = konvaCanvasStore
         this.getAnnotationStore = getAnnotationStore
         this.canTransform = canTransform
         this.onDelete = onDelete
         this.onSelected = onSelected
+        this.onSelectionChanged = onSelectionChanged
         this.onCancel = onCancel
         this.onChanged = onChanged
     }
@@ -307,6 +310,7 @@ export class Selector {
         transformer.nodes([group])
         this.getBackgroundLayer(konvaStage).add(transformer)
         this.transformerStore.set(groupId, transformer)
+        this.onSelectionChanged(groupId)
         if (flash) {
             this.flashNodeWithTransformer(group, transformer, () => {
                 this.onSelected(group.id(), false, transformer.getClientRect())
@@ -501,6 +505,7 @@ export class Selector {
 
         this.transformerStore.clear()
         this.currentTransformerId = null
+        this.onSelectionChanged(null)
         // 只有之前有选中项时才调用onCancel
         if (hadCurrentTransformer) {
             this.onCancel()

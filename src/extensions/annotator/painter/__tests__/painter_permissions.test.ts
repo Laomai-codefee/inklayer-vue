@@ -39,6 +39,16 @@ function createPainter(allowed: boolean) {
     permissionController: { can: vi.fn(() => allowed) },
     store,
     selector: { delete: vi.fn(), clear: vi.fn(), refreshCurrentSelection: vi.fn() },
+    authorLabels: {
+      refreshAnnotation: vi.fn(),
+      refreshAll: vi.fn(),
+      refreshPage: vi.fn(),
+      remove: vi.fn(),
+      destroy: vi.fn(),
+      setSelected: vi.fn(),
+      areAllVisible: vi.fn(() => false),
+      setAllVisible: vi.fn(),
+    },
     editorStore: new Map(),
     konvaCanvasStore: new Map(),
     onAnnotationChanged: vi.fn(),
@@ -156,6 +166,7 @@ describe('Painter permission guards', () => {
     expect(painter.can('annotation.edit', annotation)).toBe(false)
     expect(editor.setCurrentUser).toHaveBeenCalledWith({ id: 'bob', name: 'Bob' })
     expect((painter as unknown as { selector: { refreshCurrentSelection: ReturnType<typeof vi.fn> } }).selector.refreshCurrentSelection).toHaveBeenCalledOnce()
+    expect((painter as unknown as { authorLabels: { refreshAll: ReturnType<typeof vi.fn> } }).authorLabels.refreshAll).toHaveBeenCalledOnce()
     expect(store.notifyPainterChanged).toHaveBeenCalledOnce()
   })
 

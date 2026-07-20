@@ -3,7 +3,7 @@ import { KonvaEventObject } from 'konva/lib/Node'
 
 import { AnnotationType, IAnnotationType } from '../../const/definitions'
 import { resizeImage, setCssCustomProperty } from '../../utils/utils'
-import { CURSOR_CSS_PROPERTY } from '../const'
+import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, CURSOR_CSS_PROPERTY } from '../const'
 import { Editor, IEditorOptions } from './editor'
 
 /**
@@ -179,6 +179,8 @@ export class EditorSignature extends Editor {
             image.setAttrs(oldImage.getAttrs())
             oldImage.destroy()
             ghostGroup.add(image)
+            ghostGroup.getLayer()?.batchDraw()
+            ghostGroup.fire(ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT)
         })
 
         // 将恢复后的组添加到背景图层

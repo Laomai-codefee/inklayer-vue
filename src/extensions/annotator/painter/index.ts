@@ -28,6 +28,7 @@ import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 import { User } from '@/types'
 import { AnnotationPermissionController } from '../permissions/permission_controller'
+import { AnnotationAuthorLabels } from './annotation_author_labels'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -51,6 +52,7 @@ export class Painter {
     private webSelection: WebSelection // WebSelection 实例
     private currentAnnotation: IAnnotationType | null = null // 当前批注类型
     private selector: Selector // 选择器实例
+    private authorLabels: AnnotationAuthorLabels
     private transform: Transform // 转换器
     private tempDataTransfer: string | null = null // 临时数据传输
     private highlightTimers = new Set<ReturnType<typeof setTimeout>>()
@@ -70,6 +72,7 @@ export class Painter {
         defaultOptions,
         currentUser,
         annotationPermissions,
+        defaultShowAnnotationAuthorLabels = false,
         PDFViewerApplication,
         store,
         onTextSelected,
@@ -83,6 +86,7 @@ export class Painter {
         defaultOptions: PdfAnnotatorOptions
         currentUser: User
         annotationPermissions?: AnnotationPermissions
+        defaultShowAnnotationAuthorLabels?: boolean
         PDFViewerApplication: PDFViewer
         store: ReturnType<typeof UseAnnotationStoreType>
         onTextSelected: (range: Range | null) => void
@@ -100,6 +104,15 @@ export class Painter {
         this.permissionController = new AnnotationPermissionController({
             getCurrentUser: () => this.currentUser,
             getPermissions: () => this.annotationPermissions
+        })
+        this.authorLabels = new AnnotationAuthorLabels({
+            primaryColor: this.primaryColor,
+            defaultVisible: defaultShowAnnotationAuthorLabels,
+            getAnnotationsByPage: (pageNumber) => this.store.getByPage(pageNumber),
+            getAnnotationGroup: (annotationStore, konvaStage) => {
+                return konvaStage.findOne((node: Konva.Node) => node.getType() === 'Group' && node.id() === annotationStore.id) as Konva.Group | null
+            },
+            canTransform: (annotationStore) => this.permissionController.can('annotation.transform', annotationStore)
         })
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
@@ -122,6 +135,9 @@ export class Painter {
                     this.store.setSelectedAnnotation(annotationStore, isClick ? SelectionSource.CANVAS : SelectionSource.SIDEBAR)
                     this.onAnnotationSelected(annotationStore, isClick, transformerRect)
                 }
+            },
+            onSelectionChanged: (id) => {
+                this.authorLabels.setSelected(id)
             },
             onChanged: async (id, groupString, _rawAnnotationStore, konvaClientRect, transformerRect) => {
                 const editor = this.findEditorForGroupId(id)
@@ -194,6 +210,7 @@ export class Painter {
             this.setDefaultMode()
         }
         this.selector.refreshCurrentSelection()
+        this.authorLabels.refreshAll()
         this.store.notifyPainterChanged()
     }
 
@@ -203,6 +220,14 @@ export class Painter {
         comment?: IAnnotationComment
     ): boolean {
         return this.permissionController.can(action, annotation, comment)
+    }
+
+    public areAnnotationAuthorLabelsVisible(): boolean {
+        return this.authorLabels.areAllVisible()
+    }
+
+    public setAnnotationAuthorLabelsVisible(visible: boolean): void {
+        this.authorLabels.setAllVisible(visible)
     }
 
     private setDefaultMode = () => {
@@ -270,10 +295,19 @@ export class Painter {
     private cleanUpInvalidStore(): void {
         this.konvaCanvasStore.forEach((konvaCanvas) => {
             if (!isElementInDOM(konvaCanvas.wrapper)) {
-                konvaCanvas.konvaStage.destroy()
-                this.konvaCanvasStore.delete(konvaCanvas.pageNumber)
+                this.disposeCanvas(konvaCanvas.pageNumber)
             }
         })
+    }
+
+    private disposeCanvas(pageNumber: number): void {
+        const konvaCanvas = this.konvaCanvasStore.get(pageNumber)
+        if (!konvaCanvas) return
+
+        this.authorLabels.unregisterPage(pageNumber)
+        konvaCanvas.konvaStage.destroy()
+        konvaCanvas.wrapper.remove()
+        this.konvaCanvasStore.delete(pageNumber)
     }
 
     /**
@@ -283,10 +317,12 @@ export class Painter {
      */
     private insertCanvas(pageView: PDFPageView, pageNumber: number): void {
         this.cleanUpInvalidStore()
+        this.disposeCanvas(pageNumber)
         const painterWrapper = this.createPainterWrapper(pageView, pageNumber)
         const konvaStage = this.createKonvaStage(painterWrapper, pageView.viewport)
 
         this.konvaCanvasStore.set(pageNumber, { pageNumber, konvaStage, wrapper: painterWrapper, isActive: false })
+        this.authorLabels.registerPage(pageNumber, painterWrapper, konvaStage)
         this.reDrawAnnotation(pageNumber) // 重绘批注
         this.enablePainting() // 启用绘画
     }
@@ -306,6 +342,7 @@ export class Painter {
         konvaStage.scale({ x: scale, y: scale })
         konvaStage.width(width)
         konvaStage.height(height)
+        this.authorLabels.refreshPage(pageNumber)
     }
 
     /**
@@ -336,6 +373,7 @@ export class Painter {
         if (!isOriginal && !this.can('annotation.create')) return
         const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === annotationStore.pdfjsType)
         this.store.addAnnotation(annotationStore, isOriginal)
+        this.authorLabels.refreshAnnotation(annotationStore.id)
         if (isOriginal) return
         if (currentAnnotation) {
             if (currentAnnotation.isOnce) {
@@ -360,6 +398,7 @@ export class Painter {
         const annotationStore = this.store.getAnnotation(id)
         if (!annotationStore || (action && !this.can(action, annotationStore, comment))) return
         const updatedAnnotationStore = this.store.updateAnnotation(id, updates)
+        if (updatedAnnotationStore) this.authorLabels.refreshAnnotation(id)
 
         if (updatedAnnotationStore && emitChange) {
             this.onAnnotationChanged(updatedAnnotationStore)
@@ -656,6 +695,7 @@ export class Painter {
                 storeEditor.addSerializedGroupToLayer(konvaCanvasStore!.konvaStage, annotationStore.konvaString)
             }
         })
+        this.authorLabels.refreshPage(pageNumber)
     }
 
     /**
@@ -666,6 +706,7 @@ export class Painter {
         const annotationStore = this.store.getAnnotation(id)
         if (!annotationStore || !this.can('annotation.delete', annotationStore)) return false
         this.store.removeAnnotation(id)
+        this.authorLabels.remove(id)
         const storeEditor = this.findEditor(annotationStore.pageNumber, annotationStore.type)
         const konvaCanvasStore = this.konvaCanvasStore.get(annotationStore.pageNumber) // 获取 KonvaCanvas 实例
         if (storeEditor && konvaCanvasStore) {
@@ -918,6 +959,7 @@ export class Painter {
     public destroy(): void {
         this.disablePainting()
         this.webSelection.destroy()
+        this.authorLabels.destroy()
         this.highlightTimers.forEach((timer) => clearTimeout(timer))
         this.highlightTimers.clear()
 
