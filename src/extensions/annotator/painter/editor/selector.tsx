@@ -228,6 +228,7 @@ export class Selector {
             rotateEnabled: false,
             borderStrokeWidth: permissionStyle.borderStrokeWidth,
             borderStroke: this.primaryColor,
+            borderDash: permissionStyle.borderDash,
             anchorFill: permissionStyle.anchorFill,
             anchorStroke: this.primaryColor,
             opacity: permissionStyle.opacity,
