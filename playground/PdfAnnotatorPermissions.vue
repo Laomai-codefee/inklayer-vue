@@ -44,6 +44,7 @@
       :user="user"
       :annotation-permissions="permissions"
       :initial-annotations="INITIAL_ANNOTATIONS"
+      default-show-annotation-author-labels
       default-show-annotations-sidebar
       locale="en-US"
       :layout-style="{ height: '100%' }"
@@ -132,7 +133,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
   },
 ]
 
-const user = ref<User>(USERS[0])
+const user = ref<User>(USERS[1])
 const permissionPreset = ref<'owner-only' | 'read-only'>('owner-only')
 const lastEvent = ref('Waiting for PDF')
 const permissions = computed(() => permissionPreset.value === 'read-only'

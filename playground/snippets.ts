@@ -39,6 +39,7 @@ export const snippets: Record<string, string> = {
       :user="user"
       :annotation-permissions="permissions"
       :initial-annotations="INITIAL_ANNOTATIONS"
+      default-show-annotation-author-labels
       default-show-annotations-sidebar
       locale="en-US"
       :layout-style="{ height: '100%' }"
@@ -73,7 +74,7 @@ const READ_ONLY_PERMISSIONS: AnnotationPermissions = {
 // meta.authorId determines who owns it in owner-only mode.
 const INITIAL_ANNOTATIONS = []
 
-const user = ref<User>(USERS[0])
+const user = ref<User>(USERS[1])
 const permissionPreset = ref<'owner-only' | 'read-only'>('owner-only')
 const permissions = computed(() => permissionPreset.value === 'read-only'
   ? READ_ONLY_PERMISSIONS
