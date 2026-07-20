@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.13...v1.1.0) (2026-07-20)
+
+
+### Features
+
+* add annotation author label overlay ([635a7a2](https://github.com/Laomai-codefee/inklayer-vue/commit/635a7a2c585a5c205951c10ea871eb6d60e22a16))
+* add annotation author label utilities ([5855c46](https://github.com/Laomai-codefee/inklayer-vue/commit/5855c46cc198a6ad6a9570fdb5cd1a832dec9fa4))
+* add annotation permission controller ([60fda64](https://github.com/Laomai-codefee/inklayer-vue/commit/60fda6405ee6e9e0b2b6f03b0ac052cf219d040d))
+* add collaboration permissions playground ([02f4717](https://github.com/Laomai-codefee/inklayer-vue/commit/02f471737443109f79ece2c21a8b7e719e50f212))
+* apply permissions to annotation controls ([d155612](https://github.com/Laomai-codefee/inklayer-vue/commit/d1556123c2afcd787ff705efda435d153cba5b42))
+* define annotation permission models ([ba1512d](https://github.com/Laomai-codefee/inklayer-vue/commit/ba1512dcd5c957cd98e89b1d65a19ba26a05f996))
+* enforce annotation transform permissions ([5dca710](https://github.com/Laomai-codefee/inklayer-vue/commit/5dca710ef5dcd609aa656501757abdc4e042ce1c))
+* expose annotation author label controls ([2d6806a](https://github.com/Laomai-codefee/inklayer-vue/commit/2d6806a39a449a77fac1697d5daac6be86af32ca))
+* refresh playground navigation and metadata ([d6d15fc](https://github.com/Laomai-codefee/inklayer-vue/commit/d6d15fc487ed3af5c75b6ae79082552ebcea1144))
+
+
+### Bug Fixes
+
+* guard annotation mutation paths ([472ee70](https://github.com/Laomai-codefee/inklayer-vue/commit/472ee706efbde8a353576c0f25bc9074f43a0150))
+* hide empty annotation menu ([d6d39fb](https://github.com/Laomai-codefee/inklayer-vue/commit/d6d39fbf727afd38c89e24362af1fe65c03419c0))
+* normalize namespaced i18n keys ([b956ee9](https://github.com/Laomai-codefee/inklayer-vue/commit/b956ee9de9d60a60569e06572ec620b22c672baf))
+
 ### [1.0.13](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.12...v1.0.13) (2026-07-17)
 
 
