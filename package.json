@@ -67,6 +67,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
+        "check:docs": "node scripts/check-docs.mjs",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
