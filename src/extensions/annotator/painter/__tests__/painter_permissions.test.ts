@@ -38,7 +38,7 @@ function createPainter(allowed: boolean) {
   Object.assign(painter as unknown as Record<string, unknown>, {
     permissionController: { can: vi.fn(() => allowed) },
     store,
-    selector: { delete: vi.fn(), clear: vi.fn(), refreshCurrentSelection: vi.fn() },
+    selector: { delete: vi.fn(), clear: vi.fn(), select: vi.fn(), refreshCurrentSelection: vi.fn() },
     authorLabels: {
       refreshAnnotation: vi.fn(),
       refreshAll: vi.fn(),
@@ -177,6 +177,7 @@ describe('Painter permission guards', () => {
     )
     const rectangle = { type: AnnotationType.RECTANGLE } as IAnnotationType
 
+    painter.selectAnnotation(annotation.id, true)
     expect(painter.update(annotation.id, { title: 'Blocked' })).toBeUndefined()
     expect(painter.delete(annotation.id, true)).toBe(false)
     painter.activate(rectangle, null)
@@ -184,6 +185,8 @@ describe('Painter permission guards', () => {
 
     expect(store.updateAnnotation).not.toHaveBeenCalled()
     expect(store.removeAnnotation).not.toHaveBeenCalled()
+    expect((painter as unknown as { selector: { select: ReturnType<typeof vi.fn> } }).selector.select)
+      .toHaveBeenCalledWith(annotation.id, true)
     expect((painter as unknown as { webSelection: { highlight: ReturnType<typeof vi.fn> } }).webSelection.highlight).not.toHaveBeenCalled()
   })
 })
