@@ -142,6 +142,48 @@ describe('storeToAnnotation', () => {
     expect((ann.payload as any).shape).toBe('polygon')
   })
 
+  it('Cloud 往返后应保留业务语义和 Sidebar 类型', () => {
+    const original = makeStore({
+      type: AnnotationType.CLOUD,
+      subtype: 'PolyLine',
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      konvaString: '{"className":"Group","children":[{"className":"Path"}]}',
+    })
+
+    const saved = storeToAnnotation(original)
+    const restored = annotationToStore(saved)
+
+    expect(saved).toMatchObject({
+      kind: 'shape',
+      payload: { kind: 'shape', shape: 'cloud' },
+    })
+    expect(restored).toEqual(original)
+    expect(restored).toMatchObject({
+      type: AnnotationType.CLOUD,
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      subtype: 'PolyLine',
+    })
+  })
+
+  it('应兼容修复前保存的 Cloud polygon 数据', () => {
+    const saved = storeToAnnotation(makeStore({
+      type: AnnotationType.CLOUD,
+      subtype: 'PolyLine',
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+    }))
+    saved.payload = { kind: 'shape', shape: 'polygon' }
+    const extensions = saved.extensions as {
+      legacy?: { annotationType?: AnnotationType }
+    }
+    delete extensions.legacy?.annotationType
+
+    expect(annotationToStore(saved)).toMatchObject({
+      type: AnnotationType.CLOUD,
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      subtype: 'PolyLine',
+    })
+  })
+
   it('应正确转换 FREEHAND 类型', () => {
     const store = makeStore({
       type: AnnotationType.FREEHAND,
@@ -335,7 +377,11 @@ describe('annotationToStore', () => {
   })
 
   it('应逆向转换 RECTANGLE Annotation', () => {
-    const store = makeStore({ type: AnnotationType.RECTANGLE, subtype: 'Square' })
+    const store = makeStore({
+      type: AnnotationType.RECTANGLE,
+      subtype: 'Square',
+      pdfjsType: PdfjsAnnotationType.SQUARE,
+    })
     const ann = storeToAnnotation(store)
     const back = annotationToStore(ann)
 
@@ -367,8 +413,7 @@ describe('annotationToStore', () => {
     const back = annotationToStore(ann)
 
     expect(back.type).toBe(AnnotationType.ARROW)
-    // line kind → getSubtypeFromKind 固定返回 'Line'
-    expect(back.subtype).toBe('Line')
+    expect(back.subtype).toBe('Arrow')
   })
 
   it('应从 extensions.legacy 恢复 title', () => {
@@ -434,10 +479,7 @@ describe('annotationToStore', () => {
 // =============================================================================
 // 往返转换一致性测试（Round-trip）
 //
-// 注意：Kind 系统是 AnnotationType 的归并简化，因此部分类型无法无损往返。
-// 例如 UNDERLINE/STRIKEOUT → text-markup → getTypeFromKind 统一返回 HIGHLIGHT。
-// CIRCLE → shape → getTypeFromKind 统一返回 RECTANGLE。
-// SIGNATURE → stamp → getTypeFromKind 统一返回 STAMP。
+// extensions 会保留精确的旧系统类型，所有已知类型都应无损往返。
 // =============================================================================
 describe('往返转换一致性', () => {
   const roundTripTypes: Array<{
@@ -448,14 +490,14 @@ describe('往返转换一致性', () => {
     expectedBackSubtype?: PdfjsAnnotationSubtype
   }> = [
     { name: 'HIGHLIGHT', type: AnnotationType.HIGHLIGHT, subtype: 'Highlight' },
-    { name: 'UNDERLINE', type: AnnotationType.UNDERLINE, subtype: 'Underline', expectedBackType: AnnotationType.HIGHLIGHT, expectedBackSubtype: 'Underline' },
-    { name: 'STRIKEOUT', type: AnnotationType.STRIKEOUT, subtype: 'StrikeOut', expectedBackType: AnnotationType.HIGHLIGHT, expectedBackSubtype: 'StrikeOut' as PdfjsAnnotationSubtype },
+    { name: 'UNDERLINE', type: AnnotationType.UNDERLINE, subtype: 'Underline' },
+    { name: 'STRIKEOUT', type: AnnotationType.STRIKEOUT, subtype: 'StrikeOut' },
     { name: 'RECTANGLE', type: AnnotationType.RECTANGLE, subtype: 'Square' },
-    { name: 'CIRCLE', type: AnnotationType.CIRCLE, subtype: 'Circle', expectedBackType: AnnotationType.RECTANGLE, expectedBackSubtype: 'Square' },
+    { name: 'CIRCLE', type: AnnotationType.CIRCLE, subtype: 'Circle' },
     { name: 'NOTE', type: AnnotationType.NOTE, subtype: 'Text' },
-    { name: 'ARROW', type: AnnotationType.ARROW, subtype: 'Arrow', expectedBackSubtype: 'Line' },
+    { name: 'ARROW', type: AnnotationType.ARROW, subtype: 'Arrow' },
     { name: 'FREEHAND', type: AnnotationType.FREEHAND, subtype: 'Ink' },
-    { name: 'SIGNATURE', type: AnnotationType.SIGNATURE, subtype: 'Caret', expectedBackType: AnnotationType.STAMP, expectedBackSubtype: 'Stamp' },
+    { name: 'SIGNATURE', type: AnnotationType.SIGNATURE, subtype: 'Caret' },
     { name: 'STAMP', type: AnnotationType.STAMP, subtype: 'Stamp' },
     { name: 'CLOUD', type: AnnotationType.CLOUD, subtype: 'PolyLine' },
   ]

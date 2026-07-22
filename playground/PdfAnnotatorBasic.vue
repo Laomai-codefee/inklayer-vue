@@ -193,7 +193,7 @@ const initialAnnotations: Annotation[] = [
         },
         "payload": {
             "kind": "shape",
-            "shape": "polygon"
+            "shape": "cloud"
         },
         "appearance": {
             "strokeColor": "#9c36b5",

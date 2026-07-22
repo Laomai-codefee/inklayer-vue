@@ -1,18 +1,27 @@
-import { Annotation, PDFViewerApplication, QuadPoint } from 'pdfjs'
+import { Annotation, QuadPoint } from 'pdfjs'
+import type { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { IAnnotationComment, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
 
 export interface IDecoderOptions {
-    pdfViewerApplication: PDFViewerApplication
+    pdfViewerApplication: PDFViewer
     id: string
+    inkLayerMetadata?: InkLayerAnnotationMetadata
+}
+
+export interface InkLayerAnnotationMetadata {
+    type: 'Cloud'
+    opacity?: number
 }
 
 export abstract class Decoder {
-    protected pdfViewerApplication: PDFViewerApplication
+    protected pdfViewerApplication: PDFViewer
     protected id: string
+    protected inkLayerMetadata?: InkLayerAnnotationMetadata
 
-    constructor({ pdfViewerApplication, id }: IDecoderOptions) {
+    constructor({ pdfViewerApplication, id, inkLayerMetadata }: IDecoderOptions) {
         this.pdfViewerApplication = pdfViewerApplication
         this.id = id
+        this.inkLayerMetadata = inkLayerMetadata
     }
 
     /**

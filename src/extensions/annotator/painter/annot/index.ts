@@ -15,8 +15,9 @@ import { FreeTextParser } from './parse_freetext'
 import { StampParser } from './parse_stamp'
 import { LineParser } from './parse_line'
 import { PolylineParser } from './parse_polyline'
+import { CloudParser } from './parse_cloud'
 import { formatPDFDate, getPDFDateTimestamp, getTimestampString } from '../../utils/utils'
-import { annotationDefinitions, CommentStatus, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
+import { AnnotationType, annotationDefinitions, CommentStatus, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 
@@ -39,6 +40,12 @@ const parserMap: {
     // 你可以在这里扩展其他类型的解析器
 }
 
+function getParserClass(annotation: IAnnotationStore) {
+    return annotation.type === AnnotationType.CLOUD
+        ? CloudParser
+        : parserMap[annotation.pdfjsType]
+}
+
 /**
  * 将单个注解对象解析并添加到指定 PDF 页面中。
  *
@@ -47,7 +54,7 @@ const parserMap: {
  * @param pdfDoc - 当前正在编辑的 PDF 文档实例
  */
 async function parseAnnotationToPdf(annotation: IAnnotationStore, page: PDFPage, pdfDoc: PDFDocument, pageView: PDFPageView): Promise<void> {
-    const ParserClass = parserMap[annotation.pdfjsType]
+    const ParserClass = getParserClass(annotation)
     if (ParserClass) {
         const parser = new ParserClass(pdfDoc, page, annotation, pageView)
         await parser.parse()
@@ -124,7 +131,7 @@ export async function buildAnnotatedPdf(
     const pdfDoc = await PDFDocument.load(pdfData)
     const pages = pdfDoc.getPages()
     const exportEntries = annotations.map((annotation) => {
-        if (!parserMap[annotation.pdfjsType]) {
+        if (!getParserClass(annotation)) {
             throw new Error(`Unsupported annotation type: ${annotation.pdfjsType}`)
         }
         const page = pages[annotation.pageNumber - 1]
