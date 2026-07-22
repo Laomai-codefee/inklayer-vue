@@ -1,6 +1,6 @@
 import { t } from '@/i18n/global-t'
 
-import { PDFDocument, PDFName, PDFPage } from 'pdf-lib'
+import { PDFArray, PDFDict, PDFDocument, PDFName, PDFPage } from 'pdf-lib'
 import { TextParser } from './parse_text'
 import _fileSaver from 'file-saver'
 const saveAs = (_fileSaver as any).saveAs || _fileSaver
@@ -78,17 +78,70 @@ function downloadExcel(data: any, filename: string) {
 }
 
 /**
- * 从 PDF 中清除所有页面上的原始注解（Annots）
+ * 从 PDF 中移除将由 InkLayer 重建的批注，并保留链接、表单等原始批注。
  *
  * @param pdfDoc - 要处理的 PDF 文档对象
  */
-function clearAllAnnotations(pdfDoc: PDFDocument) {
+const REPLACEABLE_PDF_ANNOTATION_SUBTYPES = new Set([
+    '/Text',
+    '/FreeText',
+    '/Line',
+    '/Square',
+    '/Circle',
+    '/Polygon',
+    '/PolyLine',
+    '/Highlight',
+    '/Underline',
+    '/StrikeOut',
+    '/Ink',
+    '/Stamp',
+    '/Popup'
+])
+
+function removeReplaceableAnnotations(pdfDoc: PDFDocument) {
     for (const page of pdfDoc.getPages()) {
         const annotsKey = PDFName.of('Annots')
-        if (page.node.has(annotsKey)) {
-            page.node.set(annotsKey, pdfDoc.context.obj([])) // 清空批注数组
-        }
+        const annots = page.node.lookupMaybe(annotsKey, PDFArray)
+        if (!annots) continue
+
+        const retained = annots.asArray().filter((annotationRef) => {
+            const annotation = pdfDoc.context.lookupMaybe(annotationRef, PDFDict)
+            const subtype = annotation?.get(PDFName.of('Subtype'))?.toString()
+            return !subtype || !REPLACEABLE_PDF_ANNOTATION_SUBTYPES.has(subtype)
+        })
+        page.node.set(annotsKey, pdfDoc.context.obj(retained))
     }
+}
+
+export async function buildAnnotatedPdf(
+    PDFViewerApplication: PDFViewer,
+    annotations: IAnnotationStore[]
+): Promise<Uint8Array> {
+    const pdfDocument = PDFViewerApplication.pdfDocument
+    if (!pdfDocument) throw new Error('Cannot export annotations before the PDF document is ready.')
+
+    const pdfData = await pdfDocument.getData()
+    const pdfDoc = await PDFDocument.load(pdfData)
+    const pages = pdfDoc.getPages()
+    const exportEntries = annotations.map((annotation) => {
+        if (!parserMap[annotation.pdfjsType]) {
+            throw new Error(`Unsupported annotation type: ${annotation.pdfjsType}`)
+        }
+        const page = pages[annotation.pageNumber - 1]
+        if (!page) throw new Error(`Annotation ${annotation.id} references missing page ${annotation.pageNumber}.`)
+        const pageView = PDFViewerApplication.getPageView(annotation.pageNumber - 1)
+        if (!pageView?.viewport) {
+            throw new Error(`Page view ${annotation.pageNumber} is not ready for annotation export.`)
+        }
+        return { annotation, page, pageView }
+    })
+
+    removeReplaceableAnnotations(pdfDoc)
+    for (const { annotation, page, pageView } of exportEntries) {
+        await parseAnnotationToPdf(annotation, page, pdfDoc, pageView)
+    }
+
+    return pdfDoc.save()
 }
 
 
@@ -99,20 +152,7 @@ function clearAllAnnotations(pdfDoc: PDFDocument) {
  * @param annotations - 解析后的批注数据数组
  */
 async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    // 加载 PDF 文件为 pdf-lib 可识别的文档对象
-    const pdfData = await PDFViewerApplication!.pdfDocument!.getData();
-    const pdfDoc = await PDFDocument.load(pdfData);
-
-    // ✅ 清除原有的所有批注
-    clearAllAnnotations(pdfDoc)
-    // 遍历每一个注解并解析应用到对应页面
-    for (const ann of annotations) {
-        const page = pdfDoc.getPages()[ann.pageNumber - 1]
-        const pageView = PDFViewerApplication.getPageView(ann.pageNumber - 1);
-        await parseAnnotationToPdf(ann, page, pdfDoc, pageView)
-    }
-
-    const modifiedPdf = await pdfDoc.save()
+    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations)
     const fileName = baseName || `annotated_${getTimestampString()}`
 
     downloadPdf(modifiedPdf, fileName)
