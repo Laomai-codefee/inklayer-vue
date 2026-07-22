@@ -9,7 +9,9 @@ export interface IDecoderOptions {
 }
 
 export interface InkLayerAnnotationMetadata {
-    type: 'Cloud'
+    type: 'Cloud' | 'FreeText' | 'Arrow'
+    fontSize?: number
+    textWidth?: number
     opacity?: number
 }
 

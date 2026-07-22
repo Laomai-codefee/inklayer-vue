@@ -10,6 +10,8 @@ import { PolygonDecoder } from './decoder_polygon'
 import { PolylineDecoder } from './decoder_polyline'
 import { TextDecoder } from './decoder_text'
 import { CloudDecoder } from './decoder_cloud'
+import { ArrowDecoder } from './decoder_arrow'
+import { InkLayerFreeTextDecoder } from './decoder_inklayer_freetext'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { Annotation } from 'pdfjs'
 import { PDFArray, PDFDict, PDFDocument, PDFHexString, PDFName, PDFNumber, PDFRef, PDFString } from 'pdf-lib'
@@ -62,8 +64,12 @@ export class Transform {
                         dictionary?.get(PDFName.of('IT'))?.toString() === '/PolygonCloud'
                     )
                     const inkLayerType = dictionary?.get(PDFName.of('InkLayerType'))?.toString().slice(1)
-                    const isInkLayerCloud = inkLayerType === 'Cloud' && subtype === '/Ink'
-                    if (!isCloudyPolygon && !isInkLayerCloud) return
+                    const isSupportedMarker = (
+                        (inkLayerType === 'Cloud' && subtype === '/Ink') ||
+                        (inkLayerType === 'FreeText' && subtype === '/Text') ||
+                        (inkLayerType === 'Arrow' && subtype === '/Ink')
+                    )
+                    if (!isCloudyPolygon && !isSupportedMarker) return
 
                     const nameObject = dictionary?.get(PDFName.of('NM'))
                     const name = nameObject ? document.context.lookup(nameObject) : undefined
@@ -71,8 +77,12 @@ export class Transform {
                         ? name.decodeText()
                         : reference instanceof PDFRef ? `${reference.objectNumber}R` : undefined
                     if (!id) return
+                    const type = isCloudyPolygon ? 'Cloud' : inkLayerType
+                    if (type !== 'Cloud' && type !== 'FreeText' && type !== 'Arrow') return
+                    const fontSize = dictionary?.lookupMaybe(PDFName.of('InkLayerFontSize'), PDFNumber)?.asNumber()
+                    const textWidth = dictionary?.lookupMaybe(PDFName.of('InkLayerTextWidth'), PDFNumber)?.asNumber()
                     const opacity = dictionary?.lookupMaybe(PDFName.of('CA'), PDFNumber)?.asNumber()
-                    result.set(id, { type: 'Cloud', opacity })
+                    result.set(id, { type, fontSize, textWidth, opacity })
                 })
             })
         } catch (error) {
@@ -105,6 +115,12 @@ export class Transform {
             annotation.annotationType === PdfjsAnnotationType.POLYGON ||
             annotation.annotationType === PdfjsAnnotationType.INK
         )) DecoderClass = CloudDecoder
+        if (metadata?.type === 'FreeText' && annotation.annotationType === PdfjsAnnotationType.TEXT) {
+            DecoderClass = InkLayerFreeTextDecoder
+        }
+        if (metadata?.type === 'Arrow' && annotation.annotationType === PdfjsAnnotationType.INK) {
+            DecoderClass = ArrowDecoder
+        }
         if (DecoderClass) {
             const decoder = new DecoderClass({
                 pdfViewerApplication: this.pdfViewerApplication,
