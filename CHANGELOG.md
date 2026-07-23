@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.1.0...v1.1.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* generate complete release notes ([67e9518](https://github.com/Laomai-codefee/inklayer-vue/commit/67e95186eda6c4ebc365ac0f191beb6e620802aa))
+* preserve annotations and transformed markup exports ([e4d804e](https://github.com/Laomai-codefee/inklayer-vue/commit/e4d804e4515d3e434f65758dc7fd698eef809f30))
+* preserve cloud annotations across round trips ([491bc60](https://github.com/Laomai-codefee/inklayer-vue/commit/491bc6068eb29de57c31b57a715c6bcaa3b990e9))
+* restore free text and arrow export semantics ([feb01fa](https://github.com/Laomai-codefee/inklayer-vue/commit/feb01fa12e06b59dc9c105db9e7b86c6a432c2db))
+
 ## [1.1.0](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.0.13...v1.1.0) (2026-07-20)
 
 
