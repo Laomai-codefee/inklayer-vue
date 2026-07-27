@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.2](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.1.1...v1.1.2) (2026-07-27)
+
+
+### Features
+
+* add PDF document navigation ([33c4e6f](https://github.com/Laomai-codefee/inklayer-vue/commit/33c4e6fd5bfabb2760e4d1329f6a1e57d3464160))
+
+
+### Bug Fixes
+
+* use hosted PDF in playground ([182ee4d](https://github.com/Laomai-codefee/inklayer-vue/commit/182ee4d8ee3e994307b146251770335744c7c946))
+
 ### [1.1.1](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.1.0...v1.1.1) (2026-07-23)
 
 
