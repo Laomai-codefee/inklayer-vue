@@ -1,10 +1,11 @@
-import { defineComponent, h, nextTick, shallowRef } from 'vue'
+import { defineComponent, h, isProxy, nextTick, shallowRef } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import type { PDFDocumentProxy } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { usePdfViewer, type UseViewerOptions } from '../usePdfViewer'
 
 const pdfMocks = vi.hoisted(() => ({
   getDocument: vi.fn(),
+  viewerOptions: [] as Record<string, unknown>[],
 }))
 
 vi.mock('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url', () => ({ default: 'pdf.worker.mjs' }))
@@ -27,6 +28,9 @@ vi.mock('pdfjs-dist/legacy/web/pdf_viewer.mjs', () => ({
   PDFViewer: class {
     cleanup = vi.fn()
     setDocument = vi.fn()
+    constructor(options: Record<string, unknown>) {
+      pdfMocks.viewerOptions.push(options)
+    }
   },
 }))
 
@@ -86,6 +90,7 @@ describe('usePdfViewer', () => {
     await nextTick()
 
     expect((viewerState.pdfDocument.value as PDFDocumentProxy & { name: string }).name).toBe('second')
+    expect(isProxy(viewerState.pdfDocument.value)).toBe(false)
     expect(onLoadSuccess).toHaveBeenCalledTimes(1)
     expect(onLoadSuccess).toHaveBeenCalledWith(secondDocument)
 
@@ -98,6 +103,26 @@ describe('usePdfViewer', () => {
     expect((viewerState.pdfDocument.value as PDFDocumentProxy & { name: string }).name).toBe('second')
     expect(onLoadSuccess).toHaveBeenCalledTimes(1)
 
+    wrapper.unmount()
+  })
+
+  it('uses PDF.js native page border spacing', async () => {
+    const task = createDeferredTask()
+    pdfMocks.getDocument.mockReset()
+    pdfMocks.viewerOptions.length = 0
+    pdfMocks.getDocument.mockReturnValue(task)
+
+    const TestComponent = defineComponent({
+      setup() {
+        const containerRef = shallowRef<HTMLDivElement | null>(null)
+        usePdfViewer(containerRef, { url: 'document.pdf', enableRange: false })
+        return () => h('div', { ref: containerRef })
+      },
+    })
+
+    const wrapper = mount(TestComponent)
+    await vi.waitFor(() => expect(pdfMocks.viewerOptions).toHaveLength(1))
+    expect(pdfMocks.viewerOptions[0]).not.toHaveProperty('removePageBorders')
     wrapper.unmount()
   })
 })

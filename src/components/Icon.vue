@@ -1,5 +1,36 @@
 <template>
-  <svg v-if="name === 'authorLabels'"
+  <svg
+    v-if="name === 'navigationSidebarExpand' || name === 'navigationSidebarCollapse'"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    :style="{ display: 'block', width: size + 'px', height: size + 'px', minWidth: size + 'px', minHeight: size + 'px' }"
+  >
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" />
+    <path d="M9 5v14" stroke="currentColor" stroke-linecap="round" />
+    <path
+      :d="name === 'navigationSidebarExpand' ? 'M16 9l-3 3 3 3' : 'M13 9l3 3-3 3'"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+  <svg
+    v-else-if="name === 'outlineChevron'"
+    viewBox="0 0 12 12"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    :style="{ display: 'block', width: size + 'px', height: size + 'px', minWidth: size + 'px', minHeight: size + 'px' }"
+  >
+    <path
+      d="M4.5 2.5 8 6 4.5 9.5"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+  <svg v-else-if="name === 'authorLabels'"
     viewBox="0 0 1024 1024"
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"

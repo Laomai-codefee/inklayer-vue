@@ -22,6 +22,12 @@ import type { AnnotationPermissions, PdfAnnotatorOptions } from '@/extensions/an
 import { debounce, getThemeColor } from '@/utils'
 import { storesToAnnotations } from '@/core/adapters/store.mapper'
 import { FREE_TEXT_EDITOR } from '@/extensions/annotator/painter/const'
+import {
+  NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
+  type NavigationPageMarkersChangedEvent,
+} from '@/components/navigation/navigationPageMarkers'
+
+const ANNOTATOR_PAGE_MARKER_SOURCE = 'inklayer-annotator'
 
 const props = defineProps<{
   defaultOptions?: PdfAnnotatorOptions; colors?: string[]; initialAnnotations?: any[]; annotationStyle?: IAnnotationStyle; enableNativeAnnotations?: boolean; annotationPermissions?: AnnotationPermissions; defaultShowAnnotationAuthorLabels?: boolean
@@ -164,6 +170,35 @@ watch(() => store.currentAnnotationType, (newType) => {
 }, { immediate: false })
 
 watch(() => pdfContext.isSidebarCollapsed.value, () => { debouncedViewAreaChanged() })
+
+watch(pdfContext.eventBus, (eventBus, _previous, onCleanup) => {
+  if (!eventBus) return
+
+  const publishPageMarkers = (annotations: Map<string, IAnnotationStore>) => {
+    const markers = new Map<number, number>()
+    annotations.forEach(annotation => {
+      markers.set(annotation.pageNumber, (markers.get(annotation.pageNumber) ?? 0) + 1)
+    })
+    eventBus.dispatch(NAVIGATION_PAGE_MARKERS_CHANGED_EVENT, {
+      source: ANNOTATOR_PAGE_MARKER_SOURCE,
+      markers,
+    } satisfies NavigationPageMarkersChangedEvent)
+  }
+
+  const stopPublishing = watch(
+    () => store.annotations,
+    publishPageMarkers,
+    { immediate: true },
+  )
+
+  onCleanup(() => {
+    stopPublishing()
+    eventBus.dispatch(NAVIGATION_PAGE_MARKERS_CHANGED_EVENT, {
+      source: ANNOTATOR_PAGE_MARKER_SOURCE,
+      markers: new Map(),
+    } satisfies NavigationPageMarkersChangedEvent)
+  })
+}, { immediate: true })
 
 onUnmounted(() => { disposed = true; debouncedViewAreaChanged.cancel(); cleanupEventHandlers?.(); painter?.destroy(); painter = null; store.setPainter(null); lastActivatedType = null; lastActivatedColor = null })
 

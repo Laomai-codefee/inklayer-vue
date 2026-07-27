@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import PdfAnnotator from '@/PdfAnnotator.vue'
 import type { Annotation } from '@/core/annotation.core'
-const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
+const pdfUrl = 'http://localhost:8080/discovery-program-ebook.pdf'
 const initialAnnotations: Annotation[] = [
     {
         "id": "7iTCOVHhhkjSft3sHjGOt",

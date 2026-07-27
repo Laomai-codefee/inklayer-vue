@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const highlighterInstances = vi.hoisted(() => [] as any[])
 
@@ -29,6 +29,10 @@ describe('WebSelection lifecycle', () => {
         highlighterInstances.length = 0
         document.body.innerHTML = ''
         window.getSelection()?.removeAllRanges()
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
     })
 
     it('removes document and highlighter listeners when destroyed', () => {
@@ -66,5 +70,70 @@ describe('WebSelection lifecycle', () => {
         expect(highlighterInstances).toHaveLength(2)
         expect(highlighterInstances[0].dispose).toHaveBeenCalledOnce()
         expect(highlighterInstances[1].dispose).not.toHaveBeenCalled()
+    })
+
+    it('ignores text selections outside the PDF viewer root', () => {
+        const onSelect = vi.fn()
+        const root = document.createElement('div')
+        root.textContent = 'PDF text'
+        const input = document.createElement('input')
+        input.value = '446'
+        document.body.append(root, input)
+        const webSelection = new WebSelection({ onSelect, onHighlight: vi.fn() })
+        webSelection.create(root)
+
+        const range = document.createRange()
+        range.selectNodeContents(input)
+        vi.spyOn(window, 'getSelection').mockReturnValue({
+            type: 'Range',
+            anchorNode: input,
+            focusNode: input,
+            rangeCount: 1,
+            toString: () => '446',
+            getRangeAt: () => range,
+        } as unknown as Selection)
+        document.dispatchEvent(new Event('selectionchange'))
+        document.dispatchEvent(new MouseEvent('mouseup'))
+
+        expect(onSelect).toHaveBeenCalledWith(null)
+        expect(onSelect).not.toHaveBeenCalledWith(range)
+        webSelection.destroy()
+    })
+
+    it('clears a pending viewer selection when the selection becomes empty', () => {
+        const onSelect = vi.fn()
+        const root = document.createElement('div')
+        root.textContent = 'PDF text'
+        document.body.appendChild(root)
+        const webSelection = new WebSelection({ onSelect, onHighlight: vi.fn() })
+        webSelection.create(root)
+
+        const range = document.createRange()
+        range.selectNodeContents(root)
+        const getSelection = vi.spyOn(window, 'getSelection')
+        getSelection.mockReturnValueOnce({
+            type: 'Range',
+            anchorNode: root.firstChild,
+            focusNode: root.firstChild,
+            rangeCount: 1,
+            toString: () => 'PDF text',
+            getRangeAt: () => range,
+        } as unknown as Selection)
+        document.dispatchEvent(new Event('selectionchange'))
+
+        onSelect.mockClear()
+        getSelection.mockReturnValue({
+            type: 'Range',
+            anchorNode: root.firstChild,
+            focusNode: root.firstChild,
+            rangeCount: 0,
+            toString: () => '',
+        } as unknown as Selection)
+        document.dispatchEvent(new Event('selectionchange'))
+        document.dispatchEvent(new MouseEvent('mouseup'))
+
+        expect(onSelect).toHaveBeenCalledOnce()
+        expect(onSelect).toHaveBeenCalledWith(null)
+        webSelection.destroy()
     })
 })

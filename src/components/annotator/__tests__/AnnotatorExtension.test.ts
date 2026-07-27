@@ -3,6 +3,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewerContextKey, UserContextKey, type PdfViewerContextValue } from '@/context/pdfViewerContext'
+import { useAnnotationStore } from '@/stores/annotationStore'
+import { NAVIGATION_PAGE_MARKERS_CHANGED_EVENT } from '@/components/navigation/navigationPageMarkers'
 
 const painterMocks = vi.hoisted(() => ({
     instances: [] as any[],
@@ -48,7 +50,8 @@ describe('AnnotatorExtension lifecycle', () => {
             on: vi.fn(),
             off: vi.fn(),
             _on: vi.fn(),
-            _off: vi.fn()
+            _off: vi.fn(),
+            dispatch: vi.fn()
         }
         const viewerElement = document.createElement('div')
         const viewer = {
@@ -93,5 +96,65 @@ describe('AnnotatorExtension lifecycle', () => {
         expect(painter.reRenderAnnotations).not.toHaveBeenCalled()
         expect(eventBus.off).toHaveBeenCalledWith('pagerendered', expect.any(Function))
         expect(eventBus.off).toHaveBeenCalledWith('documentloaded', expect.any(Function))
+    })
+
+    it('publishes annotation counts by page and clears them on unmount', async () => {
+        const eventBus = {
+            on: vi.fn(), off: vi.fn(), _on: vi.fn(), _off: vi.fn(), dispatch: vi.fn()
+        }
+        const viewer = {
+            viewer: document.createElement('div'),
+            pdfDocument: {},
+            pagesCount: 1,
+            getPageView: vi.fn()
+        }
+        const pdfContext: PdfViewerContextValue = {
+            pdfDocument: ref({}),
+            pdfViewer: ref(viewer),
+            eventBus: ref(eventBus),
+            viewerContainerRef: shallowRef(null),
+            isReady: ref(true),
+            activeSidebarPanel: ref(null),
+            toggleSidebar: vi.fn(), openSidebar: vi.fn(), closeSidebar: vi.fn(),
+            isSidebarCollapsed: ref(false), print: vi.fn(), download: vi.fn()
+        }
+        const wrapper = mount(AnnotatorExtension, {
+            global: {
+                provide: {
+                    [PdfViewerContextKey as symbol]: pdfContext,
+                    [UserContextKey as symbol]: { user: computed(() => ({ id: 'test', name: 'Test' })) }
+                }
+            }
+        })
+        const store = useAnnotationStore()
+        store.addAnnotation({ id: 'a', pageNumber: 1 } as any)
+        store.addAnnotation({ id: 'b', pageNumber: 1 } as any)
+        store.addAnnotation({ id: 'c', pageNumber: 3 } as any)
+        await wrapper.vm.$nextTick()
+
+        expect(eventBus.dispatch).toHaveBeenLastCalledWith(
+            NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
+            {
+                source: 'inklayer-annotator',
+                markers: new Map([[1, 2], [3, 1]])
+            }
+        )
+
+        store.updateAnnotation('c', { pageNumber: 2 })
+        store.removeAnnotation('b')
+        await wrapper.vm.$nextTick()
+        expect(eventBus.dispatch).toHaveBeenLastCalledWith(
+            NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
+            {
+                source: 'inklayer-annotator',
+                markers: new Map([[1, 1], [2, 1]])
+            }
+        )
+
+        wrapper.unmount()
+        expect(eventBus.dispatch).toHaveBeenLastCalledWith(
+            NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
+            { source: 'inklayer-annotator', markers: new Map() }
+        )
     })
 })

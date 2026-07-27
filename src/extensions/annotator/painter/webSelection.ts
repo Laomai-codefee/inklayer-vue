@@ -60,10 +60,20 @@ export class WebSelection {
             this.onSelect(null)
             return
         }
-        if (selection && selection.toString() && selection.rangeCount > 0) {
-            const selectedElement = selection.getRangeAt(0).commonAncestorContainer
-            this.isSelecting = !!this.rootElement?.contains(selectedElement)
+        if (!selection || !selection.toString() || selection.rangeCount === 0) {
+            this.isSelecting = false
+            this.onSelect(null)
+            return
         }
+
+        const range = selection.getRangeAt(0)
+        const selectedElement = range.commonAncestorContainer
+        const selectionBelongsToViewer = !!this.rootElement
+            && this.rootElement.contains(selection.anchorNode)
+            && this.rootElement.contains(selection.focusNode)
+            && this.rootElement.contains(selectedElement)
+        this.isSelecting = selectionBelongsToViewer
+        if (!selectionBelongsToViewer) this.onSelect(null)
     }
 
     private handleSelectionEnd = () => {

@@ -13,6 +13,16 @@ export default {
   viewer: {
     zoom: { auto: '自动', actual: '实际大小', fit: '适合页面', width: '适合宽度', zoomIn: '放大', zoomOut: '缩小' },
     sidebar: { toggle: '切换侧边栏' },
+    navigation: {
+      toggle: '切换文档导航', label: '文档导航',
+      thumbnails: '缩略图', outline: '目录', page: '第 {value} 页',
+      pageWithMarkers: '第 {value} 页，{count} 个批注', pageInput: '页码',
+      previousPage: '上一页', nextPage: '下一页',
+      thumbnailError: '此页面无法生成缩略图', outlineLoading: '正在加载目录…',
+      outlineEmpty: '此文档没有目录', outlineError: '无法加载文档目录',
+      untitledOutlineItem: '未命名章节', expandOutlineItem: '展开{title}',
+      collapseOutlineItem: '收起{title}',
+    },
     search: { search: '搜索', placeholder: '搜索文档...', searching: '搜索中...', page: '第 {value} 页', resultTotal: '共找到{total}条结果', caseSensitive: '区分大小写', entireWord: '完整单词' },
   },
   annotator: {

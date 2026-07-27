@@ -31,15 +31,32 @@
     </div>
 
     <!-- ========== Header: white bg + subtle border (React: bg-color + border-color) ========== -->
-    <header class="flex items-center justify-between h-[45px] px-3 bg-background border-b border-border shrink-0 gap-3">
-      <span class="text-sm font-medium truncate">{{ title || 'PDF Viewer' }}</span>
-      <div class="flex items-center gap-2">
+    <header class="flex h-[45px] shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-3">
+      <div class="flex min-w-0 max-w-full flex-1 items-center gap-2 overflow-hidden">
+        <Button
+          variant="ghost" size="icon" class="size-8"
+          :aria-controls="'InkLayer-navigation-sidebar'"
+          :aria-expanded="isNavigationSidebarOpen"
+          :aria-label="t('viewer.navigation.toggle')"
+          @click="isNavigationSidebarOpen = !isNavigationSidebarOpen"
+          :class="{ 'bg-accent text-accent-foreground': isNavigationSidebarOpen }"
+        >
+          <Icon
+            :name="isNavigationSidebarOpen ? 'navigationSidebarExpand' : 'navigationSidebarCollapse'"
+            :size="18"
+          />
+        </Button>
+        <span class="w-0 min-w-0 max-w-full flex-1 truncate text-sm font-medium">{{ title || 'PDF Viewer' }}</span>
+      </div>
+      <div class="flex min-w-0 shrink-0 items-center gap-2">
         <div v-if="sidebar && sidebar.length" class="flex gap-1">
           <Button
             v-for="panel in sidebar"
             :key="panel.key"
             variant="ghost" size="icon" class="size-8"
             :class="{ 'bg-accent text-accent-foreground': activeSidebarPanel === panel.key }"
+            :aria-label="panel.title"
+            :title="panel.title"
             @click="toggleSidebarPanel(panel.key)"
           >
             <Icon :name="panel.icon" :size="18" />
@@ -50,33 +67,50 @@
     </header>
 
     <!-- ========== Body ========== -->
-    <div class="flex flex-1 min-h-0 overflow-hidden relative">
-      <div class="flex flex-col flex-1 min-w-0">
-        <!-- Toolbar: scrollable with Radix ScrollArea -->
-        <div v-if="hasToolbar" class="shrink-0 border-b border-border bg-secondary shadow-sm h-10 w-full">
-          <ScrollArea class="h-full w-full" type="auto">
-            <div class="flex items-center h-full gap-2 px-2 justify-center min-w-max mt-1">
-              <slot name="toolbar" :context="contextValue" />
+    <div class="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
+      <NavigationSidebar
+        :open="isNavigationSidebarOpen"
+        @close="isNavigationSidebarOpen = false"
+        @transition-end="handleSidebarTransitionEnd"
+      />
+
+      <div class="relative flex w-0 min-w-0 flex-1 overflow-hidden">
+        <div class="flex flex-col flex-1 min-w-0">
+          <!-- Toolbar: scrollable with Radix ScrollArea -->
+          <div v-if="hasToolbar" class="shrink-0 border-b border-border bg-secondary shadow-sm h-10 w-full">
+            <ScrollArea class="h-full w-full" type="auto">
+              <div class="flex items-center h-full gap-2 px-2 justify-center min-w-max mt-1">
+                <slot name="toolbar" :context="contextValue" />
+              </div>
+            </ScrollArea>
+          </div>
+
+          <!-- PDF area: muted gray bg to distinguish white pages (React: bg-color-secondary) -->
+          <div class="flex-1 relative overflow-hidden bg-muted">
+            <PageIndicator />
+
+            <!-- PDF viewer container -->
+            <div ref="viewerContainerRef" class="absolute inset-0 overflow-auto bg-muted">
+              <div class="pdfViewer" />
             </div>
-          </ScrollArea>
-        </div>
-
-        <!-- PDF area: muted gray bg to distinguish white pages (React: bg-color-secondary) -->
-        <div class="flex-1 relative overflow-hidden bg-muted">
-          <PageIndicator />
-
-          <!-- PDF viewer container -->
-          <div ref="viewerContainerRef" style="position: absolute" class="inset-0 overflow-auto p-6">
-            <div class="pdfViewer" />
           </div>
         </div>
-      </div>
 
-      <!-- Sidebar -->
-      <aside class="w-80 shrink-0 border-l bg-muted/30 overflow-y-auto p-1 sidebar-panel" :class="{ 'sidebar-panel--hidden': !activePanel }">
-        <slot v-if="activePanel" :name="`sidebar-${activePanel.key}`" :context="contextValue" />
-      </aside>
-      <div v-if="activePanel" class="sidebar-overlay" @click="closeSidebar" />
+        <!-- Extension sidebar -->
+        <aside
+          id="InkLayer-viewer-sidebar"
+          class="w-80 shrink-0 overflow-hidden border-l bg-muted/30 sidebar-panel"
+          :class="{ 'sidebar-panel--hidden': !activePanel }"
+          :aria-hidden="!activePanel"
+          :inert="!activePanel"
+          @transitionend="handleSidebarTransitionEnd"
+        >
+          <div class="h-full w-80 min-w-80 overflow-y-auto p-1">
+            <slot v-if="activePanel" :name="`sidebar-${activePanel.key}`" :context="contextValue" />
+          </div>
+        </aside>
+        <div v-if="activePanel" class="sidebar-overlay" @click="closeSidebar" />
+      </div>
     </div>
 
     <slot />
@@ -84,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, nextTick, onUnmounted, onMounted } from 'vue'
+import { ref, computed, provide, watch, shallowRef, type CSSProperties, useSlots, onUnmounted, onMounted } from 'vue'
 import '@/styles/pdf_viewer.css'
 import { useT } from '@/composables/useT'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -99,6 +133,7 @@ import { Button } from '@/components/ui/button'
 import Icon from '@/components/Icon.vue'
 import { Card, CardContent } from '@/components/ui/card'
 import PageIndicator from '@/components/PageIndicator.vue'
+import NavigationSidebar from '@/components/navigation/NavigationSidebar.vue'
 
 interface Props extends Omit<UseViewerOptions, 'eventBus'> {
   title?: string
@@ -174,6 +209,7 @@ const fullContainerStyle = computed(() => props.layoutStyle)
 const slots = useSlots()
 const viewerContainerRef = shallowRef<HTMLDivElement | null>(null)
 const activeSidebarPanel = ref<SidebarPanelKey | null>(props.defaultActiveSidebarKey)
+const isNavigationSidebarOpen = ref(false)
 
 // PDF viewer
 const { loading, progress, pdfDocument, pdfViewer, eventBus, loadError } = usePdfViewer(viewerContainerRef, {
@@ -252,35 +288,34 @@ watch(() => props.sidebar, (newVal) => {
   if (!newVal.some(p => p.key === activeSidebarPanel.value)) activeSidebarPanel.value = null
 })
 
-watch([pdfViewer, eventBus], ([viewer, bus]) => {
+watch([pdfViewer, eventBus], ([viewer, bus], _previous, onCleanup) => {
   if (!viewer || !bus) return
   const handler = () => { viewer.currentScaleValue = props.initialScale || 'auto' }
   bus.on('pagesloaded', handler)
-  return () => bus.off('pagesloaded', handler)
-})
+  onCleanup(() => bus.off('pagesloaded', handler))
+}, { immediate: true })
 
-watch([pdfViewer, eventBus], ([viewer, bus]) => {
+watch([pdfViewer, eventBus], ([viewer, bus], _previous, onCleanup) => {
   if (!viewer || !bus) return
   const handleResize = () => {
-    const sv = viewer.currentScaleValue
-    if (sv === 'auto' || sv === 'page-fit' || sv === 'page-width') viewer.currentScaleValue = sv
-    viewer.update()
+    refreshAdaptiveScale(viewer)
   }
   window.addEventListener('resize', handleResize)
   handleResize()
-  return () => window.removeEventListener('resize', handleResize)
-})
+  onCleanup(() => window.removeEventListener('resize', handleResize))
+}, { immediate: true })
 
-watch(isSidebarCollapsed, async () => {
-  await nextTick()
-  if (pdfViewer.value) {
-    const sv = pdfViewer.value.currentScaleValue
-    if (sv === 'auto' || sv === 'page-fit' || sv === 'page-width') {
-      pdfViewer.value.currentScaleValue = sv
-    }
-    pdfViewer.value.update()
-  }
-})
+function refreshAdaptiveScale(viewer = pdfViewer.value) {
+  if (!viewer) return
+  const scaleValue = viewer.currentScaleValue
+  if (scaleValue !== 'auto' && scaleValue !== 'page-fit' && scaleValue !== 'page-width') return
+  viewer.currentScaleValue = scaleValue
+}
+
+function handleSidebarTransitionEnd(event: TransitionEvent) {
+  if (event.target !== event.currentTarget || event.propertyName !== 'width') return
+  refreshAdaptiveScale()
+}
 
 // ========== Context ==========
 const isReady = computed(() => !!(pdfViewer.value && eventBus.value && viewerContainerRef.value && !loading.value))

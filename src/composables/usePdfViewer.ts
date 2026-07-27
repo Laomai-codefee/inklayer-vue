@@ -55,7 +55,9 @@ export function usePdfViewer(
 
   const loading = ref(true)
   const progress = ref(0)
-  const pdfDocument = ref<PDFDocumentProxy | null>(null)
+  // PDF.js proxies contain native private fields and must never be wrapped by
+  // Vue's deep reactive Proxy (otherwise getPage/getOutline throw at runtime).
+  const pdfDocument = shallowRef<PDFDocumentProxy | null>(null)
   const pdfViewer = shallowRef<PDFViewer | null>(null)
   const eventBus = shallowRef<EventBus | null>(null)
   const metadata = ref<any>(null)
@@ -103,7 +105,6 @@ export function usePdfViewer(
       annotationEditorMode: AnnotationEditorType.DISABLE,
       linkService,
       downloadManager,
-      removePageBorders: true,
       findController: fc,
     })
 

@@ -13,6 +13,16 @@ export default {
   viewer: {
     zoom: { auto: 'auto', actual: 'actual', fit: 'page-fit', width: 'page-width', zoomIn: 'Zoom In', zoomOut: 'Zoom Out' },
     sidebar: { toggle: 'Toggle Sidebar' },
+    navigation: {
+      toggle: 'Toggle document navigation', label: 'Document navigation',
+      thumbnails: 'Thumbnails', outline: 'Outline', page: 'Page {value}',
+      pageWithMarkers: 'Page {value}, {count} annotations', pageInput: 'Page number',
+      previousPage: 'Previous page', nextPage: 'Next page',
+      thumbnailError: 'Unable to render this page', outlineLoading: 'Loading outline…',
+      outlineEmpty: 'This document has no outline', outlineError: 'Unable to load document outline',
+      untitledOutlineItem: 'Untitled section', expandOutlineItem: 'Expand {title}',
+      collapseOutlineItem: 'Collapse {title}',
+    },
     search: { search: 'Search', placeholder: 'Search the docs\u2026', searching: 'Searching...', page: 'Page {value}', resultTotal: '{total} results found', caseSensitive: 'Case Sensitive', entireWord: 'Entire Word' },
   },
   annotator: {

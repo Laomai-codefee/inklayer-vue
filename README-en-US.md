@@ -61,7 +61,7 @@ http://localhost:5173
 
 ## ✨ Features
 
-- 🚀 PDF Viewer (zoom / search / theming)
+- 🚀 PDF Viewer (thumbnails / outline / zoom / search / theming)
 - 🖍️ PDF Annotation System (highlight / ink / shapes / stamps / signatures)
 - 💬 Comment & review workflow
 - 🔐 Collaborative annotation permissions (ownership / admin overrides / read-only)
