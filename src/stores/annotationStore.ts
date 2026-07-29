@@ -86,6 +86,40 @@ export const useAnnotationStore = defineStore('annotation', () => {
     return updated
   }
 
+  function setAnnotationReferenceNumbers(referenceNumbers: ReadonlyMap<string, number>): void {
+    const applyReferenceNumbers = (source: Map<string, IAnnotationStore>) => {
+      let changed = false
+      const result = new Map(source)
+
+      referenceNumbers.forEach((referenceNumber, id) => {
+        const annotation = result.get(id)
+        if (!annotation || annotation.referenceNumber === referenceNumber) return
+        result.set(id, { ...annotation, referenceNumber })
+        changed = true
+      })
+
+      return changed ? result : source
+    }
+
+    annotations.value = applyReferenceNumbers(annotations.value)
+    originalAnnotations.value = applyReferenceNumbers(originalAnnotations.value)
+
+    const selectedStore = selectedAnnotation.value?.store
+    const selectedReferenceNumber = selectedStore
+      ? referenceNumbers.get(selectedStore.id)
+      : undefined
+    if (
+      selectedStore
+      && selectedReferenceNumber !== undefined
+      && selectedStore.referenceNumber !== selectedReferenceNumber
+    ) {
+      selectedAnnotation.value = {
+        store: { ...selectedStore, referenceNumber: selectedReferenceNumber },
+        source: selectedAnnotation.value?.source ?? null,
+      }
+    }
+  }
+
   function removeAnnotation(id: string): void {
     const newMap = new Map(annotations.value)
     if (newMap.has(id)) {
@@ -154,6 +188,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
     getByPage,
     addAnnotation,
     updateAnnotation,
+    setAnnotationReferenceNumbers,
     removeAnnotation,
     clearAnnotations,
     setSelectedAnnotation,

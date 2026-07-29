@@ -69,6 +69,16 @@ export interface IAnnotationStyle {
   strokeWidth?: number
 }
 
+/**
+ * A stable annotation target stored beside the readable #N text.
+ * `annotationId` drives navigation; `label` only identifies the text token.
+ */
+export interface IAnnotationReference {
+  type: 'annotation'
+  annotationId: string
+  label: string
+}
+
 export interface IAnnotationComment {
   id: string
   title: string
@@ -77,6 +87,8 @@ export interface IAnnotationComment {
   status?: CommentStatus
   /** Stable author identity used by collaboration permissions. */
   user?: User
+  /** Structured annotation references contained in `content`. */
+  references?: IAnnotationReference[]
 }
 
 export enum CommentStatus {
@@ -90,11 +102,17 @@ export enum CommentStatus {
 
 export interface IAnnotationContentsObj {
   text: string
+  /** Source text covered by a text-markup annotation. */
+  selectedText?: string
   image?: string
+  /** Structured annotation references contained in `text`. */
+  references?: IAnnotationReference[]
 }
 
 export interface IAnnotationStore {
   id: string
+  /** Stable, document-scoped display number used by annotation references. */
+  referenceNumber?: number
   pageNumber: number
   konvaString: string
   konvaClientRect: IRect

@@ -305,4 +305,20 @@ describe('useAnnotationStore', () => {
       expect(annStore.painter).toBeNull()
     })
   })
+
+  describe('setAnnotationReferenceNumbers', () => {
+    it('应同步当前、原始及选中批注的编号', () => {
+      const annStore = useAnnotationStore()
+      const annotation = makeStore('ann-1')
+      annStore.addAnnotation(annotation, true)
+      annStore.setSelectedAnnotation(annotation, SelectionSource.SIDEBAR)
+
+      annStore.setAnnotationReferenceNumbers(new Map([['ann-1', 7]]))
+
+      expect(annStore.annotations.get('ann-1')?.referenceNumber).toBe(7)
+      expect(annStore.originalAnnotations.get('ann-1')?.referenceNumber).toBe(7)
+      expect(annStore.selectedAnnotationStore?.referenceNumber).toBe(7)
+      expect(annStore.selectedAnnotation?.source).toBe(SelectionSource.SIDEBAR)
+    })
+  })
 })

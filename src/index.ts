@@ -87,7 +87,12 @@ export type {
   AnnotationPermissionRequest,
   AnnotationPermissions,
 } from './extensions/annotator/types/annotator'
-export type { IAnnotationStore, IAnnotationComment } from './extensions/annotator/const/definitions'
+export type {
+  IAnnotationStore,
+  IAnnotationComment,
+  IAnnotationContentsObj,
+  IAnnotationReference,
+} from './extensions/annotator/const/definitions'
 
 // ========== Core ==========
 export * from './core'

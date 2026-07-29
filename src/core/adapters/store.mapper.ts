@@ -17,7 +17,14 @@
  */
 
 import type { Annotation, AnnotationKind, Geometry, AnnotationTarget, AnnotationPayload, AnnotationAppearance, AnnotationMeta, AnnotationRelations } from '../annotation.core'
-import { type PdfjsAnnotationSubtype, AnnotationType, PdfjsAnnotationType, IAnnotationStore, type IAnnotationComment } from '@/extensions/annotator/const/definitions'
+import {
+  type PdfjsAnnotationSubtype,
+  AnnotationType,
+  PdfjsAnnotationType,
+  type IAnnotationStore,
+  type IAnnotationComment,
+  type IAnnotationContentsObj,
+} from '@/extensions/annotator/const/definitions'
 
 /* ============================================================================
  * 局部类型：映射层需要知道的 extensions 子结构
@@ -38,7 +45,7 @@ interface KnownExtensions {
   legacy?: {
     annotationType?: AnnotationType
     title?: string
-    contentsObj?: { text: string; image?: string } | null
+    contentsObj?: IAnnotationContentsObj | null
     comments?: IAnnotationComment[]
   }
 }
@@ -142,6 +149,7 @@ export function storeToAnnotation(store: IAnnotationStore): Annotation {
 
   // 7. 构建 Meta
   const meta: AnnotationMeta = {
+    referenceNumber: store.referenceNumber,
     createdAt: store.date || undefined,
     updatedAt: store.date || undefined,
     authorId: store.user,
@@ -229,6 +237,8 @@ function extractPayload(store: IAnnotationStore, kind: AnnotationKind): Annotati
       return {
         kind: 'text-markup',
         variant,
+        text: store.contentsObj?.text || '',
+        selectedText: store.contentsObj?.selectedText,
         color: store.color || undefined,
       }
     }
@@ -335,6 +345,7 @@ export function annotationToStore(annotation: Annotation): IAnnotationStore {
 
   return {
     id: annotation.id,
+    referenceNumber: annotation.meta?.referenceNumber,
     pageNumber: annotation.target.pageIndex + 1, // 转换回 1-based
     konvaString: konva?.serialized || '',
     konvaClientRect: konva?.clientRect || extractBoundingRect(geometry),
@@ -449,6 +460,11 @@ function extractTitleFromPayload(payload?: AnnotationPayload): string {
 function extractContentsFromPayload(payload?: AnnotationPayload) {
   if (!payload) return null
   switch (payload.kind) {
+    case 'text-markup':
+      return {
+        text: payload.text || '',
+        selectedText: payload.selectedText,
+      }
     case 'note': return { text: payload.text }
     default: return null
   }

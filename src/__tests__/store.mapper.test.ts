@@ -63,6 +63,8 @@ describe('storeToAnnotation', () => {
     expect(ann.payload).toEqual({
       kind: 'text-markup',
       variant: 'highlight',
+      text: 'Hello World',
+      selectedText: undefined,
       color: '#ff0000',
     })
     expect(ann.appearance!.strokeColor).toBe('#ff0000')
@@ -675,5 +677,59 @@ describe('颜色透明度', () => {
     const ann = storeToAnnotation(store)
 
     expect(ann.appearance!.fillColor).toBeUndefined()
+  })
+})
+
+describe('批注引用与原文数据往返', () => {
+  it('应保留批注引用编号', () => {
+    const original = makeStore({ referenceNumber: 12 })
+    const saved = storeToAnnotation(original)
+
+    expect(saved.meta?.referenceNumber).toBe(12)
+    expect(annotationToStore(saved).referenceNumber).toBe(12)
+  })
+
+  it('应保留主评论与回复中的结构化引用', () => {
+    const reference = {
+      type: 'annotation' as const,
+      annotationId: 'annotation-2',
+      label: '#2',
+    }
+    const original = makeStore({
+      contentsObj: {
+        text: 'Compare this with #2.',
+        references: [reference],
+      },
+      comments: [{
+        id: 'comment-1',
+        title: 'Alice',
+        date: '2026-07-18T00:00:00Z',
+        content: 'Please review #2.',
+        references: [reference],
+      }],
+    })
+
+    const saved = storeToAnnotation(original)
+    const restored = annotationToStore(saved)
+
+    expect(restored.contentsObj).toEqual(original.contentsObj)
+    expect(restored.comments).toEqual(original.comments)
+  })
+
+  it('应将文字标记原文与用户评论分别保存', () => {
+    const original = makeStore({
+      contentsObj: {
+        text: 'User-authored note',
+        selectedText: 'Quoted source text',
+      },
+    })
+    const saved = storeToAnnotation(original)
+
+    expect(saved.payload).toMatchObject({
+      kind: 'text-markup',
+      text: 'User-authored note',
+      selectedText: 'Quoted source text',
+    })
+    expect(annotationToStore(saved).contentsObj).toEqual(original.contentsObj)
   })
 })

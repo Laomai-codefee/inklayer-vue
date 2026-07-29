@@ -213,6 +213,28 @@ describe('PDF annotation export', () => {
         ])
     })
 
+    it.each([
+        [AnnotationType.HIGHLIGHT, PdfjsAnnotationType.HIGHLIGHT, 'Highlight'],
+        [AnnotationType.UNDERLINE, PdfjsAnnotationType.UNDERLINE, 'Underline'],
+        [AnnotationType.STRIKEOUT, PdfjsAnnotationType.STRIKEOUT, 'StrikeOut']
+    ] as const)('exports only user-authored text as %s Contents', async (type, pdfjsType, subtype) => {
+        const annotation = createAnnotation({
+            type,
+            pdfjsType,
+            subtype,
+            contentsObj: {
+                text: 'User-authored note',
+                selectedText: 'Source text selected from the PDF'
+            }
+        })
+
+        const result = await buildAnnotatedPdf(createViewer(await createBlankPdf()), [annotation])
+        const [textMarkup] = getAnnotationDictionaries(await PDFDocument.load(result))
+
+        expect(textMarkup.lookup(PDFName.of('Contents'), PDFHexString).decodeText())
+            .toBe('User-authored note')
+    })
+
     it('exports Cloud as a fidelity-preserving Ink path', async () => {
         const annotation = createAnnotation({
             type: AnnotationType.CLOUD,

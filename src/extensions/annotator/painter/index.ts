@@ -29,6 +29,11 @@ import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 import { User } from '@/types'
 import { AnnotationPermissionController } from '../permissions/permission_controller'
 import { AnnotationAuthorLabels } from './annotation_author_labels'
+import {
+    assignAnnotationReferenceNumber,
+    getGreatestReferenceNumber,
+    normalizeAnnotationReferenceNumbers
+} from '../references/annotation_numbering'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -51,6 +56,7 @@ export class Painter {
     public getPDFViewer(): PDFViewer { return this.pdfViewerApplication }
     private webSelection: WebSelection // WebSelection 实例
     private currentAnnotation: IAnnotationType | null = null // 当前批注类型
+    private nextAnnotationReferenceNumber = 1
     private selector: Selector // 选择器实例
     private authorLabels: AnnotationAuthorLabels
     private transform: Transform // 转换器
@@ -371,18 +377,28 @@ export class Painter {
      */
     private saveToStore(annotationStore: IAnnotationStore, isOriginal: boolean = false) {
         if (!isOriginal && !this.can('annotation.create')) return
-        const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === annotationStore.pdfjsType)
-        this.store.addAnnotation(annotationStore, isOriginal)
-        this.authorLabels.refreshAnnotation(annotationStore.id)
+        const numberedAnnotation = isOriginal
+            ? annotationStore
+            : assignAnnotationReferenceNumber(
+                annotationStore,
+                this.store.annotations.values(),
+                this.nextAnnotationReferenceNumber
+            )
+        if (!isOriginal) {
+            this.nextAnnotationReferenceNumber = numberedAnnotation.referenceNumber! + 1
+        }
+        const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === numberedAnnotation.pdfjsType)
+        this.store.addAnnotation(numberedAnnotation, isOriginal)
+        this.authorLabels.refreshAnnotation(numberedAnnotation.id)
         if (isOriginal) return
         if (currentAnnotation) {
             if (currentAnnotation.isOnce) {
-                this.selectAnnotation(annotationStore.id, true)
+                this.selectAnnotation(numberedAnnotation.id, true)
             } else {
-                this.store.setSelectedAnnotation(annotationStore, SelectionSource.CANVAS)
+                this.store.setSelectedAnnotation(numberedAnnotation, SelectionSource.CANVAS)
             }
         }
-        this.onAnnotationAdd(annotationStore, isOriginal, currentAnnotation)
+        this.onAnnotationAdd(numberedAnnotation, isOriginal, currentAnnotation)
     }
 
     /**
@@ -840,6 +856,12 @@ export class Painter {
      * @description 将annotation 存入 store, 包含外部 annotation 和 pdf 文件上的 annotation
      */
     public async initAnnotationsOnce(annotations: IAnnotationStore[], enableNativeAnnotations: boolean) {
+        const normalizedInputAnnotations = normalizeAnnotationReferenceNumbers(annotations)
+        this.nextAnnotationReferenceNumber = Math.min(
+            getGreatestReferenceNumber(normalizedInputAnnotations) + 1,
+            Number.MAX_SAFE_INTEGER
+        )
+
         // 加载 pdf 文件批注
         if (enableNativeAnnotations) {
             // 先将 pdf 文件中的存入
@@ -848,7 +870,7 @@ export class Painter {
                 this.saveToStore(annotation, true)
             })
             // 再用外部数据覆盖
-            annotations.forEach((annotation) => {
+            normalizedInputAnnotations.forEach((annotation) => {
                 if (annotationMap.has(annotation.id)) {
                     this.updateStore(annotation.id, annotation, true, null)
                 } else {
@@ -856,10 +878,24 @@ export class Painter {
                 }
             })
         } else {
-            annotations.forEach((annotation) => {
+            normalizedInputAnnotations.forEach((annotation) => {
                 this.saveToStore(annotation, true)
             })
         }
+
+        const normalizedAnnotations = normalizeAnnotationReferenceNumbers(
+            Array.from(this.store.annotations.values())
+        )
+        this.store.setAnnotationReferenceNumbers(
+            new Map(normalizedAnnotations.map((annotation) => [
+                annotation.id,
+                annotation.referenceNumber!
+            ]))
+        )
+        this.nextAnnotationReferenceNumber = Math.min(
+            getGreatestReferenceNumber(normalizedAnnotations) + 1,
+            Number.MAX_SAFE_INTEGER
+        )
     }
 
     /**

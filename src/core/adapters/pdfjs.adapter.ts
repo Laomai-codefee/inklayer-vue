@@ -279,6 +279,7 @@ function extractPayloadFromPdfJs(pdf: PdfJsAnnotation, kind: AnnotationKind): An
       return {
         kind: 'text-markup',
         variant,
+        text: pdf.contents || '',
         color: pdf.color ? rgbToHex(pdf.color) : undefined,
       }
     }
@@ -524,7 +525,7 @@ function quadsToPdfQuadPoints(quads: PdfQuad[]): number[] {
 function applyPayloadToPdfJs(payload: AnnotationPayload, pdf: PdfJsAnnotation): void {
   switch (payload.kind) {
     case 'text-markup':
-      pdf.contents = ''
+      pdf.contents = payload.text || ''
       break
     case 'note':
       pdf.contents = payload.text

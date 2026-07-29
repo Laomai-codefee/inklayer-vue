@@ -208,6 +208,12 @@ export interface TextMarkupPayload {
   
   /** 文本标记变体 */
   variant: 'highlight' | 'underline' | 'squiggly' | 'strikeout'
+
+  /** User-authored annotation text. */
+  text?: string
+
+  /** Source text covered by the markup geometry. */
+  selectedText?: string
   
   /** 语义颜色（可选，用于显示优先级）
    * 
@@ -411,6 +417,9 @@ export interface AnnotationRelations {
 
 /** 批注元信息 */
 export interface AnnotationMeta {
+  /** Stable, document-scoped display number used by annotation references. */
+  referenceNumber?: number
+
   /** 创建时间（ISO 8601） */
   createdAt?: string
   
