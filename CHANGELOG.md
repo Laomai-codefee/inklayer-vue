@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.1.2...v1.2.0) (2026-07-29)
+
+
+### Features
+
+* **annotator:** add annotation reference data model ([0be9883](https://github.com/Laomai-codefee/inklayer-vue/commit/0be988354feddf8ba3168c478f072ce4bec05fc5))
+* **annotator:** add annotation references and hover previews ([9979efa](https://github.com/Laomai-codefee/inklayer-vue/commit/9979efa463f2ac16ee1474e43281a1df642e6fcb))
+* **annotator:** explain annotation references in editors ([89b7573](https://github.com/Laomai-codefee/inklayer-vue/commit/89b75737cb65fcd1dd19481bc93822c43e6c2847))
+
+
+### Bug Fixes
+
+* **annotator:** restore hover after text markup ([b4d8e46](https://github.com/Laomai-codefee/inklayer-vue/commit/b4d8e46f97e478588ea9f98bd506047e554c187a))
+* make playground docs build deterministic ([62defc4](https://github.com/Laomai-codefee/inklayer-vue/commit/62defc481d147e3a538ed86f53ce15b726058890))
+
 ### [1.1.2](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.1.1...v1.1.2) (2026-07-27)
 
 
