@@ -133,6 +133,7 @@
               :annotation-hover-owner="ann.id"
               :initial-content="ann.contentsObj?.text || ''"
               :initial-references="ann.contentsObj?.references"
+              :placeholder="t('annotator.comment.reference.commentPlaceholder')"
               @submit="updateComment(ann, $event)"
               @cancel="cancelAnnotationEdit(ann.id)"
             />
@@ -157,6 +158,7 @@
                 :annotation-hover-owner="ann.id"
                 :initial-content="reply.content"
                 :initial-references="reply.references"
+                :placeholder="t('annotator.comment.reference.replyPlaceholder')"
                 @submit="updateReply(ann, reply, $event)"
                 @cancel="cancelReplyEdit(ann.id)"
               />
@@ -198,6 +200,7 @@
               :annotations="annotations"
               :exclude-annotation-id="ann.id"
               :annotation-hover-owner="ann.id"
+              :placeholder="t('annotator.comment.reference.replyPlaceholder')"
               @submit="addReply(ann, $event)"
               @cancel="cancelReply(ann.id)"
             />

@@ -63,6 +63,10 @@ function createPdfContext(): PdfViewerContextValue {
 }
 
 const slotStub = { template: '<div><slot /></div>' }
+const referenceInputStub = {
+  props: ['placeholder'],
+  template: '<textarea class="reference-input-stub" :placeholder="placeholder" />',
+}
 
 describe('AnnotationSidebar references', () => {
   beforeEach(() => {
@@ -264,5 +268,71 @@ describe('AnnotationSidebar references', () => {
     expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
     ownedPortal.remove()
     outside.remove()
+  })
+
+  it('uses distinct placeholders for annotation comments and replies', async () => {
+    const annotation = makeAnnotation('annotation-1', 1)
+    const store = useAnnotationStore()
+    const mountSidebar = () => mount(AnnotationSidebar, {
+      props: {
+        annotations: [annotation],
+        selectedId: annotation.id,
+      },
+      global: {
+        provide: {
+          [PdfViewerContextKey as symbol]: createPdfContext(),
+          [UserContextKey as symbol]: {
+            user: computed(() => ({ id: 'bob', name: 'Bob' })),
+          },
+        },
+        stubs: {
+          ScrollArea: slotStub,
+          Popover: {
+            template: '<div><slot name="trigger" /><slot /></div>',
+          },
+          Tooltip: {
+            template: '<span><slot name="trigger" /></span>',
+          },
+          DropdownMenu: {
+            template: '<div><slot name="trigger" /><slot /></div>',
+          },
+          DropdownMenuItem: {
+            template: '<button class="menu-item-stub" @click="$emit(\'select\')"><slot /></button>',
+          },
+          AnnotationReferenceInput: referenceInputStub,
+          AnnotationReferenceText: slotStub,
+        },
+      },
+    })
+
+    store.setPainter({
+      can: vi.fn((action: string) => action === 'annotation.edit'),
+      highlight: vi.fn(),
+      subscribeAnnotationHover: vi.fn(() => () => {}),
+      getAnnotationHoverSnapshot: vi.fn(() => ({ annotationId: null, source: null })),
+    } as never)
+    const commentWrapper = mountSidebar()
+    const editButton = commentWrapper.findAll('.menu-item-stub')
+      .find(button => button.text() === '编辑')
+    expect(editButton).toBeDefined()
+    await editButton!.trigger('click')
+    expect(commentWrapper.get('.reference-input-stub').attributes('placeholder'))
+      .toBe('发表评论或用“#”引用批注')
+    commentWrapper.unmount()
+
+    store.setPainter({
+      can: vi.fn((action: string) => action === 'annotation.comment'),
+      highlight: vi.fn(),
+      subscribeAnnotationHover: vi.fn(() => () => {}),
+      getAnnotationHoverSnapshot: vi.fn(() => ({ annotationId: null, source: null })),
+    } as never)
+    const replyWrapper = mountSidebar()
+    const replyButton = replyWrapper.findAll('.menu-item-stub')
+      .find(button => button.text() === '回复')
+    expect(replyButton).toBeDefined()
+    await replyButton!.trigger('click')
+    expect(replyWrapper.get('.reference-input-stub').attributes('placeholder'))
+      .toBe('回复或用“#”引用批注')
+    replyWrapper.unmount()
   })
 })

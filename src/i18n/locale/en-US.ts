@@ -46,6 +46,7 @@ export default {
       status: { accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed', none: 'None', closed: 'Closed' },
       statusText: 'Set Status: {value}', nativeAnnotation: 'Native Annotation',
       reference: {
+        commentPlaceholder: 'Post a comment or use “#” to reference an annotation',
         empty: 'No matching annotations',
         inputLabel: 'Comment with annotation references',
         noContent: 'No comment content',
@@ -54,6 +55,7 @@ export default {
         previewPage: 'Page {value}',
         previewNoContent: 'No annotation content',
         replyCount: '{count} replies',
+        replyPlaceholder: 'Reply or use “#” to reference an annotation',
       },
     },
     export: { fields: { id: 'ID', page: 'Page', author: 'Author', date: 'Date', content: 'Content', status: 'Status', annotationType: 'Annotation Type', recordType: 'Type' }, recordType: { annotation: 'Annotation', reply: 'Reply' } },

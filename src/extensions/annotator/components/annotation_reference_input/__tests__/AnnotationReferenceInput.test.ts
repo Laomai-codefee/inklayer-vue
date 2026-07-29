@@ -63,6 +63,13 @@ afterEach(() => {
 })
 
 describe('AnnotationReferenceInput', () => {
+  it('forwards its placeholder to the textarea', () => {
+    const wrapper = mountInput({ placeholder: 'Reply or reference an annotation' })
+
+    expect(wrapper.get('textarea').attributes('placeholder'))
+      .toBe('Reply or reference an annotation')
+  })
+
   it('does not propagate editor clicks to its annotation card', async () => {
     const onCardClick = vi.fn()
     const host = document.createElement('div')

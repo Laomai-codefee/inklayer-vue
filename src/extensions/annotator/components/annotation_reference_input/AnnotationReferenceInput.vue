@@ -22,6 +22,7 @@
           ref="textareaComponent"
           v-model="content"
           rows="4"
+          :placeholder="placeholder"
           role="combobox"
           aria-autocomplete="list"
           aria-haspopup="listbox"
@@ -147,6 +148,7 @@ const props = withDefaults(defineProps<{
   initialContent?: string
   initialReferences?: readonly IAnnotationReference[]
   annotationHoverOwner?: string
+  placeholder?: string
 }>(), {
   initialContent: '',
   initialReferences: () => [],

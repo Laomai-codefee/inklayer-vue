@@ -46,6 +46,7 @@ export default {
       status: { accepted: '接受', rejected: '拒绝', cancelled: '取消', completed: '完成', none: '无', closed: '关闭' },
       statusText: '将状态设置为 "{value}"', nativeAnnotation: '原生批注',
       reference: {
+        commentPlaceholder: '发表评论或用“#”引用批注',
         empty: '没有匹配的批注',
         inputLabel: '支持引用批注的评论输入框',
         noContent: '暂无评论内容',
@@ -54,6 +55,7 @@ export default {
         previewPage: '第 {value} 页',
         previewNoContent: '暂无批注内容',
         replyCount: '{count} 条回复',
+        replyPlaceholder: '回复或用“#”引用批注',
       },
     },
     export: { fields: { id: 'ID', page: '页码', author: '用户', date: '日期', content: '内容', status: '状态', annotationType: '批注类型', recordType: '类型' }, recordType: { annotation: '批注', reply: '回复' } },
