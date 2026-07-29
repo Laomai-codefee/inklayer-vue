@@ -1,4 +1,7 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../";
+@source "../../playground";
+@source "../../index.html";
 
 @variant dark (&:where(.dark, .dark *));
 
