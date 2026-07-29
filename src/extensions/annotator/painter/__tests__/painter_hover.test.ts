@@ -3,6 +3,7 @@ import type { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAnnotationStore } from '@/stores/annotationStore'
+import { AnnotationType, annotationDefinitions } from '../../const/definitions'
 import type { PdfAnnotatorOptions } from '../../types/annotator'
 import { Painter } from '..'
 
@@ -55,5 +56,33 @@ describe('Painter annotation hover', () => {
       annotationId: null,
       source: null,
     })
+  })
+
+  it('keeps passive hover available while a text-markup tool is active', () => {
+    const painter = createPainter()
+    const internals = painter as unknown as {
+      passiveHover: { shouldSuppress: () => boolean }
+      webSelection: { isRangeSelectionActive: () => boolean }
+    }
+    const highlight = annotationDefinitions.find(
+      annotation => annotation.type === AnnotationType.HIGHLIGHT,
+    )!
+    const rectangle = annotationDefinitions.find(
+      annotation => annotation.type === AnnotationType.RECTANGLE,
+    )!
+
+    painter.activate(highlight, null)
+    expect(internals.passiveHover.shouldSuppress()).toBe(false)
+
+    const rangeSelectionSpy = vi
+      .spyOn(internals.webSelection, 'isRangeSelectionActive')
+      .mockReturnValue(true)
+    expect(internals.passiveHover.shouldSuppress()).toBe(true)
+
+    rangeSelectionSpy.mockRestore()
+    painter.activate(rectangle, null)
+    expect(internals.passiveHover.shouldSuppress()).toBe(true)
+
+    painter.destroy()
   })
 })
