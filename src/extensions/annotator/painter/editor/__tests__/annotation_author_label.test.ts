@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  getAnnotationAuthorLabelText,
   getAnnotationAuthorLabelPosition,
   getAnnotationAuthorName,
-  getReadableAuthorLabelTextColor,
 } from '../annotation_author_label'
 
 describe('annotation author label', () => {
@@ -30,22 +30,34 @@ describe('annotation author label', () => {
     })
   })
 
-  describe('text contrast', () => {
-    it('uses white text for dark Transformer colors', () => {
-      expect(getReadableAuthorLabelTextColor('rgb(110, 86, 207)')).toBe('#ffffff')
+  describe('label text', () => {
+    it('combines the stable number and author name', () => {
+      expect(getAnnotationAuthorLabelText({
+        user: { id: 'alice', name: 'Alice' },
+        title: 'Fallback',
+        referenceNumber: 12,
+      })).toBe('#12 · Alice')
     })
 
-    it('uses dark text for light Transformer colors', () => {
-      expect(getReadableAuthorLabelTextColor('#fde047')).toBe('#111827')
+    it('falls back independently when either identity part is missing', () => {
+      expect(getAnnotationAuthorLabelText({
+        user: { id: 'unknown', name: '' },
+        title: '',
+        referenceNumber: 12,
+      })).toBe('#12')
+      expect(getAnnotationAuthorLabelText({
+        user: { id: 'alice', name: 'Alice' },
+        title: 'Fallback',
+        referenceNumber: undefined,
+      })).toBe('Alice')
     })
 
-    it('supports short hex and rgba colors', () => {
-      expect(getReadableAuthorLabelTextColor('#000')).toBe('#ffffff')
-      expect(getReadableAuthorLabelTextColor('rgba(255, 255, 255, 0.5)')).toBe('#111827')
-    })
-
-    it('falls back to white for unsupported colors', () => {
-      expect(getReadableAuthorLabelTextColor('var(--accent-9)')).toBe('#ffffff')
+    it('does not treat invalid numbers as reference labels', () => {
+      expect(getAnnotationAuthorLabelText({
+        user: { id: 'alice', name: 'Alice' },
+        title: 'Fallback',
+        referenceNumber: 0,
+      })).toBe('Alice')
     })
   })
 

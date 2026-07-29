@@ -5,9 +5,14 @@ import type { IAnnotationStore } from '../../const/definitions'
 import { AnnotationAuthorLabels, isAnnotationAuthorRevealKey } from '../annotation_author_labels'
 import { ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from '../const'
 
-function createAnnotation(id: string, name: string): IAnnotationStore {
+function createAnnotation(
+  id: string,
+  name: string,
+  referenceNumber?: number
+): IAnnotationStore {
   return {
     id,
+    referenceNumber,
     pageNumber: 1,
     title: name,
     user: { id: name.toLowerCase(), name },
@@ -36,7 +41,7 @@ describe('AnnotationAuthorLabels', () => {
   })
 
   it('can show every author label initially', () => {
-    const annotation = createAnnotation('annotation-1', 'Alice')
+    const annotation = createAnnotation('annotation-1', 'Alice', 1)
     const group = createGroup({ x: 20, y: 40, width: 50, height: 30 })
     const wrapper = document.createElement('div')
     const stage = { width: () => 500, height: () => 700 } as unknown as Konva.Stage
@@ -53,6 +58,7 @@ describe('AnnotationAuthorLabels', () => {
 
     expect(labels.areAllVisible()).toBe(true)
     expect(label.style.display).toBe('block')
+    expect(label.textContent).toBe('#1 · Alice')
     labels.destroy()
   })
 
@@ -80,6 +86,11 @@ describe('AnnotationAuthorLabels', () => {
     expect(layer?.getAttribute('aria-hidden')).toBe('true')
     expect(aliceLabel.classList.contains(ANNOTATION_AUTHOR_LABEL_CLASS)).toBe(true)
     expect(aliceLabel.style.display).toBe('none')
+    expect(bobLabel.style.display).toBe('none')
+
+    labels.setHovered(bob.id)
+    expect(bobLabel.style.display).toBe('block')
+    labels.setHovered(null)
     expect(bobLabel.style.display).toBe('none')
 
     Object.defineProperties(aliceLabel, {

@@ -8,7 +8,13 @@ export default {
     edit: '编辑', delete: '删除', more: '更多', color: '颜色',
     status: '状态', strokeWidth: '笔触宽度', opacity: '透明度', transparent: '透明',
     fileSizeLimit: '文件大小超出 {value} 限制', comment: '评论', print: '打印',
-    dateFormat: { full: '{year}-{month}-{day} {hour}:{minute}', dayMonth: '{month}-{day}', dayMonthYear: '{year}-{month}-{day}' },
+    dateFormat: {
+      full: '{year}-{month}-{day} {hour}:{minute}',
+      dayMonth: '{month}-{day}',
+      dayMonthYear: '{year}-{month}-{day}',
+      compact: '{month}-{day} {hour}:{minute}',
+      compactWithYear: '{year}-{month}-{day} {hour}:{minute}',
+    },
   },
   viewer: {
     zoom: { auto: '自动', actual: '实际大小', fit: '适合页面', width: '适合宽度', zoomIn: '放大', zoomOut: '缩小' },
@@ -35,7 +41,21 @@ export default {
       stamp: { stampText: '印章内容', fontStyle: '字体样式', fontFamily: '字体', textColor: '文字颜色', backgroundColor: '背景颜色', borderColor: '边框颜色', borderStyle: '边框样式', timestampText: '时间戳', customTimestamp: '自定义', username: '用户名', date: '日期', time: '时间', dateFormat: '日期格式', solid: '实线', dashed: '虚线', none: '无', defaultText: '草稿', defaultStampNotSet: '未设置默认签章', upload: '选择图像' },
       signature: { area: '签名处', upload: '图像', choose: '选择图像', uploadHint: '支持{format}格式, 最大 {maxSize}' },
     },
-    comment: { total: ' {value} 条批注', page: '第{value}页', status: { accepted: '接受', rejected: '拒绝', cancelled: '取消', completed: '完成', none: '无', closed: '关闭' }, statusText: '将状态设置为 "{value}"', nativeAnnotation: '原生批注' },
+    comment: {
+      total: ' {value} 条批注', page: '第{value}页',
+      status: { accepted: '接受', rejected: '拒绝', cancelled: '取消', completed: '完成', none: '无', closed: '关闭' },
+      statusText: '将状态设置为 "{value}"', nativeAnnotation: '原生批注',
+      reference: {
+        empty: '没有匹配的批注',
+        inputLabel: '支持引用批注的评论输入框',
+        noContent: '暂无评论内容',
+        unavailable: '{value} 引用的批注已不可用',
+        open: '打开批注 {value}',
+        previewPage: '第 {value} 页',
+        previewNoContent: '暂无批注内容',
+        replyCount: '{count} 条回复',
+      },
+    },
     export: { fields: { id: 'ID', page: '页码', author: '用户', date: '日期', content: '内容', status: '状态', annotationType: '批注类型', recordType: '类型' }, recordType: { annotation: '批注', reply: '回复' } },
   },
 }

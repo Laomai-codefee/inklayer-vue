@@ -27,7 +27,7 @@ describe('getTransformerPermissionStyle', () => {
   it('keeps the selection border visible while hiding resize anchors when transform is denied', () => {
     expect(getTransformerPermissionStyle(false)).toEqual({
       borderStrokeWidth: 2,
-      borderDash: [6, 4],
+      borderDash: [3, 3],
       opacity: 0.5,
       authorLabelOpacity: 0.8,
       anchorFill: 'transparent',
@@ -44,7 +44,7 @@ describe('Selector permission interaction', () => {
 
   it.each([
     ['editable', true, true, true, [], 1],
-    ['read-only', false, false, false, [6, 4], 0.5],
+    ['read-only', false, false, false, [3, 3], 0.5],
   ] as const)(
     'keeps an annotation selectable while applying the %s transform state',
     (_state, allowed, draggable, resizeEnabled, borderDash, opacity) => {
@@ -85,6 +85,8 @@ describe('Selector permission interaction', () => {
         canTransform: () => allowed,
         onSelected,
         onSelectionChanged: vi.fn(),
+        onHoverStart: vi.fn(),
+        onHoverEnd: vi.fn(),
         onCancel: vi.fn(),
         onChanged: vi.fn(),
         onDelete: vi.fn(),
@@ -104,4 +106,77 @@ describe('Selector permission interaction', () => {
       stage.destroy()
     },
   )
+
+  it('reports group hover once, clears it before selection, and ignores touch', () => {
+    const inkLayer = document.createElement('div')
+    inkLayer.id = 'InkLayer'
+    const container = document.createElement('div')
+    inkLayer.appendChild(container)
+    document.body.appendChild(inkLayer)
+    const stage = new Konva.Stage({ container, width: 600, height: 800 })
+    const layer = new Konva.Layer()
+    const group = new Konva.Group({
+      id: 'annotation-1',
+      name: SHAPE_GROUP_NAME,
+    })
+    group.add(new Konva.Rect({ x: 40, y: 60, width: 120, height: 50 }))
+    group.add(new Konva.Line({ points: [40, 60, 160, 110] }))
+    const secondGroup = new Konva.Group({
+      id: 'annotation-2',
+      name: SHAPE_GROUP_NAME,
+    })
+    secondGroup.add(new Konva.Rect({ x: 200, y: 160, width: 80, height: 40 }))
+    layer.add(group)
+    layer.add(secondGroup)
+    stage.add(layer)
+
+    const onHoverStart = vi.fn()
+    const onHoverEnd = vi.fn()
+    const selector = new Selector({
+      primaryColor: '#6e56cf',
+      konvaCanvasStore: new Map([[
+        1,
+        {
+          pageNumber: 1,
+          konvaStage: stage,
+          wrapper: container,
+          isActive: false,
+        },
+      ]]),
+      getAnnotationStore: vi.fn(),
+      canTransform: () => true,
+      onSelected: vi.fn(),
+      onSelectionChanged: vi.fn(),
+      onHoverStart,
+      onHoverEnd,
+      onCancel: vi.fn(),
+      onChanged: vi.fn(),
+      onDelete: vi.fn(),
+    })
+
+    selector.activate(1)
+    group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+    group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+    expect(onHoverStart).toHaveBeenCalledOnce()
+    expect(onHoverStart).toHaveBeenCalledWith(group.id())
+    expect(inkLayer.classList.contains('InkLayer_Annotator_selector_hover')).toBe(true)
+
+    secondGroup.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+    expect(onHoverStart).toHaveBeenLastCalledWith(secondGroup.id())
+    group.fire('pointerleave', { evt: { pointerType: 'mouse' } })
+    expect(onHoverEnd).not.toHaveBeenCalled()
+    secondGroup.fire('pointerleave', { evt: { pointerType: 'mouse' } })
+    expect(onHoverEnd).toHaveBeenCalledWith(secondGroup.id())
+
+    group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+    group.getChildren()[0].fire('pointerclick', { evt: { button: 0 } })
+    expect(onHoverEnd).toHaveBeenLastCalledWith(group.id())
+    expect(inkLayer.classList.contains('InkLayer_Annotator_selector_hover')).toBe(false)
+
+    group.fire('pointerenter', { evt: { pointerType: 'touch' } })
+    expect(onHoverStart).toHaveBeenCalledTimes(3)
+
+    selector.clear()
+    stage.destroy()
+  })
 })

@@ -49,6 +49,9 @@ function createPainter(allowed: boolean) {
       areAllVisible: vi.fn(() => false),
       setAllVisible: vi.fn(),
     },
+    annotationHover: {
+      clearAnnotation: vi.fn(),
+    },
     editorStore: new Map(),
     konvaCanvasStore: new Map(),
     onAnnotationChanged: vi.fn(),
@@ -151,6 +154,9 @@ describe('Painter permission guards', () => {
     expect(bob.delete(annotation.id, true)).toBe(false)
     expect(admin.update(annotation.id, { title: 'Admin edited' })).toBeDefined()
     expect(admin.delete(annotation.id, true)).toBe(true)
+    expect((admin as unknown as {
+      annotationHover: { clearAnnotation: ReturnType<typeof vi.fn> }
+    }).annotationHover.clearAnnotation).toHaveBeenCalledWith(annotation.id)
   })
 
   it('updates the current user and permissions without recreating the painter', () => {

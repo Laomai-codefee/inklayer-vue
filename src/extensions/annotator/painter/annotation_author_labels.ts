@@ -2,7 +2,7 @@ import type Konva from 'konva'
 
 import type { IAnnotationStore } from '../const/definitions'
 import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from './const'
-import { getAnnotationAuthorLabelPosition, getAnnotationAuthorName, getReadableAuthorLabelTextColor } from './editor/annotation_author_label'
+import { getAnnotationAuthorLabelPosition, getAnnotationAuthorLabelText } from './editor/annotation_author_label'
 import { getTransformerPermissionStyle } from './editor/selector_permissions'
 
 interface AnnotationAuthorLabelsOptions {
@@ -45,6 +45,7 @@ export class AnnotationAuthorLabels {
     private readonly boundGroups = new Map<string, Konva.Group>()
     private readonly pressedRevealKeys = new Set<string>()
     private selectedId: string | null = null
+    private hoveredId: string | null = null
     private allVisible: boolean
 
     constructor({ primaryColor, defaultVisible = false, getAnnotationsByPage, getAnnotationGroup, canTransform }: AnnotationAuthorLabelsOptions) {
@@ -86,6 +87,15 @@ export class AnnotationAuthorLabels {
         if (this.selectedId === id) return
         const previousId = this.selectedId
         this.selectedId = id
+
+        if (previousId) this.refreshAnnotation(previousId)
+        if (id) this.refreshAnnotation(id)
+    }
+
+    public setHovered(id: string | null): void {
+        if (this.hoveredId === id) return
+        const previousId = this.hoveredId
+        this.hoveredId = id
 
         if (previousId) this.refreshAnnotation(previousId)
         if (id) this.refreshAnnotation(id)
@@ -147,6 +157,7 @@ export class AnnotationAuthorLabels {
             page.labels.delete(id)
         })
         if (this.selectedId === id) this.selectedId = null
+        if (this.hoveredId === id) this.hoveredId = null
     }
 
     public destroy(): void {
@@ -158,6 +169,7 @@ export class AnnotationAuthorLabels {
         this.pressedRevealKeys.clear()
         this.boundGroups.clear()
         this.selectedId = null
+        this.hoveredId = null
         this.allVisible = false
     }
 
@@ -170,9 +182,9 @@ export class AnnotationAuthorLabels {
     }
 
     private syncAnnotation(page: AnnotationAuthorLabelsPage, annotation: IAnnotationStore, positionImmediately: boolean): VisibleAnnotationAuthorLabel | null {
-        const authorName = getAnnotationAuthorName(annotation)
+        const labelText = getAnnotationAuthorLabelText(annotation)
         const group = this.getAnnotationGroup(annotation, page.stage)
-        if (!authorName || !group) {
+        if (!labelText || !group) {
             this.unbindGroup(annotation.id)
             const staleLabel = page.labels.get(annotation.id)
             staleLabel?.remove()
@@ -191,12 +203,13 @@ export class AnnotationAuthorLabels {
             page.labels.set(annotation.id, label)
         }
 
-        if (label.textContent !== authorName) label.textContent = authorName
+        if (label.textContent !== labelText) label.textContent = labelText
         label.style.backgroundColor = this.primaryColor
-        label.style.color = getReadableAuthorLabelTextColor(this.primaryColor)
         label.style.opacity = String(getTransformerPermissionStyle(this.canTransform(annotation)).authorLabelOpacity)
 
-        const visible = this.shouldRevealAll() || annotation.id === this.selectedId
+        const visible = this.shouldRevealAll()
+            || annotation.id === this.selectedId
+            || annotation.id === this.hoveredId
         label.style.display = visible ? 'block' : 'none'
         if (!visible) return null
 

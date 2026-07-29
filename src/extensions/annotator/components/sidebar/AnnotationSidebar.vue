@@ -45,27 +45,41 @@
           v-for="ann in pAnns"
           :key="ann.id"
           :id="`annotation-${ann.id}`"
-          class="border border-border bg-card rounded-lg p-2.5 mb-2 cursor-pointer leading-relaxed transition-colors"
-          :class="selectedAnnotationId === ann.id ? '!bg-accent' : 'hover:bg-muted'"
+          :data-annotation-hover-owner="ann.id"
+          class="annotation-card border border-border border-[2px] bg-card rounded-lg p-2.5 pt-0.5 mb-2 cursor-pointer leading-relaxed transition-colors"
+          :class="{
+            '!bg-accent': selectedAnnotationId === ann.id,
+            'annotation-card--preview': showAnnotationPreview(ann.id),
+          }"
           @click="handleAnnotationClick(ann)"
+          @pointerenter="handleAnnotationPointerEnter(ann.id, $event)"
+          @pointerleave="handleAnnotationPointerLeave(ann.id)"
+          @focusin.capture="handleAnnotationFocus(ann.id)"
+          @focusout.capture="handleAnnotationBlur(ann.id, $event)"
         >
           <!-- Card header -->
-          <div class="flex items-start">
-            <Icon :name="getSubtypeIcon(ann.subtype)" :size="16" class="mt-0.5 text-muted-foreground shrink-0 mr-2" />
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1">
-                <span class="text-xs truncate max-w-[130px]">{{ ann.title }}</span>
-                <Tooltip v-if="ann.native" :content="t('annotator.comment.nativeAnnotation')">
-                  <template #trigger>
-                    <span class="text-orange-400 shrink-0 cursor-pointer"><Icon name="exclamation" :size="14" /></span>
-                  </template>
-                </Tooltip>
-              </div>
-              <span class="text-[10px] text-muted-foreground">{{ formatDate(ann.date) }}</span>
+          <div class="flex min-h-8 items-center gap-2  border-b-[1px] border-border">
+            <div class="flex min-w-0 flex-1 items-center gap-1">
+              <span
+                class="truncate text-sm font-medium"
+                :class="{ 'text-primary': isAnnotationHeadingActive(ann.id) }"
+              >
+                {{ getAnnotationHeading(ann) }}
+              </span>
+              <Tooltip v-if="ann.native" :content="t('annotator.comment.nativeAnnotation')">
+                <template #trigger>
+                  <span class="shrink-0 cursor-pointer text-orange-400">
+                    <Icon name="exclamation" :size="14" />
+                  </span>
+                </template>
+              </Tooltip>
             </div>
             <div class="flex items-center shrink-0 gap-0.5 ml-auto" @click.stop>
               <!-- Status dropdown -->
-              <DropdownMenu v-if="can('annotation.change-status', ann)">
+              <DropdownMenu
+                v-if="can('annotation.change-status', ann)"
+                :annotation-hover-owner="ann.id"
+              >
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="t('common.status')">
                     <Icon :name="getStatusIcon(ann)" :size="14" />
@@ -77,7 +91,11 @@
                 </DropdownMenuItem>
               </DropdownMenu>
               <!-- Action dropdown -->
-              <DropdownMenu v-if="can('annotation.comment', ann) || can('annotation.edit', ann) || can('annotation.delete', ann)">
+              <DropdownMenu
+                v-if="can('annotation.comment', ann) || can('annotation.edit', ann) || can('annotation.delete', ann)"
+                :annotation-hover-owner="ann.id"
+                @close-auto-focus="handleAnnotationMenuCloseAutoFocus(ann.id, $event)"
+              >
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" title="More"><Icon name="more" :size="14" /></Button>
                 </template>
@@ -88,64 +106,101 @@
             </div>
           </div>
 
+          <div class="mt-1 flex min-h-[18px] min-w-0 items-center gap-1 text-[12px] text-muted-foreground">
+            <Tooltip :content="getAnnotationTypeLabel(ann)">
+              <template #trigger>
+                <span
+                  class="inline-flex shrink-0 opacity-50"
+                  :aria-label="getAnnotationTypeLabel(ann)"
+                >
+                  <Icon :name="getAnnotationIcon(ann)" :size="12" aria-hidden="true" />
+                </span>
+              </template>
+            </Tooltip>
+            <span class="truncate">{{ getAnnotationAuthor(ann) }}</span>
+            <template v-if="formatDate(ann.date)">
+              <span aria-hidden="true">·</span>
+              <span class="shrink-0 whitespace-nowrap">{{ formatDate(ann.date) }}</span>
+            </template>
+          </div>
+
           <!-- Comment text / edit -->
           <template v-if="editAnnotationId === ann.id && can('annotation.edit', ann)">
-            <Textarea :id="`edit-comment-${ann.id}`" :ref="(el) => setTextareaRef(el, 'edit-comment-' + ann.id)" :model-value="ann.contentsObj?.text || ''"
-              class="w-full min-h-[50px] text-xs resize-none mt-1.5 bg-background" rows="3"
-              @update:model-value="editComment = $event"
-              @keydown.enter.exact.prevent="updateComment(ann)"
-              @keydown.escape="editAnnotationId = null"
-              @blur="editAnnotationId = null"
+            <AnnotationReferenceInput
+              class="mt-1.5"
+              :annotations="annotations"
+              :exclude-annotation-id="ann.id"
+              :annotation-hover-owner="ann.id"
+              :initial-content="ann.contentsObj?.text || ''"
+              :initial-references="ann.contentsObj?.references"
+              @submit="updateComment(ann, $event)"
+              @cancel="cancelAnnotationEdit(ann.id)"
             />
-            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateComment(ann)">{{ t('common.confirm') }}</Button>
           </template>
           <template v-else>
-            <p class="text-xs whitespace-pre-wrap mt-1.5 pl-7" v-if="ann.contentsObj?.text">{{ ann.contentsObj.text }}</p>
+            <p v-if="ann.contentsObj?.text?.trim()" class="mt-1.5  pl-4">
+              <AnnotationReferenceText
+                :annotations="annotations"
+                :content="ann.contentsObj.text"
+                :references="ann.contentsObj.references"
+                @activate="handleReferenceActivate"
+              />
+            </p>
           </template>
 
           <!-- Replies -->
-          <div v-for="reply in ann.comments" :key="reply.id" class="bg-secondary rounded-md p-2 mt-2 ml-[22px]">
-            <div class="flex items-start">
-              <div class="flex-1 min-w-0">
-                <template v-if="editReplyId === reply.id && can('comment.edit', ann, reply)">
-                  <Textarea :id="`edit-reply-${reply.id}`" :ref="(el) => setTextareaRef(el, 'edit-reply-' + reply.id)" :model-value="reply.content"
-                    class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
-                    @update:model-value="editReplyContent = $event"
-                    @keydown.enter.exact.prevent="updateReply(ann, reply)"
-                    @keydown.escape="editReplyId = null"
-                    @blur="editReplyId = null"
-                  />
-                  <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="updateReply(ann, reply)">{{ t('common.confirm') }}</Button>
-                </template>
-                <template v-else>
-                  <div class="flex items-center gap-1">
-                    <span class="text-xs truncate max-w-[140px]">{{ reply.title }}</span>
-                    <span class="text-[10px] text-muted-foreground">{{ formatDate(reply.date) }}</span>
-                  </div>
-                  <p class="text-xs whitespace-pre-wrap mt-0.5">{{ reply.content }}</p>
-                </template>
+          <div v-for="reply in ann.comments" :key="reply.id" class="mt-2 ml-4 rounded-md bg-secondary p-2">
+            <template v-if="editReplyId === reply.id && can('comment.edit', ann, reply)">
+              <AnnotationReferenceInput
+                :annotations="annotations"
+                :exclude-annotation-id="ann.id"
+                :annotation-hover-owner="ann.id"
+                :initial-content="reply.content"
+                :initial-references="reply.references"
+                @submit="updateReply(ann, reply, $event)"
+                @cancel="cancelReplyEdit(ann.id)"
+              />
+            </template>
+            <template v-else>
+              <div class="flex min-h-6 items-center gap-2">
+                <span class="min-w-0 flex-1 truncate text-xs font-medium">{{ reply.title }}</span>
+                <DropdownMenu
+                  v-if="can('comment.edit', ann, reply) || can('comment.delete', ann, reply)"
+                  :annotation-hover-owner="ann.id"
+                  @close-auto-focus="handleReplyMenuCloseAutoFocus(reply.id, $event)"
+                >
+                  <template #trigger>
+                    <Button variant="ghost" size="icon" class="size-6 shrink-0 p-0">
+                      <Icon name="more" :size="14" />
+                    </Button>
+                  </template>
+                  <DropdownMenuItem v-if="can('comment.edit', ann, reply)" class="text-xs" @select="handleEditReplyFromMenu(ann, reply)">{{ t('common.edit') }}</DropdownMenuItem>
+                  <DropdownMenuItem v-if="can('comment.delete', ann, reply)" class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ t('common.delete') }}</DropdownMenuItem>
+                </DropdownMenu>
               </div>
-              <DropdownMenu v-if="editReplyId !== reply.id && (can('comment.edit', ann, reply) || can('comment.delete', ann, reply))">
-                <template #trigger>
-                  <Button variant="ghost" size="icon" class="size-5 text-muted-foreground shrink-0 ml-1"><Icon name="more" :size="12" /></Button>
-                </template>
-                <DropdownMenuItem v-if="can('comment.edit', ann, reply)" class="text-xs" @select="handleEditReplyFromMenu(ann, reply)"> {{ t('common.edit') }}</DropdownMenuItem>
-                <DropdownMenuItem v-if="can('comment.delete', ann, reply)" class="text-xs" @select="deleteReplyDirect(ann.id, reply.id)">{{ t('common.delete') }}</DropdownMenuItem>
-              </DropdownMenu>
-            </div>
+              <div v-if="formatDate(reply.date)" class="mt-0.5 text-xs text-muted-foreground">
+                {{ formatDate(reply.date) }}
+              </div>
+              <p v-if="reply.content" class="mt-1">
+                <AnnotationReferenceText
+                  :annotations="annotations"
+                  :content="reply.content"
+                  :references="reply.references"
+                  @activate="handleReferenceActivate"
+                />
+              </p>
+            </template>
           </div>
 
           <!-- Reply input -->
-          <div v-if="replyAnnotationId === ann.id && can('annotation.comment', ann)" class="mt-2 pl-7">
-            <Textarea :id="`reply-input-${ann.id}`" :ref="(el) => setTextareaRef(el, 'reply-input-' + ann.id)"
-              class="w-full min-h-[40px] text-xs resize-none bg-background" rows="2"
-              :placeholder="t('common.reply') + '...'"
-              @update:model-value="newReplyContent = $event"
-              @keydown.enter.exact.prevent="addReply(ann)"
-              @keydown.escape="replyAnnotationId = null"
-              @blur="replyAnnotationId = null"
+          <div v-if="replyAnnotationId === ann.id && can('annotation.comment', ann)" class="mt-2">
+            <AnnotationReferenceInput
+              :annotations="annotations"
+              :exclude-annotation-id="ann.id"
+              :annotation-hover-owner="ann.id"
+              @submit="addReply(ann, $event)"
+              @cancel="cancelReply(ann.id)"
             />
-            <Button size="sm" class="w-full text-xs mt-1" @mousedown.prevent="addReply(ann)">{{ t('common.confirm') }}</Button>
           </div>
 
           <!-- Reply button -->
@@ -167,18 +222,37 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, inject, nextTick, type PropType } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Popover } from '@/components/ui/popover'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import Icon from '@/components/Icon.vue'
-import { CommentStatus, type IAnnotationStore, type IAnnotationComment, type PdfjsAnnotationSubtype } from '@/extensions/annotator/const/definitions'
+import AnnotationReferenceInput from '@/extensions/annotator/components/annotation_reference_input/AnnotationReferenceInput.vue'
+import AnnotationReferenceText from '@/extensions/annotator/components/annotation_reference_text/AnnotationReferenceText.vue'
+import {
+  annotationDefinitions,
+  CommentStatus,
+  type IAnnotationStore,
+  type IAnnotationComment,
+} from '@/extensions/annotator/const/definitions'
 import { useAnnotationStore, SelectionSource } from '@/stores/annotationStore'
 import { PdfViewerContextKey, UserContextKey } from '@/context/pdfViewerContext'
-import { generateUUID, formatTimestamp, formatPDFDate } from '@/extensions/annotator/utils/utils'
+import {
+  formatPDFCompactDateTime,
+  formatTimestamp,
+  generateUUID,
+} from '@/extensions/annotator/utils/utils'
 import { useT } from '@/composables/useT'
 import type { AnnotationPermissionAction, AnnotationPermissions } from '@/extensions/annotator/types/annotator'
+import type { AnnotationReferenceContent } from '@/extensions/annotator/references/annotation_reference'
+import { isValidReferenceNumber } from '@/extensions/annotator/references/annotation_numbering'
+import { getAnnotationAuthorName } from '@/extensions/annotator/painter/editor/annotation_author_label'
+import {
+  applyAnnotationCommentDraft,
+  applyAnnotationReplyDraft,
+  createAnnotationReply,
+} from './comment_mutations'
+import { useAnnotationHoverSnapshot } from '@/composables/useAnnotationHover'
 
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },
@@ -191,6 +265,7 @@ const emit = defineEmits<{ select: [ann: IAnnotationStore]; delete: [id: string]
 const { t } = useT()
 const store = useAnnotationStore()
 const painter = computed(() => store.painter)
+const annotationHover = useAnnotationHoverSnapshot(painter)
 const pdfContext = inject(PdfViewerContextKey)
 const userContext = inject(UserContextKey)
 
@@ -201,18 +276,27 @@ const selectedTypes = ref<string[]>([])
 
 // Edit/reply
 const editAnnotationId = ref<string | null>(null)
-const editComment = ref('')
 const replyAnnotationId = ref<string | null>(null)
-const newReplyContent = ref('')
 const editReplyId = ref<string | null>(null)
-const editReplyContent = ref('')
-// Controls whether textarea ref callback should auto-focus.
-// true = focus (user clicked Reply/Edit, or sidebar just opened)
-// false = skip focus (canvas click while sidebar already open → MenuBar opening)
-const shouldFocusTextarea = ref(false)
+const pendingReferenceAnnotationId = ref<string | null>(null)
+let pendingReferenceScrollFrame: number | null = null
+let pointerHoveredAnnotationId: string | null = null
+let focusedAnnotationId: string | null = null
 
 const selectedAnnotationId = computed(() => props.selectedId)
 const currentUserName = computed(() => userContext?.user?.value?.name ?? 'Anonymous')
+
+watch(painter, (nextPainter, previousPainter) => {
+  if (nextPainter === previousPainter) return
+  if (pointerHoveredAnnotationId) {
+    previousPainter?.clearAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
+    nextPainter?.setAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
+  }
+  if (focusedAnnotationId) {
+    previousPainter?.clearAnnotationHover('sidebar-focus', focusedAnnotationId)
+    nextPainter?.setAnnotationHover('sidebar-focus', focusedAnnotationId)
+  }
+})
 
 function can(action: AnnotationPermissionAction, annotation?: IAnnotationStore, comment?: IAnnotationComment): boolean {
   void props.annotationPermissions?.mode
@@ -240,11 +324,7 @@ watch(() => props.annotations, (anns) => {
 }, { immediate: true })
 
 // ====== Auto-edit/reply when annotation selected from canvas ======
-// Aligns React useEffect on [currentAnnotation, isSidebarCollapsed]
-// @param shouldFocus - true to auto-focus textarea (sidebar just opened, or user clicked Reply),
-//                      false when sidebar already open and canvas annotation clicked (MenuBar is opening)
-function autoOpenComment(sel: IAnnotationStore, shouldFocus: boolean = false) {
-  shouldFocusTextarea.value = shouldFocus
+function autoOpenComment(sel: IAnnotationStore) {
   const isEmptyComment = !sel.contentsObj?.text
   const isEmptyReply = !sel.comments?.length
   if (can('annotation.edit', sel) && isEmptyComment && isEmptyReply) {
@@ -255,23 +335,20 @@ function autoOpenComment(sel: IAnnotationStore, shouldFocus: boolean = false) {
 }
 
 // Canvas selection when sidebar is already open
-// MenuBar Popover has @focus-outside.prevent, so auto-focusing the textarea
-// is safe — it won't cause the Popover to dismiss.
 watch(() => store.selectedAnnotation, (sel) => {
   if (!sel || sel.source !== SelectionSource.CANVAS || pdfContext?.isSidebarCollapsed.value) return
-  nextTick(() => autoOpenComment(sel.store as IAnnotationStore, true))
+  nextTick(() => autoOpenComment(sel.store as IAnnotationStore))
 })
 
 // Sidebar opens while a canvas annotation is already selected
 // (e.g. user clicks Comment button from MenuBar)
-// shouldFocus=true: MenuBar already closed, safe to focus textarea
 let prevCollapsed = pdfContext?.isSidebarCollapsed.value
 watch(pdfContext?.isSidebarCollapsed ?? ref(true), (collapsed) => {
   if (collapsed || prevCollapsed === collapsed) { prevCollapsed = collapsed; return }
   prevCollapsed = collapsed
   const sel = store.selectedAnnotation
   if (sel && sel.source === SelectionSource.CANVAS) {
-    nextTick(() => autoOpenComment(sel.store as IAnnotationStore, true))
+    nextTick(() => autoOpenComment(sel.store as IAnnotationStore))
   }
 })
 
@@ -296,14 +373,36 @@ const groupedEntries = computed(() => {
 })
 
 // ====== Icons ======
-const subtypeIconMap: Record<string, string> = {
-  Circle: 'circle', FreeText: 'freeText', Ink: 'freehand', Highlight: 'highlight',
-  Underline: 'underline', Squiggly: 'freeHighlight', StrikeOut: 'strikeout',
-  Stamp: 'stamp', Line: 'arrow', Square: 'rectangle', Polygon: 'freehand',
-  PolyLine: 'cloud', Caret: 'signature', Text: 'note', Arrow: 'arrow',
+const annotationDefinitionsByType = new Map(
+  annotationDefinitions.map(definition => [definition.type, definition])
+)
+function getAnnotationIcon(annotation: IAnnotationStore): string {
+  return annotationDefinitionsByType.get(annotation.type)?.icon ?? 'select'
 }
-function getSubtypeIcon(subtype: PdfjsAnnotationSubtype): string { return subtypeIconMap[subtype] || 'select' }
-function formatDate(date: string | null): string { return formatPDFDate(date, true) }
+function getAnnotationTypeLabel(annotation: IAnnotationStore): string {
+  const name = annotationDefinitionsByType.get(annotation.type)?.name
+  return name ? t(`annotator.tool.${name}`) : annotation.subtype
+}
+function getAnnotationAuthor(annotation: IAnnotationStore): string {
+  return getAnnotationAuthorName(annotation) ?? annotation.title
+}
+function getAnnotationHeading(annotation: IAnnotationStore): string {
+  return isValidReferenceNumber(annotation.referenceNumber)
+    ? `#${annotation.referenceNumber}`
+    : getAnnotationAuthor(annotation)
+}
+function formatDate(date: string | null): string {
+  return formatPDFCompactDateTime(date)
+}
+function showAnnotationPreview(annotationId: string): boolean {
+  if (annotationHover.value.annotationId !== annotationId) return false
+  return annotationHover.value.source === 'canvas'
+    || annotationHover.value.source === 'canvas-passive'
+}
+function isAnnotationHeadingActive(annotationId: string): boolean {
+  return selectedAnnotationId.value === annotationId
+    || annotationHover.value.annotationId === annotationId
+}
 
 const statusOptions = [
   { key: CommentStatus.Accepted, labelKey: 'annotator.comment.status.accepted', icon: 'statusAccepted' },
@@ -319,32 +418,88 @@ function getStatusIcon(ann: IAnnotationStore): string {
 }
 
 
-// ====== Textarea ref callback: auto-focus when permitted ======
-function setTextareaRef(el: any, id: string) {
-  if (shouldFocusTextarea.value) {
-    // Radix DropdownMenu takes control of focus on close — delay long enough
-    // for Radix to finish its focus restoration before we claim focus.
-    // Use document.getElementById as the most reliable way to get the textarea element
-    // after the component re-renders with the reply/edit box visible.
-    nextTick(() => {
-      const textarea = document.getElementById(id) as HTMLTextAreaElement | null
-      if (textarea) {
-        setTimeout(() => textarea.focus(), 150)
-        shouldFocusTextarea.value = false
-      }
-    })
+// ====== Menu handlers (DropdownMenu auto-closes on select) ======
+function handleReplyFromMenu(ann: IAnnotationStore) {
+  if (!can('annotation.comment', ann)) return
+  selectAnnotation(ann)
+  replyAnnotationId.value = ann.id
+}
+function handleEditFromMenu(ann: IAnnotationStore) {
+  if (!can('annotation.edit', ann)) return
+  selectAnnotation(ann)
+  editAnnotationId.value = ann.id
+}
+function handleEditReplyFromMenu(ann: IAnnotationStore, reply: IAnnotationComment) {
+  if (!can('comment.edit', ann, reply)) return
+  selectAnnotation(ann)
+  editReplyId.value = reply.id
+}
+function handleAnnotationMenuCloseAutoFocus(annotationId: string, event: Event) {
+  if (
+    editAnnotationId.value === annotationId
+    || replyAnnotationId.value === annotationId
+  ) {
+    event.preventDefault()
   }
 }
+function handleReplyMenuCloseAutoFocus(replyId: string, event: Event) {
+  if (editReplyId.value === replyId) event.preventDefault()
+}
 
-// ====== Menu handlers (DropdownMenu auto-closes on select) ======
-function handleReplyFromMenu(ann: IAnnotationStore) { if (!can('annotation.comment', ann)) return; shouldFocusTextarea.value = true; replyAnnotationId.value = ann.id }
-function handleEditFromMenu(ann: IAnnotationStore) { if (!can('annotation.edit', ann)) return; shouldFocusTextarea.value = true; editAnnotationId.value = ann.id }
-function handleEditReplyFromMenu(ann: IAnnotationStore, reply: IAnnotationComment) { if (!can('comment.edit', ann, reply)) return; shouldFocusTextarea.value = true; editReplyId.value = reply.id; editReplyContent.value = reply.content }
+function handleAnnotationPointerEnter(annotationId: string, event: PointerEvent) {
+  if (event.pointerType === 'touch') return
+  pointerHoveredAnnotationId = annotationId
+  painter.value?.setAnnotationHover('sidebar-pointer', annotationId)
+}
+
+function handleAnnotationPointerLeave(annotationId: string) {
+  if (pointerHoveredAnnotationId === annotationId) {
+    pointerHoveredAnnotationId = null
+  }
+  painter.value?.clearAnnotationHover('sidebar-pointer', annotationId)
+}
+
+function getAnnotationFocusOwner(target: EventTarget | null): string | null {
+  if (!(target instanceof Element)) return null
+  return target.closest<HTMLElement>('[data-annotation-hover-owner]')
+    ?.dataset.annotationHoverOwner ?? null
+}
+
+function handleAnnotationFocus(annotationId: string) {
+  if (focusedAnnotationId && focusedAnnotationId !== annotationId) {
+    painter.value?.clearAnnotationHover('sidebar-focus', focusedAnnotationId)
+  }
+  focusedAnnotationId = annotationId
+  painter.value?.setAnnotationHover('sidebar-focus', annotationId)
+}
+
+function clearAnnotationFocus(annotationId: string) {
+  if (focusedAnnotationId !== annotationId) return
+  focusedAnnotationId = null
+  painter.value?.clearAnnotationHover('sidebar-focus', annotationId)
+}
+
+function handleAnnotationBlur(annotationId: string, event: FocusEvent) {
+  if (getAnnotationFocusOwner(event.relatedTarget) === annotationId) return
+  clearAnnotationFocus(annotationId)
+}
+
+function handleDocumentFocusIn(event: FocusEvent) {
+  const owner = getAnnotationFocusOwner(event.target)
+  if (owner) {
+    handleAnnotationFocus(owner)
+  } else if (focusedAnnotationId) {
+    clearAnnotationFocus(focusedAnnotationId)
+  }
+}
 function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) {
   if (!can('annotation.change-status', ann)) return
   const opt = statusOptions.find((o) => o.key === status)
-  newReplyContent.value = t('annotator.comment.statusText', { value: t(opt?.labelKey ?? 'annotator.comment.status.none') })
-  addReply(ann, status)
+  addReply(ann, {
+    content: t('annotator.comment.statusText', {
+      value: t(opt?.labelKey ?? 'annotator.comment.status.none'),
+    }),
+  }, status)
 }
 function deleteReplyDirect(annId: string, replyId: string) {
   const ann = props.annotations.find((a) => a.id === annId)
@@ -358,68 +513,131 @@ function deleteReplyDirect(annId: string, replyId: string) {
 // ====== Start reply with focus ======
 function startReply(ann: IAnnotationStore) {
   if (!can('annotation.comment', ann)) return
-  shouldFocusTextarea.value = true
   replyAnnotationId.value = ann.id
 }
 
 // ====== Annotation click → highlight on canvas ======
-function handleAnnotationClick(ann: IAnnotationStore) {
+function selectAnnotation(ann: IAnnotationStore) {
   // Reset any open reply/edit states when switching to a different annotation
   if (replyAnnotationId.value !== ann.id) {
+    if (focusedAnnotationId && focusedAnnotationId !== ann.id) {
+      clearAnnotationFocus(focusedAnnotationId)
+    }
     replyAnnotationId.value = null
-    newReplyContent.value = ''
     editAnnotationId.value = null
-    editComment.value = ''
     editReplyId.value = null
-    editReplyContent.value = ''
-    shouldFocusTextarea.value = false
   }
   store.setSelectedAnnotation(ann, SelectionSource.SIDEBAR)
   painter.value?.highlight(ann)
   emit('select', ann)
 }
 
+function handleAnnotationClick(ann: IAnnotationStore) {
+  selectAnnotation(ann)
+}
+
+watch([groupedEntries, pendingReferenceAnnotationId], async () => {
+  const annotationId = pendingReferenceAnnotationId.value
+  if (!annotationId) return
+
+  await nextTick()
+  if (pendingReferenceScrollFrame !== null) {
+    cancelAnimationFrame(pendingReferenceScrollFrame)
+  }
+  pendingReferenceScrollFrame = requestAnimationFrame(() => {
+    pendingReferenceScrollFrame = null
+    if (pendingReferenceAnnotationId.value !== annotationId) return
+
+    const target = document.getElementById(`annotation-${annotationId}`)
+    if (!target) return
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    pendingReferenceAnnotationId.value = null
+  })
+})
+
+function handleReferenceActivate(annotationId: string) {
+  const annotation = props.annotations.find(item => item.id === annotationId)
+  if (!annotation) return
+
+  if (!selectedUsers.value.includes(annotation.title)) {
+    selectedUsers.value = [...selectedUsers.value, annotation.title]
+  }
+  if (!selectedTypes.value.includes(annotation.subtype)) {
+    selectedTypes.value = [...selectedTypes.value, annotation.subtype]
+  }
+
+  pendingReferenceAnnotationId.value = annotation.id
+  store.setSelectedAnnotation(annotation, SelectionSource.SIDEBAR)
+  void painter.value?.highlight(annotation)
+  emit('select', annotation)
+}
+
 // ====== Update comment ======
-function updateComment(ann: IAnnotationStore) {
+function updateComment(ann: IAnnotationStore, draft: AnnotationReferenceContent) {
   if (!painter.value || !can('annotation.edit', ann)) return
   painter.value.update(ann.id, {
-    contentsObj: { ...(ann.contentsObj || { text: '' }), text: editComment.value },
+    contentsObj: applyAnnotationCommentDraft(ann.contentsObj, draft),
     date: formatTimestamp(Date.now()),
   }, 'annotation.edit')
   editAnnotationId.value = null
+  clearAnnotationFocus(ann.id)
 }
 
 // ====== Add reply ======
-function addReply(ann: IAnnotationStore, status?: CommentStatus) {
+function addReply(
+  ann: IAnnotationStore,
+  draft: AnnotationReferenceContent,
+  status?: CommentStatus
+) {
   const action = status === undefined ? 'annotation.comment' : 'annotation.change-status'
   if (!painter.value || !can(action, ann)) return
   const currentUser = userContext?.user.value
   if (!currentUser) return
-  const newReply: IAnnotationComment = {
+  const newReply = createAnnotationReply({
     id: generateUUID(),
     title: currentUserName.value,
     date: formatTimestamp(Date.now()),
-    content: newReplyContent.value,
+    draft,
     status,
     user: currentUser,
-  }
+  })
   painter.value.update(ann.id, { comments: [...(ann.comments || []), newReply] }, action)
   replyAnnotationId.value = null
-  newReplyContent.value = ''
+  clearAnnotationFocus(ann.id)
 }
 
 // ====== Update reply ======
-function updateReply(ann: IAnnotationStore, reply: IAnnotationComment) {
+function updateReply(
+  ann: IAnnotationStore,
+  reply: IAnnotationComment,
+  draft: AnnotationReferenceContent
+) {
   if (!painter.value || !can('comment.edit', ann, reply)) return
-  const updatedComments = (ann.comments || []).map((r) => {
-    if (r.id === reply.id) {
-      return { ...r, content: editReplyContent.value, date: formatTimestamp(Date.now()), title: currentUserName.value || r.title }
-    }
-    return r
-  })
+  const updatedComments = applyAnnotationReplyDraft(
+    ann.comments || [],
+    reply.id,
+    draft,
+    formatTimestamp(Date.now()),
+    currentUserName.value || reply.title
+  )
   painter.value.update(ann.id, { comments: updatedComments }, 'comment.edit', reply)
   editReplyId.value = null
-  editReplyContent.value = ''
+  clearAnnotationFocus(ann.id)
+}
+
+function cancelAnnotationEdit(annotationId: string) {
+  editAnnotationId.value = null
+  clearAnnotationFocus(annotationId)
+}
+
+function cancelReply(annotationId: string) {
+  replyAnnotationId.value = null
+  clearAnnotationFocus(annotationId)
+}
+
+function cancelReplyEdit(annotationId: string) {
+  editReplyId.value = null
+  clearAnnotationFocus(annotationId)
 }
 
 // ====== Delete ======
@@ -427,22 +645,53 @@ function deleteAnnotation(id: string) {
   const annotation = props.annotations.find((item) => item.id === id)
   if (!annotation || !can('annotation.delete', annotation)) return
   const deleted = painter.value?.delete(id, true) ?? false
-  if (deleted) emit('delete', id)
+  if (deleted) {
+    if (pointerHoveredAnnotationId === id) pointerHoveredAnnotationId = null
+    if (focusedAnnotationId === id) focusedAnnotationId = null
+    emit('delete', id)
+  }
 }
 
 // ====== Mount check: sidebar just opened with an existing selection ======
 onMounted(() => {
+  document.addEventListener('focusin', handleDocumentFocusIn, true)
   const sel = store.selectedAnnotation
   if (sel && sel.source === SelectionSource.CANVAS) {
-    nextTick(() => autoOpenComment(sel.store as IAnnotationStore, true))
+    nextTick(() => autoOpenComment(sel.store as IAnnotationStore))
   }
 })
 
 // ====== Cleanup on unmount ======
 onUnmounted(() => {
+  document.removeEventListener('focusin', handleDocumentFocusIn, true)
+  if (pointerHoveredAnnotationId) {
+    painter.value?.clearAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
+    pointerHoveredAnnotationId = null
+  }
+  if (focusedAnnotationId) {
+    clearAnnotationFocus(focusedAnnotationId)
+  }
+  if (pendingReferenceScrollFrame !== null) {
+    cancelAnimationFrame(pendingReferenceScrollFrame)
+    pendingReferenceScrollFrame = null
+  }
+  pendingReferenceAnnotationId.value = null
   replyAnnotationId.value = null
   editReplyId.value = null
   editAnnotationId.value = null
   store.clearSelectedAnnotation()
 })
 </script>
+
+<style scoped>
+.annotation-card--preview {
+  border-color: var(--inklayer-primary);
+  background-color: var(--color-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .annotation-card:not(.annotation-card--preview):hover {
+    background-color: var(--color-accent);
+  }
+}
+</style>

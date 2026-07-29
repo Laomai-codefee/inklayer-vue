@@ -300,6 +300,29 @@ function formatPDFDate(dateString: string | null, full = false): string {
     return t('common.dateFormat.dayMonthYear', { year, month, day })
 }
 
+function formatPDFCompactDateTime(dateString: string | null): string {
+    if (!dateString || typeof dateString !== 'string' || !dateString.startsWith('D:')) {
+        return ''
+    }
+
+    const datePart = dateString.slice(2, 16)
+    if (datePart.length !== 14) {
+        return ''
+    }
+
+    const year = datePart.slice(0, 4)
+    const month = datePart.slice(4, 6)
+    const day = datePart.slice(6, 8)
+    const hour = datePart.slice(8, 10)
+    const minute = datePart.slice(10, 12)
+    const currentYear = new Date().getFullYear().toString()
+    const formatKey = year === currentYear
+        ? 'common.dateFormat.compact'
+        : 'common.dateFormat.compactWithYear'
+
+    return t(formatKey, { year, month, day, hour, minute })
+}
+
 function getPDFDateTimestamp(dateString: string): number {
     // 提取日期部分 D:YYYYMMDDHHMMSS+TZD 中的 YYYYMMDDHHMMSS
     const datePart = dateString.slice(2, 16)
@@ -488,6 +511,7 @@ export {
     convertToRGB,
     formatTimestamp,
     formatPDFDate,
+    formatPDFCompactDateTime,
     parseQueryString,
     convertKonvaRectToPdfRect,
     stringToPDFHexString,

@@ -34,6 +34,13 @@ import {
     getGreatestReferenceNumber,
     normalizeAnnotationReferenceNumbers
 } from '../references/annotation_numbering'
+import {
+    AnnotationHoverCoordinator,
+    type AnnotationHoverSnapshot,
+    type AnnotationHoverSource
+} from './annotation_hover'
+import { AnnotationHoverPreview } from './annotation_hover_preview'
+import { AnnotationPassiveHover } from './annotation_passive_hover'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -57,11 +64,17 @@ export class Painter {
     private webSelection: WebSelection // WebSelection 实例
     private currentAnnotation: IAnnotationType | null = null // 当前批注类型
     private nextAnnotationReferenceNumber = 1
+    private highlightRequestId = 0
+    private highlightRetryTimer: number | null = null
+    private resolveHighlightRequest: ((highlighted: boolean) => void) | null = null
     private selector: Selector // 选择器实例
     private authorLabels: AnnotationAuthorLabels
+    private hoverPreview: AnnotationHoverPreview
+    private passiveHover: AnnotationPassiveHover
+    private readonly annotationHover = new AnnotationHoverCoordinator()
+    private readonly unsubscribeAnnotationHover: () => void
     private transform: Transform // 转换器
     private tempDataTransfer: string | null = null // 临时数据传输
-    private highlightTimers = new Set<ReturnType<typeof setTimeout>>()
     public readonly onTextSelected: (range: Range | null) => void
     public readonly onAnnotationAdd: (annotationStore: IAnnotationStore, isOriginal: boolean, currentAnnotation: IAnnotationType | undefined) => void
     public readonly onAnnotationDelete: (id: string) => void
@@ -120,6 +133,20 @@ export class Painter {
             },
             canTransform: (annotationStore) => this.permissionController.can('annotation.transform', annotationStore)
         })
+        this.hoverPreview = new AnnotationHoverPreview({
+            primaryColor: this.primaryColor,
+            getAnnotation: (id) => this.store.getAnnotation(id),
+            getStage: (pageNumber) => this.konvaCanvasStore.get(pageNumber)?.konvaStage,
+            getAnnotationGroup: (annotationStore, konvaStage) => {
+                return konvaStage.findOne((node: Konva.Node) => node.getType() === 'Group' && node.id() === annotationStore.id) as Konva.Group | null
+            }
+        })
+        this.unsubscribeAnnotationHover = this.annotationHover.subscribe((snapshot) => {
+            this.authorLabels.setHovered(snapshot.annotationId)
+            this.hoverPreview.setHovered(
+                snapshot.source === 'canvas-passive' ? null : snapshot.annotationId
+            )
+        })
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
         this.onAnnotationAdd = onAnnotationAdd
@@ -144,6 +171,13 @@ export class Painter {
             },
             onSelectionChanged: (id) => {
                 this.authorLabels.setSelected(id)
+                this.hoverPreview.setSelected(id)
+            },
+            onHoverStart: (id) => {
+                this.annotationHover.set('canvas', id)
+            },
+            onHoverEnd: (id) => {
+                this.annotationHover.clear('canvas', id)
             },
             onChanged: async (id, groupString, _rawAnnotationStore, konvaClientRect, transformerRect) => {
                 const editor = this.findEditorForGroupId(id)
@@ -202,6 +236,18 @@ export class Painter {
                 })
             }
         })
+        this.passiveHover = new AnnotationPassiveHover({
+            shouldSuppress: () => {
+                return this.currentAnnotation !== null
+                    || this.webSelection.isRangeSelectionActive()
+            },
+            onHoverStart: (id) => {
+                this.annotationHover.set('canvas-passive', id)
+            },
+            onHoverEnd: (id) => {
+                this.annotationHover.clear('canvas-passive', id)
+            }
+        })
         this.transform = new Transform(PDFViewerApplication)
         this.bindGlobalEvents() // 绑定全局事件
     }
@@ -234,6 +280,22 @@ export class Painter {
 
     public setAnnotationAuthorLabelsVisible(visible: boolean): void {
         this.authorLabels.setAllVisible(visible)
+    }
+
+    public setAnnotationHover(source: AnnotationHoverSource, annotationId: string): void {
+        this.annotationHover.set(source, annotationId)
+    }
+
+    public clearAnnotationHover(source: AnnotationHoverSource, annotationId: string): void {
+        this.annotationHover.clear(source, annotationId)
+    }
+
+    public subscribeAnnotationHover(listener: (snapshot: AnnotationHoverSnapshot) => void): () => void {
+        return this.annotationHover.subscribe(listener)
+    }
+
+    public getAnnotationHoverSnapshot(): AnnotationHoverSnapshot {
+        return this.annotationHover.getSnapshot()
     }
 
     private setDefaultMode = () => {
@@ -311,6 +373,8 @@ export class Painter {
         if (!konvaCanvas) return
 
         this.authorLabels.unregisterPage(pageNumber)
+        this.hoverPreview.unregisterPage(pageNumber)
+        this.passiveHover.unregisterPage(pageNumber)
         konvaCanvas.konvaStage.destroy()
         konvaCanvas.wrapper.remove()
         this.konvaCanvasStore.delete(pageNumber)
@@ -328,6 +392,7 @@ export class Painter {
         const konvaStage = this.createKonvaStage(painterWrapper, pageView.viewport)
 
         this.konvaCanvasStore.set(pageNumber, { pageNumber, konvaStage, wrapper: painterWrapper, isActive: false })
+        this.passiveHover.registerPage(pageNumber, pageView.div, konvaStage)
         this.authorLabels.registerPage(pageNumber, painterWrapper, konvaStage)
         this.reDrawAnnotation(pageNumber) // 重绘批注
         this.enablePainting() // 启用绘画
@@ -349,6 +414,7 @@ export class Painter {
         konvaStage.width(width)
         konvaStage.height(height)
         this.authorLabels.refreshPage(pageNumber)
+        this.hoverPreview.refresh()
     }
 
     /**
@@ -712,6 +778,7 @@ export class Painter {
             }
         })
         this.authorLabels.refreshPage(pageNumber)
+        this.hoverPreview.refresh()
     }
 
     /**
@@ -721,6 +788,7 @@ export class Painter {
     private deleteAnnotation(id: string, emit: boolean = false): boolean {
         const annotationStore = this.store.getAnnotation(id)
         if (!annotationStore || !this.can('annotation.delete', annotationStore)) return false
+        this.annotationHover.clearAnnotation(id)
         this.store.removeAnnotation(id)
         this.authorLabels.remove(id)
         const storeEditor = this.findEditor(annotationStore.pageNumber, annotationStore.type)
@@ -795,6 +863,7 @@ export class Painter {
             return
         }
         this.currentAnnotation = annotation
+        this.passiveHover.clear()
         this.disablePainting()
         this.saveTempDataTransfer(dataTransfer || '')
 
@@ -922,46 +991,87 @@ export class Painter {
         return deleted
     }
 
+    private cancelHighlightRequest(): number {
+        this.highlightRequestId += 1
+        if (this.highlightRetryTimer !== null) {
+            window.clearTimeout(this.highlightRetryTimer)
+            this.highlightRetryTimer = null
+        }
+        this.resolveHighlightRequest?.(false)
+        this.resolveHighlightRequest = null
+        return this.highlightRequestId
+    }
+
     /**
      * @description 高亮选中 annotation
      * @param annotation
      */
-    public async highlight(annotation: IAnnotationStore) {
-        // 跳转至对应页面位置
-        const pageView = this.pdfViewerApplication!._pages![annotation.pageNumber - 1] || this.pdfViewerApplication.getPageView(annotation.pageNumber)
-        const { x, y } = annotation.konvaClientRect
-        // 把 Konva 的左上角坐标转换为 PDF 内部坐标（以页面左下角为原点）
-        const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(x, y - 200)
-        this.pdfViewerApplication.scrollPageIntoView({
-            pageNumber: annotation.pageNumber,
-            destArray: [null, { name: 'XYZ' }, pdfX, pdfY, null], // 可以加偏移
-            allowNegativeOffset: true
-        })
+    public highlight(annotation: IAnnotationStore): Promise<boolean> {
+        const requestId = this.cancelHighlightRequest()
 
-        const maxRetries = 5 // 最大重试次数
-        const retryInterval = 200 // 每次重试间隔
-        // 封装递归重试机制
-        const attemptHighlight = (retries: number): void => {
-            const storeEditor = this.findEditor(annotation.pageNumber, annotation.type)
-            if (storeEditor) {
-                this.setDefaultMode()
-                this.selector.select(annotation.id)
-                if (this.currentAnnotation && this.currentAnnotation.type === AnnotationType.SELECT) {
-                    this.selector.activate(annotation.pageNumber)
+        // 跳转至对应页面位置
+        const pageIndex = annotation.pageNumber - 1
+        const pageView = this.pdfViewerApplication._pages?.[pageIndex]
+            || this.pdfViewerApplication.getPageView(pageIndex)
+        const { x, y } = annotation.konvaClientRect
+
+        if (pageView?.viewport) {
+            // 把 Konva 的左上角坐标转换为 PDF 内部坐标（以页面左下角为原点）
+            const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(x, y - 200)
+            this.pdfViewerApplication.scrollPageIntoView({
+                pageNumber: annotation.pageNumber,
+                destArray: [null, { name: 'XYZ' }, pdfX, pdfY, null],
+                allowNegativeOffset: true
+            })
+        } else {
+            this.pdfViewerApplication.scrollPageIntoView({
+                pageNumber: annotation.pageNumber
+            })
+        }
+
+        const maxRetries = 30
+        const retryInterval = 100
+
+        return new Promise<boolean>((resolve) => {
+            this.resolveHighlightRequest = resolve
+
+            const finish = (highlighted: boolean): void => {
+                if (requestId !== this.highlightRequestId) return
+                if (this.highlightRetryTimer !== null) {
+                    window.clearTimeout(this.highlightRetryTimer)
+                    this.highlightRetryTimer = null
                 }
-            } else if (retries > 0) {
-                // 如果没有找到且还有重试次数，继续重试
-                const timer = setTimeout(() => {
-                    this.highlightTimers.delete(timer)
+                this.resolveHighlightRequest = null
+                resolve(highlighted)
+            }
+
+            const attemptHighlight = (retries: number): void => {
+                if (requestId !== this.highlightRequestId) return
+
+                const storeEditor = this.findEditor(annotation.pageNumber, annotation.type)
+                if (storeEditor) {
+                    this.setDefaultMode()
+                    this.selector.select(annotation.id)
+                    if (this.currentAnnotation && this.currentAnnotation.type === AnnotationType.SELECT) {
+                        this.selector.activate(annotation.pageNumber)
+                    }
+                    finish(true)
+                    return
+                }
+
+                if (retries <= 0) {
+                    finish(false)
+                    return
+                }
+
+                this.highlightRetryTimer = window.setTimeout(() => {
+                    this.highlightRetryTimer = null
                     attemptHighlight(retries - 1)
                 }, retryInterval)
-                this.highlightTimers.add(timer)
-            } else {
-                console.error('Failed to find editor after maximum retries.')
             }
-        }
-        // 初次尝试执行
-        attemptHighlight(maxRetries)
+
+            attemptHighlight(maxRetries)
+        })
     }
 
     public getData() {
@@ -993,12 +1103,14 @@ export class Painter {
      * 销毁 Painter 实例，清理所有资源
      */
     public destroy(): void {
+        this.cancelHighlightRequest()
         this.disablePainting()
         this.webSelection.destroy()
+        this.passiveHover.destroy()
+        this.annotationHover.destroy()
+        this.unsubscribeAnnotationHover()
+        this.hoverPreview.destroy()
         this.authorLabels.destroy()
-        this.highlightTimers.forEach((timer) => clearTimeout(timer))
-        this.highlightTimers.clear()
-
         // 移除全局事件监听器
         window.removeEventListener('keyup', this.globalKeyUpHandler)
 

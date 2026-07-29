@@ -8,7 +8,13 @@ export default {
     edit: 'Edit', delete: 'Delete', more: 'More', color: 'Color',
     status: 'Status', strokeWidth: 'Stroke', opacity: 'Opacity', transparent: 'Transparent',
     comment: 'Comment', fileSizeLimit: 'The file size exceeds the {value} limit', print: 'Print',
-    dateFormat: { full: '{month}/{day}/{year} {hour}:{minute}', dayMonth: '{month}/{day}', dayMonthYear: '{month}/{day}/{year}' },
+    dateFormat: {
+      full: '{month}/{day}/{year} {hour}:{minute}',
+      dayMonth: '{month}/{day}',
+      dayMonthYear: '{month}/{day}/{year}',
+      compact: '{month}/{day} {hour}:{minute}',
+      compactWithYear: '{month}/{day}/{year} {hour}:{minute}',
+    },
   },
   viewer: {
     zoom: { auto: 'auto', actual: 'actual', fit: 'page-fit', width: 'page-width', zoomIn: 'Zoom In', zoomOut: 'Zoom Out' },
@@ -35,7 +41,21 @@ export default {
       stamp: { stampText: 'Stamp Text', fontStyle: 'Font Style', fontFamily: 'Font Family', textColor: 'Text Color', backgroundColor: 'Background Color', borderColor: 'Border Color', borderStyle: 'Border Style', timestampText: 'Timestamp Text', customTimestamp: 'Custom Text', username: 'Username', date: 'Date', time: 'Time', dateFormat: 'Date Format', solid: 'Solid', dashed: 'Dashed', none: 'None', defaultText: 'Draft', defaultStampNotSet: 'Default Stamp Not Set', upload: 'Choose Image' },
       signature: { area: 'Signature', upload: 'Image', choose: 'Choose Image', uploadHint: '{format}, maxSize {maxSize}' },
     },
-    comment: { total: 'Comment {value}', page: 'Page {value}', status: { accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed', none: 'None', closed: 'Closed' }, statusText: 'Set Status: {value}', nativeAnnotation: 'Native Annotation' },
+    comment: {
+      total: 'Comment {value}', page: 'Page {value}',
+      status: { accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed', none: 'None', closed: 'Closed' },
+      statusText: 'Set Status: {value}', nativeAnnotation: 'Native Annotation',
+      reference: {
+        empty: 'No matching annotations',
+        inputLabel: 'Comment with annotation references',
+        noContent: 'No comment content',
+        unavailable: '{value} is unavailable',
+        open: 'Open annotation {value}',
+        previewPage: 'Page {value}',
+        previewNoContent: 'No annotation content',
+        replyCount: '{count} replies',
+      },
+    },
     export: { fields: { id: 'ID', page: 'Page', author: 'Author', date: 'Date', content: 'Content', status: 'Status', annotationType: 'Annotation Type', recordType: 'Type' }, recordType: { annotation: 'Annotation', reply: 'Reply' } },
   },
 }

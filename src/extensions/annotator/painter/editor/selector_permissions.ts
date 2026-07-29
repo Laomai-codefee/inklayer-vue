@@ -11,7 +11,7 @@ export interface TransformerPermissionStyle {
 export function getTransformerPermissionStyle(transformAllowed: boolean): TransformerPermissionStyle {
   return {
     borderStrokeWidth: 2,
-    borderDash: transformAllowed ? [] : [6, 4],
+    borderDash: transformAllowed ? [] : [3, 3],
     opacity: transformAllowed ? 1 : 0.5,
     authorLabelOpacity: transformAllowed ? 1 : 0.8,
     anchorFill: transformAllowed ? '#fff' : 'transparent',

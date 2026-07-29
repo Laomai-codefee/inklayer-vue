@@ -47,7 +47,9 @@ describe('WebSelection lifecycle', () => {
         range.selectNodeContents(root)
         window.getSelection()?.addRange(range)
         document.dispatchEvent(new Event('selectionchange'))
+        expect(webSelection.isRangeSelectionActive()).toBe(true)
         document.dispatchEvent(new MouseEvent('mouseup'))
+        expect(webSelection.isRangeSelectionActive()).toBe(false)
         expect(onSelect).toHaveBeenCalledWith(range)
 
         onSelect.mockClear()
