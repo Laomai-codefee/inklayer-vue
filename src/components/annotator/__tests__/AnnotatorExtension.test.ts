@@ -19,6 +19,8 @@ vi.mock('@/extensions/annotator/painter', () => ({
         activate = vi.fn()
         reRenderAnnotations = vi.fn()
         getKonvaCanvasStore = vi.fn(() => new Map([[1, {}]]))
+        getDeleteUndoSnapshot = vi.fn(() => null)
+        subscribeDeleteUndo = vi.fn(() => () => {})
         initAnnotationsOnce = vi.fn(() => new Promise<void>((resolve) => {
             painterMocks.resolveAnnotations = resolve
         }))

@@ -45,11 +45,12 @@ const passthroughStub = {
 
 function mountCard(
   annotation: IAnnotationStore,
-  attachTo?: HTMLElement
+  attachTo?: HTMLElement,
+  previewComments: IAnnotationStore['comments'] = [],
 ) {
   return mount(AnnotationReferenceHoverCard, {
     attachTo,
-    props: { annotation },
+    props: { annotation, previewComments },
     slots: { default: '<button type="button">#2</button>' },
     global: {
       stubs: {
@@ -100,5 +101,20 @@ describe('AnnotationReferenceHoverCard', () => {
 
     wrapper.unmount()
     host.remove()
+  })
+
+  it('shows deleted comment content instead of only the parent summary', () => {
+    const wrapper = mountCard(makeAnnotation(), undefined, [{
+      id: 'deleted-reply',
+      title: 'Bob',
+      date: null,
+      content: 'This deleted reply must remain visible.',
+    }])
+
+    expect(wrapper.text()).toContain('已删除的评论')
+    expect(wrapper.text()).toContain('Bob')
+    expect(wrapper.text()).toContain('This deleted reply must remain visible.')
+    expect(wrapper.text()).not.toContain('Important context from the annotation.')
+    expect(wrapper.find('.annotation-reference-hover-card__footer').exists()).toBe(false)
   })
 })

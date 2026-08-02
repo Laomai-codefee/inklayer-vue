@@ -25,7 +25,9 @@ const annotation: IAnnotationStore = {
 }
 
 const store = {
+  annotations: new Map([[annotation.id, annotation]]),
   getAnnotation: vi.fn(() => annotation),
+  restoreAnnotation: vi.fn(),
   updateAnnotation: vi.fn((_id: string, updates: Partial<IAnnotationStore>) => ({ ...annotation, ...updates })),
   removeAnnotation: vi.fn(),
   setSelectedAnnotation: vi.fn(),

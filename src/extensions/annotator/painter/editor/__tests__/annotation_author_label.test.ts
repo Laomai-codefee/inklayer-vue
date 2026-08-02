@@ -4,6 +4,7 @@ import {
   getAnnotationAuthorLabelText,
   getAnnotationAuthorLabelPosition,
   getAnnotationAuthorName,
+  resolveAnnotationAuthorLabelCollisions,
 } from '../annotation_author_label'
 
 describe('annotation author label', () => {
@@ -90,6 +91,33 @@ describe('annotation author label', () => {
         stageWidth: 500,
         stageHeight: 700,
       })).toEqual({ x: 80, y: 74 })
+    })
+  })
+
+  describe('collision resolution', () => {
+    it('keeps stable anchors and separates overlapping labels', () => {
+      const resolved = resolveAnnotationAuthorLabelCollisions([
+        { id: 'b', x: 20, y: 20, width: 80, height: 20 },
+        { id: 'a', x: 20, y: 20, width: 80, height: 20 },
+        { id: 'c', x: 200, y: 20, width: 80, height: 20 },
+      ], 200)
+
+      expect(resolved.get('a')).toEqual({ x: 20, y: 20 })
+      expect(resolved.get('b')).toEqual({ x: 20, y: 44 })
+      expect(resolved.get('c')).toEqual({ x: 200, y: 20 })
+    })
+
+    it('alternates within the stage bounds when moving downward is blocked', () => {
+      const resolved = resolveAnnotationAuthorLabelCollisions([
+        { id: 'a', x: 20, y: 50, width: 80, height: 20 },
+        { id: 'b', x: 20, y: 50, width: 80, height: 20 },
+        { id: 'c', x: 20, y: 50, width: 80, height: 20 },
+      ], 80)
+
+      expect(resolved.get('a')).toEqual({ x: 20, y: 50 })
+      expect(resolved.get('b')).toEqual({ x: 20, y: 26 })
+      expect(resolved.get('c')?.y).toBeGreaterThanOrEqual(0)
+      expect(resolved.get('c')?.y).toBeLessThanOrEqual(60)
     })
   })
 })

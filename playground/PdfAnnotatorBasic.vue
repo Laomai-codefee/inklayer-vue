@@ -1,7 +1,7 @@
 <template>
     <PdfAnnotator
         title="PDF ANNOTATOR"
-        locale="en-US"
+
         :default-show-annotations-sidebar="true"
         :enable-range="false"
         :url="pdfUrl"

@@ -21,6 +21,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
   const annotations = ref<Map<string, IAnnotationStore>>(new Map())
   const originalAnnotations = ref<Map<string, IAnnotationStore>>(new Map())
   const selectedAnnotation = ref<SelectionInfo | null>(null)
+  const selectionRevision = ref(0)
   const currentAnnotationType = ref<IAnnotationType | null>(null)
   const dataTransfer = ref<string | null>(null)
   const _painter = shallowRef<Painter | null>(null) as ReturnType<typeof shallowRef<Painter | null>>
@@ -58,6 +59,16 @@ export const useAnnotationStore = defineStore('annotation', () => {
     }
 
     return annotation
+  }
+
+  function restoreAnnotation(annotation: IAnnotationStore, index: number): boolean {
+    if (annotations.value.has(annotation.id)) return false
+
+    const entries = Array.from(annotations.value.entries())
+    const insertionIndex = Math.max(0, Math.min(index, entries.length))
+    entries.splice(insertionIndex, 0, [annotation.id, annotation])
+    annotations.value = new Map(entries)
+    return true
   }
 
   function updateAnnotation(
@@ -129,6 +140,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
       // Clear selection if removed
       if (selectedAnnotation.value?.store?.id === id) {
         selectedAnnotation.value = null
+        selectionRevision.value += 1
       }
     } else {
       console.warn(`Annotation with id ${id} not found.`)
@@ -138,6 +150,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
   function clearAnnotations(): void {
     annotations.value = new Map()
     originalAnnotations.value = new Map()
+    if (selectedAnnotation.value) selectionRevision.value += 1
     selectedAnnotation.value = null
   }
 
@@ -145,10 +158,10 @@ export const useAnnotationStore = defineStore('annotation', () => {
     annotation: IAnnotationStore | null,
     source?: SelectionSource
   ): void {
-    selectedAnnotation.value = {
-      store: annotation,
-      source: source ?? null,
-    }
+    selectedAnnotation.value = annotation
+      ? { store: annotation, source: source ?? null }
+      : null
+    selectionRevision.value += 1
   }
 
   function setCurrentAnnotationType(
@@ -162,7 +175,9 @@ export const useAnnotationStore = defineStore('annotation', () => {
   }
 
   function clearSelectedAnnotation(): void {
+    if (!selectedAnnotation.value) return
     selectedAnnotation.value = null
+    selectionRevision.value += 1
   }
 
   function setPainter(p: Painter | null) { _painter.value = p }
@@ -175,6 +190,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
     annotations,
     originalAnnotations,
     selectedAnnotation,
+    selectionRevision,
     currentAnnotationType,
     dataTransfer,
     _painter,
@@ -187,6 +203,7 @@ export const useAnnotationStore = defineStore('annotation', () => {
     getAnnotation,
     getByPage,
     addAnnotation,
+    restoreAnnotation,
     updateAnnotation,
     setAnnotationReferenceNumbers,
     removeAnnotation,

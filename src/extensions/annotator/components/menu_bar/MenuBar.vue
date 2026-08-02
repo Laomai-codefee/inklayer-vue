@@ -14,18 +14,18 @@
       <!-- Header with back button -->
       <div class="flex items-center gap-2 mb-3">
         <Button variant="ghost" size="icon" class="size-6" @click="showStyle = false">
-          <span class="flex items-center -rotate-90"><Icon name="downArrow" :size="10" /></span>
+          <span class="flex items-center -rotate-270"><Icon name="downArrow" :size="10" /></span>
         </Button>
-        <span class="text-sm font-medium">{{ t('common.color') }}</span>
+        <span class="text-xs font-medium">{{ t('common.color') }}</span>
       </div>
 
       <!-- Color swatches -->
       <div v-if="isStyleSupported.color">
-        <div class="flex flex-wrap gap-2 max-w-[168px]">
+        <div class="flex flex-wrap gap-2 max-w-[138px]">
           <button
             v-for="c in presetColors"
             :key="c"
-            class="size-6 rounded-full cursor-pointer transition-all duration-150 hover:scale-110 border-2"
+            class="size-4 rounded-full cursor-pointer transition-all duration-150 hover:scale-110 border-2"
             :class="currentColor === c ? 'border-primary scale-110' : 'border-foreground/10'"
             :style="{ backgroundColor: c }"
             @click="changeColor(c)"
@@ -81,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, shallowRef, watch } from 'vue'
+import { ref, computed, inject, nextTick, shallowRef, watch } from 'vue'
 import Konva from 'konva'
 import type { IRect } from 'konva/lib/types'
 import { Popover } from '@/components/ui/popover'
@@ -108,6 +108,7 @@ const triggerY = ref(0)
 const popoverSide = ref<'top' | 'bottom'>('bottom')
 const triggerRef = ref<HTMLElement | null>(null)
 const currentAnnotation = ref<IAnnotationStore | null>(null)
+const selectorRectRef = shallowRef<IRect | null>(null)
 const showStyle = ref(false)
 const currentColor = ref('#ff6b6b')
 const currentStrokeWidth = ref(2)
@@ -156,7 +157,9 @@ function getKonvaShapeFromString(konvaString: string) {
 
 function calcPosition(annotation: IAnnotationStore, selectorRect: IRect) {
   const wrapperId = `${PAINTER_WRAPPER_PREFIX}_page_${annotation.pageNumber}`
-  const konvaContainer = document.querySelector(`#${wrapperId} .konvajs-content`) as HTMLElement
+  const konvaContainer = ctx?.viewerContainerRef.value?.querySelector(
+    `#${wrapperId} .konvajs-content`
+  ) as HTMLElement | null
   if (!konvaContainer) return
 
   const cr = konvaContainer.getBoundingClientRect()
@@ -193,6 +196,7 @@ function open(annotation: IAnnotationStore, selectorRect: IRect) {
   const sameAnnotation = currentAnnotation.value?.id === annotation.id
 
   currentAnnotation.value = annotation
+  selectorRectRef.value = selectorRect
   showStyle.value = false
   try {
     const shape = getKonvaShapeFromString(annotation.konvaString)
@@ -220,7 +224,12 @@ function open(annotation: IAnnotationStore, selectorRect: IRect) {
   visible.value = true
 }
 
-function close() { visible.value = false; currentAnnotation.value = null; showStyle.value = false }
+function close() {
+  visible.value = false
+  currentAnnotation.value = null
+  selectorRectRef.value = null
+  showStyle.value = false
+}
 
 // ========== Actions ==========
 function changeColor(color: string) {
@@ -251,6 +260,13 @@ function setMenuBarPainter(painter: any) { painterRef.value = painter }
 
 watch(hasVisibleControls, (hasControls) => {
   if (!hasControls) close()
+})
+
+watch(showStyle, async () => {
+  await nextTick()
+  if (currentAnnotation.value && selectorRectRef.value) {
+    calcPosition(currentAnnotation.value, selectorRectRef.value)
+  }
 })
 
 defineExpose({ open, close, setMenuBarPainter })

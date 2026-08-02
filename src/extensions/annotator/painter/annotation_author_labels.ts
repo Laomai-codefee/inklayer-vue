@@ -2,7 +2,11 @@ import type Konva from 'konva'
 
 import type { IAnnotationStore } from '../const/definitions'
 import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from './const'
-import { getAnnotationAuthorLabelPosition, getAnnotationAuthorLabelText } from './editor/annotation_author_label'
+import {
+    getAnnotationAuthorLabelPosition,
+    getAnnotationAuthorLabelText,
+    resolveAnnotationAuthorLabelCollisions
+} from './editor/annotation_author_label'
 import { getTransformerPermissionStyle } from './editor/selector_permissions'
 
 interface AnnotationAuthorLabelsOptions {
@@ -20,6 +24,7 @@ interface AnnotationAuthorLabelsPage {
 }
 
 interface VisibleAnnotationAuthorLabel {
+    id: string
     label: HTMLDivElement
     group: Konva.Group
 }
@@ -119,7 +124,12 @@ export class AnnotationAuthorLabels {
             return
         }
         const page = this.pages.get(annotation.pageNumber)
-        if (page) this.syncAnnotation(page, annotation, true)
+        if (!page) return
+        if (this.shouldRevealAll()) {
+            this.refreshPage(annotation.pageNumber)
+            return
+        }
+        this.syncAnnotation(page, annotation, true)
     }
 
     public refreshPage(pageNumber: number): void {
@@ -141,7 +151,11 @@ export class AnnotationAuthorLabels {
             const visibleLabel = this.syncAnnotation(page, annotation, false)
             if (visibleLabel) visibleLabels.push(visibleLabel)
         })
-        visibleLabels.forEach(({ label, group }) => this.positionLabel(page, label, group))
+        if (this.shouldRevealAll()) {
+            this.positionVisibleLabels(page, visibleLabels)
+        } else {
+            visibleLabels.forEach(({ label, group }) => this.positionLabel(page, label, group))
+        }
     }
 
     public refreshAll(): void {
@@ -214,13 +228,17 @@ export class AnnotationAuthorLabels {
         if (!visible) return null
 
         if (positionImmediately) this.positionLabel(page, label, group)
-        return { label, group }
+        return { id: annotation.id, label, group }
     }
 
-    private positionLabel(page: AnnotationAuthorLabelsPage, label: HTMLDivElement, group: Konva.Group): void {
+    private getLabelPosition(
+        page: AnnotationAuthorLabelsPage,
+        label: HTMLDivElement,
+        group: Konva.Group
+    ): { x: number; y: number } {
         const groupRect = group.getClientRect()
         const selectionPadding = 2
-        const position = getAnnotationAuthorLabelPosition({
+        return getAnnotationAuthorLabelPosition({
             selectionRect: {
                 x: groupRect.x - selectionPadding,
                 y: groupRect.y - selectionPadding,
@@ -232,7 +250,31 @@ export class AnnotationAuthorLabels {
             stageWidth: page.stage.width(),
             stageHeight: page.stage.height()
         })
+    }
+
+    private positionLabel(page: AnnotationAuthorLabelsPage, label: HTMLDivElement, group: Konva.Group): void {
+        const position = this.getLabelPosition(page, label, group)
         label.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`
+    }
+
+    private positionVisibleLabels(
+        page: AnnotationAuthorLabelsPage,
+        visibleLabels: VisibleAnnotationAuthorLabel[]
+    ): void {
+        const placements = visibleLabels.map(({ id, label, group }) => ({
+            id,
+            ...this.getLabelPosition(page, label, group),
+            width: label.offsetWidth,
+            height: label.offsetHeight
+        }))
+        const resolved = resolveAnnotationAuthorLabelCollisions(placements, page.stage.height())
+
+        visibleLabels.forEach(({ id, label }) => {
+            const position = resolved.get(id)
+            if (position) {
+                label.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`
+            }
+        })
     }
 
     private bindGroup(id: string, group: Konva.Group): void {

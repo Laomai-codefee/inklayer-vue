@@ -505,12 +505,7 @@ function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) 
   }, status)
 }
 function deleteReplyDirect(annId: string, replyId: string) {
-  const ann = props.annotations.find((a) => a.id === annId)
-  if (!ann || !painter.value) return
-  const reply = ann.comments.find((comment) => comment.id === replyId)
-  if (!reply || !can('comment.delete', ann, reply)) return
-  const updatedComments = (ann.comments || []).filter((c) => c.id !== replyId)
-  painter.value.update(ann.id, { comments: updatedComments }, 'comment.delete', reply)
+  painter.value?.deleteComment(annId, replyId)
 }
 
 // ====== Start reply with focus ======

@@ -244,16 +244,25 @@ describe('useAnnotationStore', () => {
       expect(annStore.selectedAnnotationStore).toBeNull()
     })
 
-    it('setSelectedAnnotation(null) 应将 store 置为 null（source 保留 null）', () => {
+    it('setSelectedAnnotation(null) 应整体清除 selection', () => {
       const annStore = useAnnotationStore()
       const ann = makeStore('ann-1')
       annStore.addAnnotation(ann)
       annStore.setSelectedAnnotation(ann)
 
       annStore.setSelectedAnnotation(null)
-      // setSelectedAnnotation(null) 设置 { store: null, source: null } 而非 null
-      expect(annStore.selectedAnnotation!.store).toBeNull()
-      expect(annStore.selectedAnnotation!.source).toBeNull()
+      expect(annStore.selectedAnnotation).toBeNull()
+    })
+
+    it('每次设置 selection 都应推进 revision', () => {
+      const annStore = useAnnotationStore()
+      const ann = makeStore('ann-1')
+      const initialRevision = annStore.selectionRevision
+
+      annStore.setSelectedAnnotation(ann, SelectionSource.CANVAS)
+      annStore.setSelectedAnnotation(ann, SelectionSource.CANVAS)
+
+      expect(annStore.selectionRevision).toBe(initialRevision + 2)
     })
 
     it('clearSelectedAnnotation 应整体置为 null', () => {

@@ -5,7 +5,7 @@ export default {
     default: 'Default', custom: 'Custom', upload: 'Upload', ok: 'OK',
     cancel: 'Cancel', clear: 'Clear', selectAll: 'Select All',
     draw: 'Draw', enter: 'Enter', confirm: 'Confirm', reply: 'Reply',
-    edit: 'Edit', delete: 'Delete', more: 'More', color: 'Color',
+    edit: 'Edit', delete: 'Delete', restore: 'Restore', restoreAll: 'Restore all', more: 'More', color: 'Color',
     status: 'Status', strokeWidth: 'Stroke', opacity: 'Opacity', transparent: 'Transparent',
     comment: 'Comment', fileSizeLimit: 'The file size exceeds the {value} limit', print: 'Print',
     dateFormat: {
@@ -35,6 +35,15 @@ export default {
     tool: { select: 'Select', highlight: 'Highlight', strikeout: 'Strikeout', underline: 'Underline', rectangle: 'Rectangle', circle: 'Circle', freehand: 'Free Hand', freeHighlight: 'Free Highlight', freeText: 'Text', signature: 'Signature', stamp: 'Stamp', note: 'Note', arrow: 'Arrow', cloud: 'Cloud' },
     sidebar: { toggle: 'Show Annotations' },
     authorLabels: { show: 'Show annotation authors · Hold {shortcut} to peek', hide: 'Hide annotation authors' },
+    deleteUndo: {
+      annotationDeleted: 'Deleted{reference}', annotationDeletedDetailed: 'Deleted{reference} · {detail}',
+      commentDeleted: 'Deleted comment in{reference}', commentDeletedDetailed: 'Deleted comment in{reference} · {detail}',
+      commentDeletedByAuthor: 'Deleted {author}’s comment in{reference}', annotationsDeleted: '{count} annotations deleted',
+      annotationsDeletedDetailed: '{count} annotations deleted · {references}', commentsDeleted: '{count} comments deleted',
+      commentsDeletedDetailed: '{count} comments deleted · {references}', itemsDeleted: '{count} items deleted',
+      itemsDeletedDetailed: '{count} items deleted · {references}', typeAndPage: '{type}, page {page}', page: 'Page {page}',
+      referencesMore: '{references}, and more', deletedCommentPreview: 'Deleted comment', deletedCommentsMore: '{count} more',
+    },
     common: { createStamp: 'Create Stamp', createSignature: 'Create signature', loadError: 'Annotation load failed', errorCode: 'Error code', unknownError: 'Unknown error', loading: 'Annotation loading...', loadingHint: 'Annotation loading time is long, please wait...' },
     editor: {
       text: { startTyping: 'Start typing\u2026' },

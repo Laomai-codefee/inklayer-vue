@@ -5,7 +5,7 @@ export default {
     default: '默认', custom: '自定义', upload: '上传',
     ok: '确定', cancel: '取消', clear: '清空', selectAll: '全选',
     draw: '绘制', enter: '输入', confirm: '确认', reply: '回复',
-    edit: '编辑', delete: '删除', more: '更多', color: '颜色',
+    edit: '编辑', delete: '删除', restore: '恢复', restoreAll: '全部恢复', more: '更多', color: '颜色',
     status: '状态', strokeWidth: '笔触宽度', opacity: '透明度', transparent: '透明',
     fileSizeLimit: '文件大小超出 {value} 限制', comment: '评论', print: '打印',
     dateFormat: {
@@ -35,6 +35,15 @@ export default {
     tool: { select: '选择', highlight: '高亮', strikeout: '删除线', underline: '下划线', rectangle: '矩形', circle: '圆形', freehand: '自由绘制', freeHighlight: '自由高亮', freeText: '文字', signature: '签名', stamp: '盖章', note: '注解', arrow: '箭头', cloud: '云线' },
     sidebar: { toggle: '查看所有批注' },
     authorLabels: { show: '显示所有批注作者 · 按住 {shortcut} 临时查看', hide: '隐藏批注作者' },
+    deleteUndo: {
+      annotationDeleted: '已删除{reference}', annotationDeletedDetailed: '已删除{reference} · {detail}',
+      commentDeleted: '已删除{reference} 的评论', commentDeletedDetailed: '已删除{reference} 的评论 · {detail}',
+      commentDeletedByAuthor: '已删除{reference} 中 {author} 的评论', annotationsDeleted: '已删除 {count} 个批注',
+      annotationsDeletedDetailed: '已删除 {count} 个批注 · {references}', commentsDeleted: '已删除 {count} 条评论',
+      commentsDeletedDetailed: '已删除 {count} 条评论 · {references}', itemsDeleted: '已删除 {count} 项',
+      itemsDeletedDetailed: '已删除 {count} 项 · {references}', typeAndPage: '{type}，第 {page} 页', page: '第 {page} 页',
+      referencesMore: '{references} 等', deletedCommentPreview: '已删除的评论', deletedCommentsMore: '另有 {count} 条',
+    },
     common: { createStamp: '创建印章', createSignature: '创建签名', loadError: '批注加载失败', errorCode: '错误代码', unknownError: '未知错误', loading: '批注加载中...', loadingHint: '批注加载时间较长，请稍候...' },
     editor: {
       text: { startTyping: '输入文字，回车确认...' },

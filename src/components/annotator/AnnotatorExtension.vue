@@ -2,6 +2,7 @@
   <div class="annotator-extension" style="display:contents">
     <SelectionBar ref="selectionBarRef" :annotation-permissions="annotationPermissions" />
     <MenuBar ref="menuBarRef" :colors="colors" :annotation-permissions="annotationPermissions" />
+    <DeleteUndoSnackbar />
   </div>
 </template>
 
@@ -18,6 +19,7 @@ import { Painter } from '@/extensions/annotator/painter'
 import { annotationDefinitions, type IAnnotationStore, type IAnnotationType, type IAnnotationStyle } from '@/extensions/annotator/const/definitions'
 import SelectionBar from '@/extensions/annotator/components/selection_bar/SelectionBar.vue'
 import MenuBar from '@/extensions/annotator/components/menu_bar/MenuBar.vue'
+import DeleteUndoSnackbar from '@/extensions/annotator/components/delete_undo_snackbar/DeleteUndoSnackbar.vue'
 import type { AnnotationPermissions, PdfAnnotatorOptions } from '@/extensions/annotator/types/annotator'
 import { debounce, getThemeColor } from '@/utils'
 import { storesToAnnotations } from '@/core/adapters/store.mapper'
