@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.2.1...v1.2.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* **annotator:** align 1.2.2 interactions and exports ([009b47a](https://github.com/Laomai-codefee/inklayer-vue/commit/009b47a9979d99baa6a08834adbebe7a590ce64a))
+
 ### [1.2.1](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.2.0...v1.2.1) (2026-08-02)
 
 
