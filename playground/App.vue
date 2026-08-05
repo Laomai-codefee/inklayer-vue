@@ -85,7 +85,7 @@ const DEMOS = [
   { value: 'PdfViewerCustom', label: 'PdfViewer Custom' },
 ]
 
-const activeTab = ref('PdfAnnotatorBasic')
+const activeTab = ref('PdfAnnotatorPermissions')
 const headless = ref(window.location.hash === '#headless')
 const showCodeRef = ref<InstanceType<typeof ShowCode> | null>(null)
 

@@ -8,7 +8,7 @@ import {
   UserContextKey,
   type PdfViewerContextValue,
 } from '@/context/pdfViewerContext'
-import { useAnnotationStore } from '@/stores/annotationStore'
+import { SelectionSource, useAnnotationStore } from '@/stores/annotationStore'
 import {
   AnnotationType,
   PdfjsAnnotationType,
@@ -65,7 +65,7 @@ function createPdfContext(): PdfViewerContextValue {
 const slotStub = { template: '<div><slot /></div>' }
 const referenceInputStub = {
   props: ['placeholder'],
-  template: '<textarea class="reference-input-stub" :placeholder="placeholder" />',
+  template: '<div data-annotation-editor><textarea class="reference-input-stub" :placeholder="placeholder" /></div>',
 }
 
 describe('AnnotationSidebar references', () => {
@@ -158,11 +158,10 @@ describe('AnnotationSidebar references', () => {
     wrapper.unmount()
   })
 
-  it('previews annotations from pointer and focus without changing selection', async () => {
+  it('keeps pointer and focus hover local, and only links panels after selection', async () => {
     const annotation = makeAnnotation('annotation-1', 1)
-    const coordinator = new AnnotationHoverCoordinator()
-    const setAnnotationHover = vi.fn(coordinator.set.bind(coordinator))
-    const clearAnnotationHover = vi.fn(coordinator.clear.bind(coordinator))
+    const setAnnotationHover = vi.fn()
+    const clearAnnotationHover = vi.fn()
     const highlight = vi.fn()
     const store = useAnnotationStore()
     store.setPainter({
@@ -170,8 +169,8 @@ describe('AnnotationSidebar references', () => {
       highlight,
       setAnnotationHover,
       clearAnnotationHover,
-      subscribeAnnotationHover: coordinator.subscribe,
-      getAnnotationHoverSnapshot: coordinator.getSnapshot,
+      subscribeAnnotationHover: vi.fn(),
+      getAnnotationHoverSnapshot: vi.fn(() => ({ annotationId: null, source: null })),
     } as never)
 
     const wrapper = mount(AnnotationSidebar, {
@@ -210,8 +209,7 @@ describe('AnnotationSidebar references', () => {
     card.element.dispatchEvent(mouseEnter)
     await wrapper.vm.$nextTick()
 
-    expect(setAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-    expect(card.classes()).not.toContain('annotation-card--preview')
+    expect(setAnnotationHover).not.toHaveBeenCalled()
     expect(store.selectedAnnotation).toBeNull()
     expect(highlight).not.toHaveBeenCalled()
 
@@ -219,55 +217,132 @@ describe('AnnotationSidebar references', () => {
     Object.defineProperty(mouseLeave, 'pointerType', { value: 'mouse' })
     card.element.dispatchEvent(mouseLeave)
     await wrapper.vm.$nextTick()
-    expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-    expect(card.classes()).not.toContain('annotation-card--preview')
-
-    const touchEnter = new Event('pointerenter')
-    Object.defineProperty(touchEnter, 'pointerType', { value: 'touch' })
-    card.element.dispatchEvent(touchEnter)
-    expect(setAnnotationHover).toHaveBeenCalledTimes(1)
+    expect(clearAnnotationHover).not.toHaveBeenCalled()
 
     const focusTarget = document.createElement('button')
     card.element.appendChild(focusTarget)
     focusTarget.focus()
     await wrapper.vm.$nextTick()
-    expect(setAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-    expect(card.classes()).not.toContain('annotation-card--preview')
+    expect(setAnnotationHover).not.toHaveBeenCalled()
 
-    const ownedPortal = document.createElement('button')
-    ownedPortal.dataset.annotationHoverOwner = annotation.id
-    document.body.appendChild(ownedPortal)
-    ownedPortal.focus()
-    await wrapper.vm.$nextTick()
-    expect(clearAnnotationHover).not.toHaveBeenCalledWith('sidebar-focus', annotation.id)
+    await card.trigger('click')
+    expect(store.selectedAnnotation?.store?.id).toBe(annotation.id)
+    expect(highlight).toHaveBeenCalledWith(annotation)
 
-    const outside = document.createElement('button')
-    document.body.appendChild(outside)
-    outside.focus()
-    await wrapper.vm.$nextTick()
-    expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-
-    await wrapper.setProps({ selectedId: annotation.id })
-    coordinator.set('sidebar-focus', annotation.id)
-    await wrapper.vm.$nextTick()
-    expect(card.classes()).toContain('!bg-accent')
-    expect(card.classes()).not.toContain('annotation-card--preview')
-
-    coordinator.clear('sidebar-focus', annotation.id)
-    coordinator.set('canvas', annotation.id)
-    await wrapper.vm.$nextTick()
-    expect(card.classes()).toContain('annotation-card--preview')
-    coordinator.clear('canvas', annotation.id)
-
-    card.element.dispatchEvent(mouseEnter)
-    focusTarget.focus()
-    setAnnotationHover.mockClear()
-    clearAnnotationHover.mockClear()
     wrapper.unmount()
-    expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-    expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-    ownedPortal.remove()
-    outside.remove()
+    expect(clearAnnotationHover).not.toHaveBeenCalled()
+  })
+
+  it('uses localized InkLayer tool names and keeps tools with the same PDF subtype separate', () => {
+    const highlight = makeAnnotation('annotation-1', 1, {
+      type: AnnotationType.HIGHLIGHT,
+      pdfjsType: PdfjsAnnotationType.HIGHLIGHT,
+      subtype: 'Highlight',
+    })
+    const freeHighlight = makeAnnotation('annotation-2', 2, {
+      type: AnnotationType.FREE_HIGHLIGHT,
+      pdfjsType: PdfjsAnnotationType.HIGHLIGHT,
+      subtype: 'Highlight',
+    })
+
+    const wrapper = mount(AnnotationSidebar, {
+      props: { annotations: [highlight, freeHighlight] },
+      global: {
+        provide: {
+          [PdfViewerContextKey as symbol]: createPdfContext(),
+          [UserContextKey as symbol]: { user: computed(() => ({ id: 'bob', name: 'Bob' })) },
+        },
+        stubs: {
+          ScrollArea: slotStub,
+          Popover: { template: '<div><slot name="trigger" /><slot /></div>' },
+          Tooltip: { template: '<span><slot name="trigger" /></span>' },
+          DropdownMenu: { template: '<div><slot name="trigger" /><slot /></div>' },
+          DropdownMenuItem: slotStub,
+          AnnotationReferenceInput: slotStub,
+          AnnotationReferenceText: slotStub,
+        },
+      },
+    })
+
+    const labels = wrapper.findAll('label[for^="ft-"]').map(label => label.text())
+    expect(labels).toEqual(['高亮 (1)', '自由高亮 (1)'])
+    wrapper.unmount()
+  })
+
+  it('preserves user filters when annotation content changes', async () => {
+    const annotation = makeAnnotation('annotation-1', 1)
+    const wrapper = mount(AnnotationSidebar, {
+      props: { annotations: [annotation] },
+      global: {
+        provide: {
+          [PdfViewerContextKey as symbol]: createPdfContext(),
+          [UserContextKey as symbol]: { user: computed(() => ({ id: 'bob', name: 'Bob' })) },
+        },
+        stubs: {
+          ScrollArea: slotStub,
+          Popover: { template: '<div><slot name="trigger" /><slot /></div>' },
+          Tooltip: { template: '<span><slot name="trigger" /></span>' },
+          DropdownMenu: { template: '<div><slot name="trigger" /><slot /></div>' },
+          DropdownMenuItem: slotStub,
+          AnnotationReferenceInput: slotStub,
+          AnnotationReferenceText: slotStub,
+        },
+      },
+    })
+    const authorFilter = wrapper.get('input[id^="fu-"]')
+    await authorFilter.setValue(false)
+
+    await wrapper.setProps({
+      annotations: [{ ...annotation, contentsObj: { text: 'Updated comment' } }],
+    })
+
+    expect((wrapper.get('input[id^="fu-"]').element as HTMLInputElement).checked).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('scrolls a newly opened Canvas editor into the visible Sidebar area', async () => {
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    })
+    const annotation = makeAnnotation('annotation-1', 1)
+    const store = useAnnotationStore()
+    store.setPainter({
+      can: vi.fn((action: string) => action === 'annotation.edit'),
+      highlight: vi.fn(),
+    } as never)
+    const wrapper = mount(AnnotationSidebar, {
+      attachTo: document.body,
+      props: { annotations: [annotation], selectedId: annotation.id },
+      global: {
+        provide: {
+          [PdfViewerContextKey as symbol]: createPdfContext(),
+          [UserContextKey as symbol]: { user: computed(() => ({ id: 'bob', name: 'Bob' })) },
+        },
+        stubs: {
+          ScrollArea: slotStub,
+          Popover: { template: '<div><slot name="trigger" /><slot /></div>' },
+          Tooltip: { template: '<span><slot name="trigger" /></span>' },
+          DropdownMenu: { template: '<div><slot name="trigger" /><slot /></div>' },
+          DropdownMenuItem: slotStub,
+          AnnotationReferenceInput: referenceInputStub,
+          AnnotationReferenceText: slotStub,
+        },
+      },
+    })
+
+    store.setSelectedAnnotation(annotation, SelectionSource.CANVAS)
+    await wrapper.vm.$nextTick()
+    await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
+
+    expect(wrapper.find('[data-annotation-editor]').exists()).toBe(true)
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+    wrapper.unmount()
   })
 
   it('uses distinct placeholders for annotation comments and replies', async () => {

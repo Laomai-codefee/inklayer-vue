@@ -29,7 +29,7 @@ describe('Painter annotation hover', () => {
     })
   }
 
-  it('routes passive hover only to labels and publishes an empty state on destroy', () => {
+  it('routes Canvas hover only to labels and publishes an empty state on destroy', () => {
     const painter = createPainter()
     const internals = painter as unknown as {
       authorLabels: { setHovered: (id: string | null) => void }
@@ -40,14 +40,15 @@ describe('Painter annotation hover', () => {
     const listener = vi.fn()
     painter.subscribeAnnotationHover(listener)
 
-    painter.setAnnotationHover('canvas-passive', 'annotation-1')
+    painter.setAnnotationHover('canvas', 'annotation-1')
     expect(setLabelHovered).toHaveBeenLastCalledWith('annotation-1')
     expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 
-    painter.setAnnotationHover('sidebar-pointer', 'annotation-1')
-    expect(setPreviewHovered).toHaveBeenLastCalledWith('annotation-1')
+    painter.clearAnnotationHover('canvas', 'annotation-1')
+    expect(setLabelHovered).toHaveBeenLastCalledWith(null)
+    expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 
-    painter.clearAnnotationHover('sidebar-pointer', 'annotation-1')
+    painter.setAnnotationHover('canvas-passive', 'annotation-1')
     expect(setLabelHovered).toHaveBeenLastCalledWith('annotation-1')
     expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 

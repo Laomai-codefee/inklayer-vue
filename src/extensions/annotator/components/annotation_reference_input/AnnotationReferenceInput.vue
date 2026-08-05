@@ -1,6 +1,7 @@
 <template>
   <div
     ref="rootElement"
+    data-annotation-editor
     class="reference-input"
     @click.stop
     @focusout="handleFocusOut"
@@ -385,6 +386,7 @@ function formatDate(date: string | null): string {
 <style scoped>
 .reference-input {
   position: relative;
+  scroll-margin-block: 10px;
 }
 
 .reference-submit {

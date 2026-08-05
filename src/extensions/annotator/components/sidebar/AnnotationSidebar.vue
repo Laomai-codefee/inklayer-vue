@@ -19,9 +19,9 @@
             </div>
             <div>
               <p class="text-xs font-medium mb-1.5 text-muted-foreground">{{ t('common.type') }}</p>
-              <div v-for="[type, count] in allTypes" :key="type" class="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-1 cursor-pointer">
+              <div v-for="[type, details] in allTypes" :key="type" class="flex items-center gap-2 py-1 hover:bg-accent/50 rounded px-1 cursor-pointer">
                 <input type="checkbox" :id="`ft-${type}`" :checked="selectedTypes.includes(type)" class="size-3.5 rounded border-input" @change="toggleType(type)" />
-                <label :for="`ft-${type}`" class="text-xs cursor-pointer flex-1">{{ type }} ({{ count }})</label>
+                <label :for="`ft-${type}`" class="text-xs cursor-pointer flex-1">{{ getAnnotationFilterTypeLabel(type, details.fallbackLabel) }} ({{ details.count }})</label>
               </div>
             </div>
             <div class="flex gap-2 pt-1">
@@ -45,17 +45,11 @@
           v-for="ann in pAnns"
           :key="ann.id"
           :id="`annotation-${ann.id}`"
-          :data-annotation-hover-owner="ann.id"
           class="annotation-card border border-border border-[2px] bg-card rounded-lg p-2.5 pt-0.5 mb-2 cursor-pointer leading-relaxed transition-colors"
           :class="{
             '!bg-accent': selectedAnnotationId === ann.id,
-            'annotation-card--preview': showAnnotationPreview(ann.id),
           }"
           @click="handleAnnotationClick(ann)"
-          @pointerenter="handleAnnotationPointerEnter(ann.id, $event)"
-          @pointerleave="handleAnnotationPointerLeave(ann.id)"
-          @focusin.capture="handleAnnotationFocus(ann.id)"
-          @focusout.capture="handleAnnotationBlur(ann.id, $event)"
         >
           <!-- Card header -->
           <div class="flex min-h-8 items-center gap-2  border-b-[1px] border-border">
@@ -78,7 +72,6 @@
               <!-- Status dropdown -->
               <DropdownMenu
                 v-if="can('annotation.change-status', ann)"
-                :annotation-hover-owner="ann.id"
               >
                 <template #trigger>
                   <Button variant="ghost" size="icon" class="size-6 text-muted-foreground" :title="t('common.status')">
@@ -93,7 +86,6 @@
               <!-- Action dropdown -->
               <DropdownMenu
                 v-if="can('annotation.comment', ann) || can('annotation.edit', ann) || can('annotation.delete', ann)"
-                :annotation-hover-owner="ann.id"
                 @close-auto-focus="handleAnnotationMenuCloseAutoFocus(ann.id, $event)"
               >
                 <template #trigger>
@@ -130,12 +122,11 @@
               class="mt-1.5"
               :annotations="annotations"
               :exclude-annotation-id="ann.id"
-              :annotation-hover-owner="ann.id"
               :initial-content="ann.contentsObj?.text || ''"
               :initial-references="ann.contentsObj?.references"
               :placeholder="t('annotator.comment.reference.commentPlaceholder')"
               @submit="updateComment(ann, $event)"
-              @cancel="cancelAnnotationEdit(ann.id)"
+              @cancel="cancelAnnotationEdit"
             />
           </template>
           <template v-else>
@@ -155,12 +146,11 @@
               <AnnotationReferenceInput
                 :annotations="annotations"
                 :exclude-annotation-id="ann.id"
-                :annotation-hover-owner="ann.id"
                 :initial-content="reply.content"
                 :initial-references="reply.references"
                 :placeholder="t('annotator.comment.reference.replyPlaceholder')"
                 @submit="updateReply(ann, reply, $event)"
-                @cancel="cancelReplyEdit(ann.id)"
+                @cancel="cancelReplyEdit"
               />
             </template>
             <template v-else>
@@ -168,7 +158,6 @@
                 <span class="min-w-0 flex-1 truncate text-xs font-medium">{{ reply.title }}</span>
                 <DropdownMenu
                   v-if="can('comment.edit', ann, reply) || can('comment.delete', ann, reply)"
-                  :annotation-hover-owner="ann.id"
                   @close-auto-focus="handleReplyMenuCloseAutoFocus(reply.id, $event)"
                 >
                   <template #trigger>
@@ -199,10 +188,9 @@
             <AnnotationReferenceInput
               :annotations="annotations"
               :exclude-annotation-id="ann.id"
-              :annotation-hover-owner="ann.id"
               :placeholder="t('annotator.comment.reference.replyPlaceholder')"
               @submit="addReply(ann, $event)"
-              @cancel="cancelReply(ann.id)"
+              @cancel="cancelReply"
             />
           </div>
 
@@ -233,6 +221,7 @@ import Icon from '@/components/Icon.vue'
 import AnnotationReferenceInput from '@/extensions/annotator/components/annotation_reference_input/AnnotationReferenceInput.vue'
 import AnnotationReferenceText from '@/extensions/annotator/components/annotation_reference_text/AnnotationReferenceText.vue'
 import {
+  AnnotationType,
   annotationDefinitions,
   CommentStatus,
   type IAnnotationStore,
@@ -255,7 +244,6 @@ import {
   applyAnnotationReplyDraft,
   createAnnotationReply,
 } from './comment_mutations'
-import { useAnnotationHoverSnapshot } from '@/composables/useAnnotationHover'
 
 const props = defineProps({
   annotations: { type: Array as PropType<IAnnotationStore[]>, default: () => [] },
@@ -268,14 +256,15 @@ const emit = defineEmits<{ select: [ann: IAnnotationStore]; delete: [id: string]
 const { t } = useT()
 const store = useAnnotationStore()
 const painter = computed(() => store.painter)
-const annotationHover = useAnnotationHoverSnapshot(painter)
 const pdfContext = inject(PdfViewerContextKey)
 const userContext = inject(UserContextKey)
 
 // Filter
 const filterOpen = ref(false)
 const selectedUsers = ref<string[]>([])
-const selectedTypes = ref<string[]>([])
+const selectedTypes = ref<AnnotationType[]>([])
+let knownUsers: Set<string> | null = null
+let knownTypes: Set<AnnotationType> | null = null
 
 // Edit/reply
 const editAnnotationId = ref<string | null>(null)
@@ -283,23 +272,10 @@ const replyAnnotationId = ref<string | null>(null)
 const editReplyId = ref<string | null>(null)
 const pendingReferenceAnnotationId = ref<string | null>(null)
 let pendingReferenceScrollFrame: number | null = null
-let pointerHoveredAnnotationId: string | null = null
-let focusedAnnotationId: string | null = null
+let editorScrollFrame: number | null = null
 
 const selectedAnnotationId = computed(() => props.selectedId)
 const currentUserName = computed(() => userContext?.user?.value?.name ?? 'Anonymous')
-
-watch(painter, (nextPainter, previousPainter) => {
-  if (nextPainter === previousPainter) return
-  if (pointerHoveredAnnotationId) {
-    previousPainter?.clearAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
-    nextPainter?.setAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
-  }
-  if (focusedAnnotationId) {
-    previousPainter?.clearAnnotationHover('sidebar-focus', focusedAnnotationId)
-    nextPainter?.setAnnotationHover('sidebar-focus', focusedAnnotationId)
-  }
-})
 
 function can(action: AnnotationPermissionAction, annotation?: IAnnotationStore, comment?: IAnnotationComment): boolean {
   void props.annotationPermissions?.mode
@@ -315,15 +291,37 @@ const allUsers = computed(() => {
   return Array.from(map.entries())
 })
 const allTypes = computed(() => {
-  const map = new Map<string, number>()
-  props.annotations.forEach((a) => map.set(a.subtype, (map.get(a.subtype) || 0) + 1))
+  const map = new Map<AnnotationType, { count: number; fallbackLabel: string }>()
+  props.annotations.forEach((annotation) => {
+    const current = map.get(annotation.type)
+    map.set(annotation.type, {
+      count: (current?.count || 0) + 1,
+      fallbackLabel: current?.fallbackLabel || annotation.subtype,
+    })
+  })
   return Array.from(map.entries())
 })
 
-watch(() => props.annotations, (anns) => {
-  if (!anns.length) { selectedUsers.value = []; selectedTypes.value = []; return }
-  selectedUsers.value = [...new Set(anns.map((a) => a.title))]
-  selectedTypes.value = [...new Set(anns.map((a) => a.subtype))]
+watch([allUsers, allTypes], ([userEntries, typeEntries]) => {
+  const nextUsers = new Set(userEntries.map(([user]) => user))
+  const previousUsers = knownUsers
+  knownUsers = nextUsers
+  selectedUsers.value = previousUsers === null
+    ? Array.from(nextUsers)
+    : [
+        ...selectedUsers.value.filter(user => nextUsers.has(user)),
+        ...Array.from(nextUsers).filter(user => !previousUsers.has(user)),
+      ]
+
+  const nextTypes = new Set(typeEntries.map(([type]) => type))
+  const previousTypes = knownTypes
+  knownTypes = nextTypes
+  selectedTypes.value = previousTypes === null
+    ? Array.from(nextTypes)
+    : [
+        ...selectedTypes.value.filter(type => nextTypes.has(type)),
+        ...Array.from(nextTypes).filter(type => !previousTypes.has(type)),
+      ]
 }, { immediate: true })
 
 // ====== Auto-edit/reply when annotation selected from canvas ======
@@ -357,12 +355,12 @@ watch(pdfContext?.isSidebarCollapsed ?? ref(true), (collapsed) => {
 
 // ====== Filter ======
 function toggleUser(user: string) { selectedUsers.value = selectedUsers.value.includes(user) ? selectedUsers.value.filter((u) => u !== user) : [...selectedUsers.value, user] }
-function toggleType(type: string) { selectedTypes.value = selectedTypes.value.includes(type) ? selectedTypes.value.filter((t) => t !== type) : [...selectedTypes.value, type] }
+function toggleType(type: AnnotationType) { selectedTypes.value = selectedTypes.value.includes(type) ? selectedTypes.value.filter((t) => t !== type) : [...selectedTypes.value, type] }
 function selectAll() { selectedUsers.value = allUsers.value.map(([u]) => u); selectedTypes.value = allTypes.value.map(([t]) => t) }
 function clearAll() { selectedUsers.value = []; selectedTypes.value = [] }
 
 const filteredAnnotations = computed(() =>
-  props.annotations.filter((a) => selectedUsers.value.includes(a.title) && selectedTypes.value.includes(a.subtype))
+  props.annotations.filter((a) => selectedUsers.value.includes(a.title) && selectedTypes.value.includes(a.type))
 )
 
 const groupedEntries = computed(() => {
@@ -386,6 +384,10 @@ function getAnnotationTypeLabel(annotation: IAnnotationStore): string {
   const name = annotationDefinitionsByType.get(annotation.type)?.name
   return name ? t(`annotator.tool.${name}`) : annotation.subtype
 }
+function getAnnotationFilterTypeLabel(type: AnnotationType, fallbackLabel: string): string {
+  const name = annotationDefinitionsByType.get(type)?.name
+  return name ? t(`annotator.tool.${name}`) : fallbackLabel
+}
 function getAnnotationAuthor(annotation: IAnnotationStore): string {
   return getAnnotationAuthorName(annotation) ?? annotation.title
 }
@@ -397,14 +399,8 @@ function getAnnotationHeading(annotation: IAnnotationStore): string {
 function formatDate(date: string | null): string {
   return formatPDFCompactDateTime(date)
 }
-function showAnnotationPreview(annotationId: string): boolean {
-  if (annotationHover.value.annotationId !== annotationId) return false
-  return annotationHover.value.source === 'canvas'
-    || annotationHover.value.source === 'canvas-passive'
-}
 function isAnnotationHeadingActive(annotationId: string): boolean {
   return selectedAnnotationId.value === annotationId
-    || annotationHover.value.annotationId === annotationId
 }
 
 const statusOptions = [
@@ -449,52 +445,6 @@ function handleReplyMenuCloseAutoFocus(replyId: string, event: Event) {
   if (editReplyId.value === replyId) event.preventDefault()
 }
 
-function handleAnnotationPointerEnter(annotationId: string, event: PointerEvent) {
-  if (event.pointerType === 'touch') return
-  pointerHoveredAnnotationId = annotationId
-  painter.value?.setAnnotationHover('sidebar-pointer', annotationId)
-}
-
-function handleAnnotationPointerLeave(annotationId: string) {
-  if (pointerHoveredAnnotationId === annotationId) {
-    pointerHoveredAnnotationId = null
-  }
-  painter.value?.clearAnnotationHover('sidebar-pointer', annotationId)
-}
-
-function getAnnotationFocusOwner(target: EventTarget | null): string | null {
-  if (!(target instanceof Element)) return null
-  return target.closest<HTMLElement>('[data-annotation-hover-owner]')
-    ?.dataset.annotationHoverOwner ?? null
-}
-
-function handleAnnotationFocus(annotationId: string) {
-  if (focusedAnnotationId && focusedAnnotationId !== annotationId) {
-    painter.value?.clearAnnotationHover('sidebar-focus', focusedAnnotationId)
-  }
-  focusedAnnotationId = annotationId
-  painter.value?.setAnnotationHover('sidebar-focus', annotationId)
-}
-
-function clearAnnotationFocus(annotationId: string) {
-  if (focusedAnnotationId !== annotationId) return
-  focusedAnnotationId = null
-  painter.value?.clearAnnotationHover('sidebar-focus', annotationId)
-}
-
-function handleAnnotationBlur(annotationId: string, event: FocusEvent) {
-  if (getAnnotationFocusOwner(event.relatedTarget) === annotationId) return
-  clearAnnotationFocus(annotationId)
-}
-
-function handleDocumentFocusIn(event: FocusEvent) {
-  const owner = getAnnotationFocusOwner(event.target)
-  if (owner) {
-    handleAnnotationFocus(owner)
-  } else if (focusedAnnotationId) {
-    clearAnnotationFocus(focusedAnnotationId)
-  }
-}
 function addReplyWithStatusDirect(ann: IAnnotationStore, status: CommentStatus) {
   if (!can('annotation.change-status', ann)) return
   const opt = statusOptions.find((o) => o.key === status)
@@ -518,9 +468,6 @@ function startReply(ann: IAnnotationStore) {
 function selectAnnotation(ann: IAnnotationStore) {
   // Reset any open reply/edit states when switching to a different annotation
   if (replyAnnotationId.value !== ann.id) {
-    if (focusedAnnotationId && focusedAnnotationId !== ann.id) {
-      clearAnnotationFocus(focusedAnnotationId)
-    }
     replyAnnotationId.value = null
     editAnnotationId.value = null
     editReplyId.value = null
@@ -553,6 +500,34 @@ watch([groupedEntries, pendingReferenceAnnotationId], async () => {
   })
 })
 
+watch([editAnnotationId, replyAnnotationId, editReplyId], async ([editId, replyId, replyEditId]) => {
+  const annotationId = editId
+    || replyId
+    || props.annotations.find(annotation =>
+      annotation.comments?.some(comment => comment.id === replyEditId)
+    )?.id
+  if (!annotationId) {
+    if (editorScrollFrame !== null) {
+      cancelAnimationFrame(editorScrollFrame)
+      editorScrollFrame = null
+    }
+    return
+  }
+
+  await nextTick()
+  if (editorScrollFrame !== null) cancelAnimationFrame(editorScrollFrame)
+  editorScrollFrame = requestAnimationFrame(() => {
+    editorScrollFrame = null
+    const card = document.getElementById(`annotation-${annotationId}`)
+    const editor = card?.querySelector<HTMLElement>('[data-annotation-editor]')
+    editor?.scrollIntoView({
+      behavior: 'auto',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  })
+})
+
 function handleReferenceActivate(annotationId: string) {
   const annotation = props.annotations.find(item => item.id === annotationId)
   if (!annotation) return
@@ -560,8 +535,8 @@ function handleReferenceActivate(annotationId: string) {
   if (!selectedUsers.value.includes(annotation.title)) {
     selectedUsers.value = [...selectedUsers.value, annotation.title]
   }
-  if (!selectedTypes.value.includes(annotation.subtype)) {
-    selectedTypes.value = [...selectedTypes.value, annotation.subtype]
+  if (!selectedTypes.value.includes(annotation.type)) {
+    selectedTypes.value = [...selectedTypes.value, annotation.type]
   }
 
   pendingReferenceAnnotationId.value = annotation.id
@@ -578,7 +553,6 @@ function updateComment(ann: IAnnotationStore, draft: AnnotationReferenceContent)
     date: formatTimestamp(Date.now()),
   }, 'annotation.edit')
   editAnnotationId.value = null
-  clearAnnotationFocus(ann.id)
 }
 
 // ====== Add reply ======
@@ -601,7 +575,6 @@ function addReply(
   })
   painter.value.update(ann.id, { comments: [...(ann.comments || []), newReply] }, action)
   replyAnnotationId.value = null
-  clearAnnotationFocus(ann.id)
 }
 
 // ====== Update reply ======
@@ -620,22 +593,18 @@ function updateReply(
   )
   painter.value.update(ann.id, { comments: updatedComments }, 'comment.edit', reply)
   editReplyId.value = null
-  clearAnnotationFocus(ann.id)
 }
 
-function cancelAnnotationEdit(annotationId: string) {
+function cancelAnnotationEdit() {
   editAnnotationId.value = null
-  clearAnnotationFocus(annotationId)
 }
 
-function cancelReply(annotationId: string) {
+function cancelReply() {
   replyAnnotationId.value = null
-  clearAnnotationFocus(annotationId)
 }
 
-function cancelReplyEdit(annotationId: string) {
+function cancelReplyEdit() {
   editReplyId.value = null
-  clearAnnotationFocus(annotationId)
 }
 
 // ====== Delete ======
@@ -644,15 +613,12 @@ function deleteAnnotation(id: string) {
   if (!annotation || !can('annotation.delete', annotation)) return
   const deleted = painter.value?.delete(id, true) ?? false
   if (deleted) {
-    if (pointerHoveredAnnotationId === id) pointerHoveredAnnotationId = null
-    if (focusedAnnotationId === id) focusedAnnotationId = null
     emit('delete', id)
   }
 }
 
 // ====== Mount check: sidebar just opened with an existing selection ======
 onMounted(() => {
-  document.addEventListener('focusin', handleDocumentFocusIn, true)
   const sel = store.selectedAnnotation
   if (sel && sel.source === SelectionSource.CANVAS) {
     nextTick(() => autoOpenComment(sel.store as IAnnotationStore))
@@ -661,17 +627,13 @@ onMounted(() => {
 
 // ====== Cleanup on unmount ======
 onUnmounted(() => {
-  document.removeEventListener('focusin', handleDocumentFocusIn, true)
-  if (pointerHoveredAnnotationId) {
-    painter.value?.clearAnnotationHover('sidebar-pointer', pointerHoveredAnnotationId)
-    pointerHoveredAnnotationId = null
-  }
-  if (focusedAnnotationId) {
-    clearAnnotationFocus(focusedAnnotationId)
-  }
   if (pendingReferenceScrollFrame !== null) {
     cancelAnimationFrame(pendingReferenceScrollFrame)
     pendingReferenceScrollFrame = null
+  }
+  if (editorScrollFrame !== null) {
+    cancelAnimationFrame(editorScrollFrame)
+    editorScrollFrame = null
   }
   pendingReferenceAnnotationId.value = null
   replyAnnotationId.value = null
@@ -682,13 +644,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.annotation-card--preview {
-  border-color: var(--inklayer-primary);
-  background-color: var(--color-accent);
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .annotation-card:not(.annotation-card--preview):hover {
+  .annotation-card:hover {
     background-color: var(--color-accent);
   }
 }

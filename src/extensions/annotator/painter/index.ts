@@ -153,9 +153,7 @@ export class Painter {
         })
         this.unsubscribeAnnotationHover = this.annotationHover.subscribe((snapshot) => {
             this.authorLabels.setHovered(snapshot.annotationId)
-            this.hoverPreview.setHovered(
-                snapshot.source === 'canvas-passive' ? null : snapshot.annotationId
-            )
+            this.hoverPreview.setHovered(null)
         })
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
@@ -1157,8 +1155,9 @@ export class Painter {
         const { x, y } = annotation.konvaClientRect
 
         if (pageView?.viewport) {
-            // 把 Konva 的左上角坐标转换为 PDF 内部坐标（以页面左下角为原点）
-            const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(x, y - 200)
+            const viewportX = x * pageView.viewport.scale
+            const viewportY = Math.max(0, y * pageView.viewport.scale - 200)
+            const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(viewportX, viewportY)
             this.pdfViewerApplication.scrollPageIntoView({
                 pageNumber: annotation.pageNumber,
                 destArray: [null, { name: 'XYZ' }, pdfX, pdfY, null],

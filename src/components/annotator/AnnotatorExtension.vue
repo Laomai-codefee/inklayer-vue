@@ -154,7 +154,10 @@ onMounted(() => { disposed = false; if (pdfContext.isReady.value) { store.clearA
 watch(
   [() => userContext?.user.value, () => props.annotationPermissions],
   ([user, permissions]) => {
-    if (user) painter?.setPermissionContext(user, permissions)
+    if (user) {
+      menuBarRef.value?.close()
+      painter?.setPermissionContext(user, permissions)
+    }
   },
   { deep: true },
 )

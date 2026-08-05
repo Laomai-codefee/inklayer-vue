@@ -8,7 +8,8 @@ import { NAVIGATION_PAGE_MARKERS_CHANGED_EVENT } from '@/components/navigation/n
 
 const painterMocks = vi.hoisted(() => ({
     instances: [] as any[],
-    resolveAnnotations: null as null | (() => void)
+    resolveAnnotations: null as null | (() => void),
+    menuClose: vi.fn()
 }))
 
 vi.mock('@/extensions/annotator/painter', () => ({
@@ -17,6 +18,7 @@ vi.mock('@/extensions/annotator/painter', () => ({
         initWebSelection = vi.fn()
         destroy = vi.fn()
         activate = vi.fn()
+        setPermissionContext = vi.fn()
         reRenderAnnotations = vi.fn()
         getKonvaCanvasStore = vi.fn(() => new Map([[1, {}]]))
         getDeleteUndoSnapshot = vi.fn(() => null)
@@ -35,7 +37,14 @@ vi.mock('@/extensions/annotator/components/selection_bar/SelectionBar.vue', () =
     default: { template: '<div />', methods: { setPainterRef() {}, open() {}, close() {} } }
 }))
 vi.mock('@/extensions/annotator/components/menu_bar/MenuBar.vue', () => ({
-    default: { template: '<div />', methods: { setMenuBarPainter() {}, open() {}, close() {} } }
+    default: {
+        template: '<div />',
+        methods: {
+            setMenuBarPainter() {},
+            open() {},
+            close() { painterMocks.menuClose() }
+        }
+    }
 }))
 
 import AnnotatorExtension from '../AnnotatorExtension.vue'
@@ -45,6 +54,7 @@ describe('AnnotatorExtension lifecycle', () => {
         setActivePinia(createPinia())
         painterMocks.instances.length = 0
         painterMocks.resolveAnnotations = null
+        painterMocks.menuClose.mockClear()
     })
 
     it('does not rerender after unmount while annotations are still loading', async () => {
@@ -98,6 +108,51 @@ describe('AnnotatorExtension lifecycle', () => {
         expect(painter.reRenderAnnotations).not.toHaveBeenCalled()
         expect(eventBus.off).toHaveBeenCalledWith('pagerendered', expect.any(Function))
         expect(eventBus.off).toHaveBeenCalledWith('documentloaded', expect.any(Function))
+    })
+
+    it('closes the old annotation menu before applying a new permission context', async () => {
+        const eventBus = {
+            on: vi.fn(), off: vi.fn(), _on: vi.fn(), _off: vi.fn(), dispatch: vi.fn()
+        }
+        const viewer = {
+            viewer: document.createElement('div'),
+            pdfDocument: {},
+            pagesCount: 1,
+            getPageView: vi.fn()
+        }
+        const pdfContext: PdfViewerContextValue = {
+            pdfDocument: ref({}),
+            pdfViewer: ref(viewer),
+            eventBus: ref(eventBus),
+            viewerContainerRef: shallowRef(null),
+            isReady: ref(true),
+            activeSidebarPanel: ref(null),
+            toggleSidebar: vi.fn(), openSidebar: vi.fn(), closeSidebar: vi.fn(),
+            isSidebarCollapsed: ref(false), print: vi.fn(), download: vi.fn()
+        }
+        const user = ref({ id: 'alice', name: 'Alice' })
+        const wrapper = mount(AnnotatorExtension, {
+            props: { annotationPermissions: { mode: 'owner-only' } },
+            global: {
+                provide: {
+                    [PdfViewerContextKey as symbol]: pdfContext,
+                    [UserContextKey as symbol]: { user: computed(() => user.value) }
+                }
+            }
+        })
+        const painter = painterMocks.instances[0]
+        painterMocks.menuClose.mockClear()
+
+        user.value = { id: 'bob', name: 'Bob' }
+        await wrapper.setProps({ annotationPermissions: { mode: 'unrestricted' } })
+
+        expect(painterMocks.menuClose).toHaveBeenCalledOnce()
+        expect(painter.setPermissionContext).toHaveBeenCalledWith(
+            { id: 'bob', name: 'Bob' },
+            { mode: 'unrestricted' }
+        )
+        expect(painterMocks.instances).toHaveLength(1)
+        wrapper.unmount()
     })
 
     it('publishes annotation counts by page and clears them on unmount', async () => {

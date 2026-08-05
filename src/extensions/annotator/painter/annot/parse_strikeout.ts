@@ -31,7 +31,7 @@ export class StrikeOutParser extends AnnotationParser {
             Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
             QuadPoints: quadPoints,
             C: rgbToPdfColor(annotation.color || '#000000'),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             // 这里如果置空，写入的批注中就不会出现内容，和 highlight 不一致
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),

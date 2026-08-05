@@ -17,7 +17,7 @@ describe('getTransformerPermissionStyle', () => {
       borderStrokeWidth: 2,
       borderDash: [],
       opacity: 1,
-      authorLabelOpacity: 1,
+      authorLabelOpacity: 0.9,
       anchorFill: '#fff',
       anchorStrokeWidth: 2,
       anchorSize: 10,
@@ -28,8 +28,8 @@ describe('getTransformerPermissionStyle', () => {
     expect(getTransformerPermissionStyle(false)).toEqual({
       borderStrokeWidth: 2,
       borderDash: [3, 3],
-      opacity: 0.5,
-      authorLabelOpacity: 0.8,
+      opacity: 1,
+      authorLabelOpacity: 0.9,
       anchorFill: 'transparent',
       anchorStrokeWidth: 0,
       anchorSize: 0,
@@ -44,7 +44,7 @@ describe('Selector permission interaction', () => {
 
   it.each([
     ['editable', true, true, true, [], 1],
-    ['read-only', false, false, false, [3, 3], 0.5],
+    ['read-only', false, false, false, [3, 3], 1],
   ] as const)(
     'keeps an annotation selectable while applying the %s transform state',
     (_state, allowed, draggable, resizeEnabled, borderDash, opacity) => {

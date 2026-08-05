@@ -20,6 +20,7 @@ import { formatPDFDate, getPDFDateTimestamp, getTimestampString } from '../../ut
 import { AnnotationType, annotationDefinitions, CommentStatus, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
+import { isValidReferenceNumber } from '../../references/annotation_numbering'
 
 
 // 映射不同批注类型到对应的解析器类
@@ -82,6 +83,18 @@ function downloadPdf(data: Uint8Array, filename: string) {
 function downloadExcel(data: any, filename: string) {
     const buffer = new Blob([data], { type: 'application/octet-stream' })
     saveAs(buffer, `${filename}.xlsx`)
+}
+
+export interface ExcelExportRow {
+    index: string
+    id: string
+    page: number | ''
+    annotationType: string
+    recordType: string
+    author: string
+    content: string
+    date: string
+    status: string
 }
 
 /**
@@ -165,10 +178,10 @@ async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotatio
     downloadPdf(modifiedPdf, fileName)
 }
 
-async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    const rows: any[] = []
+export function buildExcelExportRows(annotations: IAnnotationStore[]): ExcelExportRow[] {
+    const rows: ExcelExportRow[] = []
     // 先按页码升序，再按批注时间降序
-    annotations.sort((a, b) => {
+    const sortedAnnotations = [...annotations].sort((a, b) => {
         if (a.pageNumber !== b.pageNumber) {
             return a.pageNumber - b.pageNumber
         }
@@ -184,12 +197,15 @@ async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annota
     let mainIndex = 1 // 主批注序号
     let replyCounter: number = 0 // 回复计数器（每次主批注开始重置）
 
-    annotations.forEach(annotation => {
+    sortedAnnotations.forEach(annotation => {
         const annotationName = annotationDefinitions.find(def => def.type === annotation.type)?.name
         const typeLabel = t(`annotator:tool.${annotationName}`)
+        const annotationIndex = isValidReferenceNumber(annotation.referenceNumber)
+            ? `#${annotation.referenceNumber}`
+            : `#${mainIndex}`
         // 主批注行
         rows.push({
-            index: `${mainIndex}`,
+            index: annotationIndex,
             id: annotation.id,
             page: annotation.pageNumber,
             annotationType: typeLabel,
@@ -205,7 +221,7 @@ async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annota
         annotation.comments.forEach(comment => {
             replyCounter++
             rows.push({
-                index: `${mainIndex}.${replyCounter}`,
+                index: `${annotationIndex}.${replyCounter}`,
                 id: comment.id,
                 page: '',
                 annotationType: '--',
@@ -218,6 +234,12 @@ async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annota
         })
         mainIndex++
     })
+
+    return rows
+}
+
+async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
+    const rows = buildExcelExportRows(annotations)
 
     const ExcelJS = await import('exceljs');
 
