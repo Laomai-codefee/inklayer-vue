@@ -285,13 +285,13 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
      * - save: () => void 保存当前批注
      * - getAnnotations: () => Annotation[] 获取当前批注（Core 格式）
      * - exportToExcel: () => void 导出到 Excel
-     * - exportToPdf: () => void 导出到 PDF
+     * - exportToPdf: () => Promise<void> 导出到 PDF
      */
     actions?: Component<{
         save: () => void
         getAnnotations: () => Annotation[]
         exportToExcel: (fileName?: string) => void
-        exportToPdf: (fileName?: string) => void
+        exportToPdf: (fileName?: string) => Promise<void>
     }>
 
     /**

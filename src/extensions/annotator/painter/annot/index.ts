@@ -97,6 +97,10 @@ export interface ExcelExportRow {
     status: string
 }
 
+export interface PdfExportOptions {
+    replaceNativeAnnotations?: boolean
+}
+
 /**
  * 从 PDF 中移除将由 InkLayer 重建的批注，并保留链接、表单等原始批注。
  *
@@ -135,7 +139,8 @@ function removeReplaceableAnnotations(pdfDoc: PDFDocument) {
 
 export async function buildAnnotatedPdf(
     PDFViewerApplication: PDFViewer,
-    annotations: IAnnotationStore[]
+    annotations: IAnnotationStore[],
+    options: PdfExportOptions = {}
 ): Promise<Uint8Array> {
     const pdfDocument = PDFViewerApplication.pdfDocument
     if (!pdfDocument) throw new Error('Cannot export annotations before the PDF document is ready.')
@@ -156,7 +161,9 @@ export async function buildAnnotatedPdf(
         return { annotation, page, pageView }
     })
 
-    removeReplaceableAnnotations(pdfDoc)
+    if (options.replaceNativeAnnotations !== false) {
+        removeReplaceableAnnotations(pdfDoc)
+    }
     for (const { annotation, page, pageView } of exportEntries) {
         await parseAnnotationToPdf(annotation, page, pdfDoc, pageView)
     }
@@ -171,8 +178,13 @@ export async function buildAnnotatedPdf(
  * @param url - 要加载的 PDF 文件 URL
  * @param annotations - 解析后的批注数据数组
  */
-async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations)
+async function exportAnnotationsToPdf(
+    PDFViewerApplication: PDFViewer,
+    annotations: IAnnotationStore[],
+    baseName?: string,
+    options: PdfExportOptions = {}
+) {
+    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations, options)
     const fileName = baseName || `annotated_${getTimestampString()}`
 
     downloadPdf(modifiedPdf, fileName)

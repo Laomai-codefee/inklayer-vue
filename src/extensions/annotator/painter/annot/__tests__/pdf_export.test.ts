@@ -209,6 +209,30 @@ describe('PDF annotation export', () => {
         expect(subtypes).toEqual(['/Link', '/Square'])
     })
 
+    it('preserves existing native annotations when replacement is disabled', async () => {
+        const source = await PDFDocument.create()
+        const page = source.addPage([PAGE_WIDTH, PAGE_HEIGHT])
+        const oldSquare = source.context.register(source.context.obj({
+            Type: PDFName.of('Annot'),
+            Subtype: PDFName.of('Square'),
+            Rect: [10, 10, 30, 30],
+            NM: PDFString.of('old-square')
+        }))
+        page.node.set(PDFName.of('Annots'), source.context.obj([oldSquare]))
+
+        const result = await buildAnnotatedPdf(
+            createViewer(await source.save()),
+            [createAnnotation({ id: 'new-square' })],
+            { replaceNativeAnnotations: false }
+        )
+        const exported = await PDFDocument.load(result)
+        const ids = getAnnotationDictionaries(exported).map(annotation =>
+            annotation.lookup(PDFName.of('NM'), PDFString).decodeText()
+        )
+
+        expect(ids).toEqual(['old-square', 'new-square'])
+    })
+
     it.each([
         ['Highlight', AnnotationType.HIGHLIGHT, PdfjsAnnotationType.HIGHLIGHT, 'Highlight'],
         ['Underline', AnnotationType.UNDERLINE, PdfjsAnnotationType.UNDERLINE, 'Underline'],
@@ -342,6 +366,47 @@ describe('PDF annotation export', () => {
         expect(arrow.has(PDFName.of('LE'))).toBe(false)
         expect(inkPoints.slice(0, 4)).toEqual([40, 740, 100, 695])
         expect(Math.hypot(headRight.x - headLeft.x, headRight.y - headLeft.y)).toBeCloseTo(17.68, 2)
+    })
+
+    it('round-trips a native Line without line endings as a plain PDF Line', async () => {
+        const sourceData = await createBlankPdf()
+        const pdfjsAnnotation = {
+            annotationType: PdfjsAnnotationType.LINE,
+            id: 'plain-line',
+            pageNumber: 1,
+            pageViewer: createPageView(),
+            rect: [90, 590, 410, 660],
+            lineCoordinates: [100, 600, 400, 650],
+            color: new Uint8ClampedArray([255, 0, 0]),
+            borderStyle: { width: 2, style: 1, dashArray: [] },
+            titleObj: { str: 'Alice' },
+            contentsObj: { str: '' },
+            modificationDate: null,
+            subtype: 'Line'
+        }
+        const viewer = {
+            pdfDocument: {
+                numPages: 1,
+                getData: async () => sourceData,
+                getPage: async () => ({ getAnnotations: async () => [pdfjsAnnotation] }),
+                annotationStorage: { setValue: vi.fn() }
+            },
+            getPageView: () => createPageView()
+        } as unknown as PDFViewer
+
+        const stores = await new Transform(viewer).decodePdfAnnotation()
+        const restored = stores.get('plain-line')
+        expect(JSON.parse(restored!.konvaString).children[0].className).toBe('Line')
+
+        const result = await buildAnnotatedPdf(createViewer(sourceData), [restored!])
+        const exported = await PDFDocument.load(result)
+        const [line] = getAnnotationDictionaries(exported)
+        const lineEndings = line.lookup(PDFName.of('LE'), PDFArray)
+
+        expect(line.lookup(PDFName.of('Subtype'), PDFName).toString()).toBe('/Line')
+        expect(getNumberArray(line, 'L')).toEqual([100, 600, 400, 650])
+        expect(lineEndings.lookup(0, PDFName).toString()).toBe('/None')
+        expect(lineEndings.lookup(1, PDFName).toString()).toBe('/None')
     })
 
     it('restores marked Cloud, FreeText and Arrow annotations to their business types', async () => {

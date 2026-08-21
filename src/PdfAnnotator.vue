@@ -178,7 +178,9 @@ async function handleExportPdf(name?: string) {
   const p = annotatorRef.value?.getPainter?.()
   const viewer = p?.getPDFViewer?.()
   if (p && viewer) {
-    await exportAnnotationsToPdf(viewer as any, p.getData(), name)
+    await exportAnnotationsToPdf(viewer as any, p.getData(), name, {
+      replaceNativeAnnotations: props.enableNativeAnnotations
+    })
   }
 }
 
