@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.2.2...v1.2.3) (2026-08-21)
+
+
+### Bug Fixes
+
+* **annotator:** preserve native PDF lines and annotations ([4ba2228](https://github.com/Laomai-codefee/inklayer-vue/commit/4ba2228d17c45047b9140d402f027fb139c96e95)), closes [Laomai-codefee/inklayer-react#6](https://github.com/Laomai-codefee/inklayer-react/issues/6)
+
 ### [1.2.2](https://github.com/Laomai-codefee/inklayer-vue/compare/v1.2.1...v1.2.2) (2026-08-05)
 
 
